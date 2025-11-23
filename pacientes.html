@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes | VR Terapéutica</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<header class="header">
+    <h1>Terapia VR</h1>
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="sesion.html">Nueva Sesión</a>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="perfil-top">
+    <h2>Pacientes</h2>
+
+    <button class="btn-principal" onclick="location.href='nuevo-paciente.html'">
+         Registrar nuevo paciente
+    </button>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ingreso</th>
+                    <th>Sesiones</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-pacientes">
+                <!-- se llena con JS -->
+            </tbody>
+        </table>
+    </div>
+</main>
+    <script src="JS/pacientes.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="JS/firebase.js"></script> 
+</body>
+</html>

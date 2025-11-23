@@ -1,0 +1,66 @@
+<!-- formulario nueva sesió --><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Sesión</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+    <body>
+        <header class="header">
+            <h1>Terapia VR</h1>
+            <nav>
+                <a href="index.html">Dashboard</a>
+                <a href="pacientes.html">Pacientes</a>
+            </nav>
+        </header>
+
+        <main class="page">
+
+            <div class="botones-top">
+                <h2>Nueva Sesión</h2>
+                <h2 id="current-date">Current Date</h2>
+            </div>
+            
+
+            <form class="form" id="form-sesion">
+
+                <label>Paciente</label>
+                <select id="pacienteSelect"></select>
+
+                <label>Fecha</label>
+                <input type="date" id="fechaSesion">
+
+                <label>Entorno VR</label>
+                <select id="entornoVR">
+                    <option value="Altura">Altura</option>
+                    <option value="Claustrofobia">Claustrofobia</option>
+                    <option value="Espacio Confinado">Espacio Confinado</option>
+                    <option value="Mindfulness">Mindfulness</option>
+                    <option value="Entorno Industrial">Entorno Industrial</option>
+                </select>
+
+                <label>Nivel de Exposición (1–10)</label>
+                <input type="number" id="exposicion" min="1" max="10">
+
+                <label>Ansiedad Después (1–10)</label>
+                <input type="number" id="ansDespues" min="1" max="10">
+
+                <label>Comentarios del paciente</label>
+                <textarea id="comentariosPaciente"></textarea>
+
+                <label>Observaciones de la terapeuta</label>
+                <textarea id="observaciones"></textarea>
+
+                <button type="submit" class="btn-principal">Guardar sesión</button>
+
+            </form>
+
+        </main>
+        <script src="JS/sesiones.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        <script src="JS/firebase.js"></script> 
+    </body>
+</html>

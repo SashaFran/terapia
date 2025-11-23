@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Nuevo Paciente</title>
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+
+    <body>
+    <header class="header">
+        <h1>Terapia VR</h1>
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="pacientes.html">Pacientes</a>
+        </nav>
+    </header>
+
+    <main class="page">
+
+        <h2>Registrar nuevo paciente</h2>
+
+        <form class="form" id="form-nuevo-paciente">
+
+            <label>Nombre completo</label>
+            <input type="text" id="nombre" required>
+
+            <label>Fecha de nacimiento</label>
+            <input type="date" id="fechaNacimiento" required>
+
+            <label>Contacto (email o teléfono)</label>
+            <input type="text" id="contacto">
+
+            <label>Fecha de ingreso</label>
+            <input type="date" id="fechaIngreso" required>
+
+            <label>Motivo / Diagnóstico</label>
+            <input type="text" id="motivo">
+
+            <label>Notas iniciales</label>
+            <textarea id="notasIniciales"></textarea>
+
+            <button type="submit" class="btn-principal">Guardar paciente</button>
+
+        </form>
+
+    </main>
+        <script src="JS/nuevo-paciente.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        <script src="JS/firebase.js"></script> 
+    </body>
+</html>

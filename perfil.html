@@ -1,0 +1,100 @@
+<!-- perfil + sesiones -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Paciente</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="header">
+        <h1>Terapia VR</h1>
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="pacientes.html">Pacientes</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <div class="perfil-top">
+            <h2 id="nombre-paciente">Paciente</h2>
+            <div class="botones-top">
+                <button class="btn-editar" id="btn-editar">
+                    Editar paciente
+                </button>
+                <button class="btn-borrar" id="btn-borrar">
+                    Borrar paciente
+                </button>
+            </div>
+        </div>
+
+        <div class="card perfil-info">
+            <p><strong>Contacto:</strong> <span id="contacto"></span></p>
+            <p><strong>Fecha de nacimiento:</strong> <span id="fecha-nac"></span></p>
+            <p><strong>Ingreso:</strong> <span id="fecha-ingreso"></span></p>
+            <p><strong>Motivo / Diagnóstico:</strong> <span id="motivo"></span></p>
+            <p><strong>Notas iniciales:</strong> <span id="notas"></span></p>
+        </div>
+        <div class="perfil-top">
+            <h3>Sesiones realizadas</h3>
+            <button class="btn-principal" id="nueva-sesion-btn" onclick="location.href='sesion.html'">
+                Nueva sesión
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Entorno VR</th>
+                        <th>Exposición</th>
+                        <th>Ansiedad</th>
+                        <th>Comentarios</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-sesiones">
+                    <!-- JS -->
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="modal-editar" class="modal">
+        <div class="modal-content">
+            <h3>Editar paciente</h3>
+
+            <label>Nombre</label>
+            <input type="text" id="edit-nombre">
+
+            <label>Contacto</label>
+            <input type="text" id="edit-contacto">
+
+            <div class="modal-buttons">
+                <button id="modal-guardar" class="btn-editar">Guardar</button>
+                <button id="modal-cerrar" class="btn-borrar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    </main>
+
+    <div id="modal-comentarios" class="modal-comentarios">
+        <div class="modal-content-com">
+            <span id="cerrar-modal-com">✖</span>
+
+            <h3>Comentarios del paciente</h3>
+            <p id="comentarios-texto"></p>
+
+            <h3>Observaciones</h3>
+            <p id="observaciones-texto"></p>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="JS/firebase.js"></script> 
+    <script src="JS/perfil.js"></script>
+
+    </body>
+</html>

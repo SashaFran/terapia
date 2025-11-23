@@ -1,0 +1,1 @@
+// funciones globales (auth, base de datos)

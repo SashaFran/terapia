@@ -1,0 +1,57 @@
+<!-- dashboard --><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | VR Terapéutica</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="header">
+        <h1>Terapia VR</h1>
+        <nav>
+            <a href="pacientes.html">Pacientes</a>
+            <a href="sesion.html">Nueva Sesión</a>
+        </nav>
+    </header>
+
+    <main class="dashboard">
+        <h2>Dashboard</h2>
+
+        <div class="stats">
+            <div class="card">
+                <h3>Pacientes activos</h3>
+                <p id="total-pacientes">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Sesiones registradas</h3>
+                <p id="total-sesiones">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Última sesión</h3>
+                <p id="ultima-sesion">—</p>
+            </div>
+        </div>
+
+        <button class="btn-principal" onclick="location.href='sesion.html'">
+            Registrar nueva sesión
+        </button>
+
+    </main>
+    <!-- Firebase Core -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+<!-- Firestore -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<!-- Tu archivo firebase.js -->
+<script src="JS/firebase.js"></script>
+
+<!-- Tu archivo index.js -->
+<script src="JS/index.js"></script>
+
+</body>
+</html>
