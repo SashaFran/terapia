@@ -1,0 +1,12 @@
+.container {
+    padding: 16px;
+    border-radius: 8px;
+    background: #f7ede4;
+    color: #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    margin: 1.2rem 0;
+}
+.role, .name {
+  margin: 0;
+  font-size: 0.85rem;
+}

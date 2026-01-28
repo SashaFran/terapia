@@ -1,0 +1,58 @@
+/* Base button styles */
+.boton-base {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius);
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  min-width: 0;
+  align-self: center;
+  text-wrap: nowrap;
+  border: 1px solid transparent;
+  min-width: 120px;
+  max-width: 100%;
+  min-height: 50px;
+  max-height: 50px;
+}
+
+/* Primary variant */
+.boton-primary {
+    background-color: var(--naranja2);
+    color: white;
+}
+
+.boton-primary:hover {
+  background-color: var(--naranja);
+}
+
+/* Secondary variant */
+.boton-secondary {
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  color: var(--gris-bg);
+}
+
+.boton-secondary:hover {
+  background-color: #545b62;
+}
+
+/* Danger variant */
+.boton-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.boton-danger:hover {
+  background-color: #bb2d3b;
+}
+
+/* Disabled state */
+.boton-base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,36 @@
+.testContainer {
+  color: #333;
+  display: flex;
+  flex-direction: column;
+
+  gap: 1rem;
+  background: white;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.testCard {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.testCardItems {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}

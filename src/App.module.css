@@ -1,0 +1,39 @@
+.layout {
+display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;
+  overflow: hidden; /* 👈 nunca más scroll horizontal */
+
+}
+
+.mainArea {
+  flex: 1;
+  height: 100vh;
+  overflow: hidden;
+  display: flex; /* 👈 clave */
+}
+
+
+.mainContent {
+  height: 100%;
+  overflow-y: auto; /* 👈 scroll solo acá */
+  padding: 24px;
+  background: #f6f7f9;
+  width: 100vw;
+}
+
+
+
+/* Responsive */
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 80px 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+    }
+}

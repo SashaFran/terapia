@@ -1,0 +1,44 @@
+.container{
+  margin: 0 auto;
+    color: #333;
+    
+}
+.nav{
+  display: inline-flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: white;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
+}
+
+
+.tablaPacientes {
+  width: 100%;
+  background-color: var(--gris-bg);
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--gris-dark);
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
+  text-align: justify;
+}
+.centerAlign {
+  text-align: center;
+}
+
+span{
+  text-wrap: nowrap;
+}
+
+.inputGroup{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}

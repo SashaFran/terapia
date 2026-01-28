@@ -1,0 +1,55 @@
+.container {
+  color: #333;
+}
+.tablaPacientes {
+  width: 100%;
+  background: white;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+  text-align: justify;
+  display: flex;
+  flex-direction: column;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+.centerAlign {
+  text-align: center;
+}
+
+.navCards {
+  display: flex;
+  gap: 2rem;
+  margin: 0.5rem 0;
+}
+.card {
+  background: white;
+  padding: 1.2rem;
+  border-radius: var(--radius);
+  width: 100%;
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
+}
+.cardTitle {
+  color: var(--gris-med);
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+}
+.cardResult {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--gris-dark);
+  margin: 0;
+}
+tbody button {
+  color: #1b263b;
+  border: none;
+  background-color: transparent;
+  padding: 0.6em 0;
+}
