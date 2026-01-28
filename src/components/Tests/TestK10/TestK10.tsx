@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { K10_TEST } from "../../../data/tests/k10";
 import BotonPersonalizado from "../../Boton/Boton";
-import styles from "./TestK10.module.css";
+import styles from "../TestK10/Testk10.module.css";
 // Asegúrate de que esta ruta sea correcta para tu componente Modal global
 import Modal from "../../Modal/Modal.tsx";
 

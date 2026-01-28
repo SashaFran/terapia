@@ -1,6 +1,6 @@
 // components/Modal/Modal.tsx (El componente global)
 import styles from "../Modal/Modal.module.css";
-import { ReactNode } from 'react'; // Importamos ReactNode para tipar el contenido
+import type { ReactNode } from 'react'; // Importamos ReactNode para tipar el contenido
 
 interface Props {
   abierto: boolean;
