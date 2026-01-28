@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import styles from "./sidebar.module.css";
+import styles from "../Sidebar/Sidebar.module.css";
 import logo from "../../assets/IMAGES/JOIN SOLUTION.svg";
 import UserCard from "../UserCard/UserCard";
 import BotonPersonalizado from "../Boton/Boton.tsx";
