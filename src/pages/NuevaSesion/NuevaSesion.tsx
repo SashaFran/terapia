@@ -21,6 +21,18 @@ const TESTS = [
     descripcion:
       "Cuestionario de 10 preguntas sobre ansiedad y depresión en el último mes.",
   },
+  {
+    id: "bfq",
+    nombre: "Escala de Personalidad BFQ",
+    descripcion:
+      "Evalúa cinco dimensiones de la personalidad.",
+  },
+   {
+    id: "laminas",
+    nombre: "Escala de Láminas Zulliger y Bender",
+    descripcion:
+      "Evaluación proyectiva con láminas visuales.",
+  },
 ];
 
 export default function NuevaSesion() {

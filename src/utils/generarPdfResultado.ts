@@ -58,7 +58,7 @@ export function generarPdfResultado({
   doc.text("Resultado", 14, 55);
 
   doc.setFontSize(11);
-  doc.text(`Puntaje total: ${resultado.score}`, 14, 63);
+  doc.text(`Puntaje total: ${resultado.score ?? "No aplica"}`, 14, 63);
   doc.text(`Nivel: ${resultado.nivel}`, 14, 70);
 
   // -----------------------

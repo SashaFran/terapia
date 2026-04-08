@@ -124,27 +124,32 @@ export default function Sesiones() {
       </div>
     );
   }
-  const descargarPDF = (resultado: any) => {
-    const testConfig = TESTS_REGISTRY[resultado.testId];
+ const descargarPDF = (resultado: any) => {
+  const testConfig = TESTS_REGISTRY[resultado.testId];
 
-    if (!testConfig) {
-      alert("Test no soportado todavía");
-      return;
-    }
+  if (!testConfig) {
+    alert("Test no soportado todavía");
+    return;
+  }
 
-    const resumen = testConfig.generarResumenClinico({
-      pacienteNombre: pacientesMap[resultado.pacienteId ?? ""] || "Paciente",
-      score: resultado.score,
-      nivel: resultado.nivel,
-      fecha: resultado.fecha?.toDate ? resultado.fecha.toDate() : new Date(),
-    });
+  // 🧠 Detectar BFQ vs otros tests
+  const isBFQ = resultado.testId === "bfq";
 
-    generarPDFClinico({
-      titulo: `Informe Clínico – ${testConfig.nombre}`,
-      contenido: resumen,
-      nombrePaciente: pacientesMap[resultado.pacienteId || ""] || "Paciente",
-    });
-  };
+  const resumen = testConfig.generarResumenClinico({
+    pacienteNombre: pacientesMap[resultado.pacienteId ?? ""] || "Paciente",
+    score: isBFQ ? resultado.dimensiones : resultado.score, // 🔥 clave
+    nivel: resultado.nivel,
+    fecha: resultado.fecha?.toDate
+      ? resultado.fecha.toDate()
+      : new Date(),
+  });
+
+  generarPDFClinico({
+    titulo: `Informe Clínico – ${testConfig.nombre}`,
+    contenido: resumen,
+    nombrePaciente: pacientesMap[resultado.pacienteId || ""] || "Paciente",
+  });
+};
   return (
     <div className={`global-container ${styles.container}`}>
       {/* HEADER */}

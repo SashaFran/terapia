@@ -101,7 +101,7 @@ export default function TestK10({ onFinish }: Props) {
             marginTop: "20px",
           }}
         >
-          <BotonPersonalizado variant="primary" onClick={iniciarTest}>
+          <BotonPersonalizado variant="primary" onClick={iniciarTest} disabled={false}>
             Comenzar Evaluación
           </BotonPersonalizado>
         </div>

@@ -59,6 +59,7 @@ interface Resultado {
   observacionesIniciales?: string;
   tiempoTotalMs?: number;
   score?: number; // 👈 ESTE CAMPO
+  dimensiones?: any;
 }
 
 
@@ -197,37 +198,41 @@ const combinedData: FilaTablaData[] = resultados.map(resultado => {
     setIsEditModalOpen(false);
   };
   
-  const descargarPDF = (rowData: FilaTablaData) => {
-    // rowData es FilaTablaData, accedemos a resultadoRaw
-    const resultado = rowData.resultadoRaw; 
-    if (!resultado.testId || !TESTS_REGISTRY[resultado.testId]) {
-  alert("Test no soportado o incompleto");
-  return;
-}
+const descargarPDF = (rowData: FilaTablaData) => {
+  const resultado = rowData.resultadoRaw;
 
-const testConfig = TESTS_REGISTRY[resultado.testId];
+  if (!resultado.testId || !TESTS_REGISTRY[resultado.testId]) {
+    alert("Test no soportado o incompleto");
+    return;
+  }
 
-    const duracionFormateada = resultado.tiempoTotalMs 
-      ? formatDuration(resultado.tiempoTotalMs) 
-      : 'No registrado';
+  const testConfig = TESTS_REGISTRY[resultado.testId];
 
-    const resumen = testConfig.generarResumenClinico({
-      pacienteNombre: patient?.nombre || "Paciente",
-      score: resultado.score!,
-      nivel: resultado.nivel!,
-      fecha: resultado.fecha?.toDate
-        ? resultado.fecha.toDate()
-        : new Date(),
-      duracionFormateada: duracionFormateada,
-    });
+  const duracionFormateada = resultado.tiempoTotalMs
+    ? formatDuration(resultado.tiempoTotalMs)
+    : "No registrado";
 
-    generarPDFClinico({
-      titulo: `Informe Clínico – ${testConfig.nombre}`,
-      contenido: resumen,
-      nombrePaciente: patient?.nombre || "Paciente",
-    });
-  };
+  const isBFQ = resultado.testId === "bfq";
 
+  const resumen = testConfig.generarResumenClinico({
+    pacienteNombre: patient?.nombre || "Paciente",
+
+    // 🔥 CLAVE
+    score: isBFQ ? resultado.dimensiones : resultado.score,
+
+    nivel: resultado.nivel,
+    fecha: resultado.fecha?.toDate
+      ? resultado.fecha.toDate()
+      : new Date(),
+    duracionFormateada,
+  });
+
+  generarPDFClinico({
+    titulo: `Informe Clínico – ${testConfig.nombre}`,
+    contenido: resumen,
+    nombrePaciente: patient?.nombre || "Paciente",
+  });
+};
   if (!patient) {
     return <div className="page"><h2>Cargando paciente...</h2></div>;
   }
@@ -270,8 +275,7 @@ const testConfig = TESTS_REGISTRY[resultado.testId];
 
     <div className={styles.nav}>
       <h4>Evaluaciones psicológicas</h4>
-      <BotonPersonalizado
-        variant="primary"
+      <BotonPersonalizado variant="primary" disabled={false}
         onClick={() => navigate("/nueva-sesion")}>Nueva sesión
       </BotonPersonalizado>
      </div>

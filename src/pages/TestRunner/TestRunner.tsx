@@ -2,6 +2,9 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import TestK10 from "../../components/Tests/TestK10/TestK10";
+import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
+import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
+import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 
@@ -15,30 +18,60 @@ export default function TestRunner() {
 
   //const { testId } = useParams();
 
-    const handleFinish = async (resultado: any) => {
-        const data = {
-            testId,
-            score: resultado.score,
-            nivel: resultado.nivel,
-            respuestas: resultado.respuestas,
-            metodo: resultado.metodo,
-            fecha: new Date(),
-            pacienteId,
-            sesionId,
-        };
-
-        console.log("Guardando en Firestore:", data);
-
-        await addDoc(collection(db, "resultados"), data);
-        navigate(`/pacientes/${pacienteId}`);
-    };
-
+ const handleFinish = async (resultado: any) => {
+  let data: any = {
+    testId,
+    respuestas: resultado.respuestas,
+    metodo: resultado.metodo,
+    fecha: new Date(),
+    pacienteId,
+    sesionId,
+  };
 
   if (testId === "k10") {
-    return <TestK10 onFinish={handleFinish} />;
+    data.score = resultado.score;
+    data.nivel = resultado.nivel;
   }
 
-  return <p>Test no encontrado</p>;
+  if (testId === "bfq") {
+    const scoreTotal = Object.values(resultado.dimensiones || {})
+      .reduce((acc: number, val: any) => acc + (val || 0), 0);
+
+    data.score = scoreTotal;
+    data.nivel = "Perfil Big Five";
+    data.dimensiones = resultado.dimensiones;
+  }
+
+ if (testId === "laminas") {
+  data.nivel = "Interpretación Láminas";
+
+  data.resumenClinico = generarResumenLaminas({
+    pacienteNombre: "Paciente",
+    fecha: new Date(),
+    respuestas: resultado.respuestas,
+  });
+}
+console.log("DATA FINAL:", data);
+  await addDoc(collection(db, "resultados"), data);
+  navigate(`/pacientes/${pacienteId}`);
+};
+
+if (testId === "k10") {
+  return <TestK10 onFinish={handleFinish} />;
+}
+
+if (testId === "bfq") {
+  return <TestBFQ onFinish={handleFinish} />;
+}
+
+if (testId === "laminas") {
+  return <TestLaminas onFinish={handleFinish} />;
+}
+
+return <p>Test no encontrado</p>;
+
+
+  
 }
 /* import { useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";

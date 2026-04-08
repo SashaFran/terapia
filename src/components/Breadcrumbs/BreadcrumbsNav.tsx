@@ -55,7 +55,7 @@ export default function BreadcrumbsNav() {
                         component={RouterLink}
                         to={pathTo}
                         sx={{ Transform: "uppercase" }}
-                        inputProps={{style: {textTransform: 'capitalize'}}} 
+                        inputprops={{style: {textTransform: 'capitalize'}}} 
                         
                     >
                         {label}
