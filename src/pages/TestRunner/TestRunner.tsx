@@ -6,6 +6,7 @@ import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
 import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import TestRaven from "../../components/Tests/TestRaven/TestRaven";
 
 
 export default function TestRunner() {
@@ -41,6 +42,11 @@ export default function TestRunner() {
     data.nivel = "Perfil Big Five";
     data.dimensiones = resultado.dimensiones;
   }
+    if (testId === "raven") {
+    data.nivel = resultado.nivel;
+    data.errores = resultado.errores;
+    data.respuestas = resultado.respuestas;
+  }
 
  if (testId === "laminas") {
   data.nivel = "Interpretación Láminas";
@@ -66,6 +72,9 @@ if (testId === "bfq") {
 
 if (testId === "laminas") {
   return <TestLaminas onFinish={handleFinish} />;
+}
+if (testId === "raven") {
+  return <TestRaven onFinish={handleFinish} />;
 }
 
 return <p>Test no encontrado</p>;

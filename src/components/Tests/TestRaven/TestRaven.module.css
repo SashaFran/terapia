@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.imagen {
+  border-radius: 8px;
+}
+
+.input {
+  padding: 0.625rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.boton {
+  margin: 1.5rem;
+  align-self: center;
+}

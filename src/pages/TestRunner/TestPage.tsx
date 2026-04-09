@@ -51,7 +51,6 @@ export default function TestPage() {
       <TestK10
         onFinish={(resultado) => {
           console.log("Resultado K10:", resultado);
-          // Lógica para guardar
         }}
       />
     )}
@@ -113,29 +112,29 @@ export default function TestPage() {
     )}
 
     {testId === "laminas" && (
-  <TestLaminas
-    onFinish={(resultado) => {
-      console.log("Resultado Láminas:", resultado);
+      <TestLaminas
+        onFinish={(resultado) => {
+          console.log("Resultado Láminas:", resultado);
 
-      const resumenClinico = generarResumenLaminas({
-        pacienteNombre: "Paciente",
-        fecha: new Date(),
-        respuestas: resultado.respuestas,
-      });
+          const resumenClinico = generarResumenLaminas({
+            pacienteNombre: "Paciente",
+            fecha: new Date(),
+            respuestas: resultado.respuestas,
+          });
 
-      guardarResultado({
-        testId: "laminas",
-        score: null, // 👈 importante
-        nivel: "Interpretación Láminas",
-        respuestas: resultado.respuestas,
-        metodo: resultado.metodo,
-        fecha: new Date(),
-        pacienteId,
-        sesionId,
-        resumenClinico, // 👈 ESTO ES LA CLAVE
-      });
-    }}
-  />
+          guardarResultado({
+            testId: "laminas",
+            score: null, // 👈 importante
+            nivel: "Interpretación Láminas",
+            respuestas: resultado.respuestas,
+            metodo: resultado.metodo,
+            fecha: new Date(),
+            pacienteId,
+            sesionId,
+            resumenClinico, // 👈 ESTO ES LA CLAVE
+          });
+        }}
+      />
 )}
   </>
   

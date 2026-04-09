@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { ZULLIGER_TEST } from "../../../data/tests/zulliger_test";
 import RotatableImage from "./RotatableImage";
 import BotonPersonalizado from "../../Boton/Boton";
+import styles from "./TestZulliger.module.css";
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -31,22 +32,18 @@ export default function TestZulliger({ onFinish }: Props) {
   };
 
   return (
-    <div className="global-container">
+    <div className={styles.container}>
       <h2>{ZULLIGER_TEST.nombre}</h2>
 
       {ZULLIGER_TEST.imagenes.map((img, i) => (
-        <div key={i} style={{ marginBottom: 40 }}>
+        <div key={i} className={styles.containerImg}>
           <RotatableImage src={img} />
 
           <textarea
             placeholder="¿Qué ves en esta lámina?"
             value={respuestas[i]}
             onChange={(e) => handleChange(i, e.target.value)}
-            style={{
-              width: "100%",
-              marginTop: 10,
-              minHeight: 80,
-            }}
+            className={styles.textarea}            
           />
         </div>
       ))}

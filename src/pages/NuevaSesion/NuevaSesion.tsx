@@ -33,6 +33,12 @@ const TESTS = [
     descripcion:
       "Evaluación proyectiva con láminas visuales.",
   },
+  {
+    id: "raven",
+    nombre: "Test de Raven Abreviado",
+    descripcion:
+      "Evaluación de inteligencia no verbal mediante patrones visuales.",
+  },
 ];
 
 export default function NuevaSesion() {

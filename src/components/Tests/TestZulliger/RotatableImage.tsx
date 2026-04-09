@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styles from "./TestZulliger.module.css";
 
 type Props = {
   src: string;
@@ -15,11 +16,10 @@ export default function RotatableImage({ src }: Props) {
     <img
       src={src}
       onMouseMove={(e) => e.buttons === 1 && handleDrag(e)}
+      className={styles.img}
       style={{
         transform: `rotate(${rotation}deg)`,
         transition: "transform 0.1s",
-        cursor: "grab",
-        maxWidth: "300px",
       }}
     />
   );
