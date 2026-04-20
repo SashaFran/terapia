@@ -306,9 +306,9 @@ const handleGuardarConfig = async (data: {
     const nuevoTimestamp = Timestamp.fromDate(fechaFinal);
 
     // 3. Actualizar en Firebase
-    await updateDoc(doc(db, "pacientes", id), {
-      activo: data.activo,
-      fechaFinAcceso: nuevoTimestamp,
+   await updateDoc(doc(db, "asignaciones", id), {
+      estado: "completado",
+      fechaCompletado: new Date()
     });
 
     // 4. Actualizar estado local para reflejar el cambio en la UI inmediatamente

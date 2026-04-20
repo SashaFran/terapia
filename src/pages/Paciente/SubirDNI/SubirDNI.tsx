@@ -14,6 +14,10 @@ export default function SubirDNI() {
 
     // 🔥 SIMPLIFICADO (luego podemos usar Firebase Storage)
     const fakeUrl = URL.createObjectURL(file);
+    await updateDoc(doc(db, "pacientes", paciente.id), {
+      fechaFinAcceso: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      activo: true
+    });
 
     await updateDoc(doc(db, "pacientes", paciente.id), {
       archivoDNI: fakeUrl,

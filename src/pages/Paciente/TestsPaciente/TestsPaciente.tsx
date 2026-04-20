@@ -109,7 +109,7 @@ export default function TestsPaciente() {
                 <td>
                   <BotonPersonalizado
                     variant="primary"
-                    onClick={() => navigate("/app/nueva-sesion")}
+                    onClick={() => navigate(`/app/test/${t.testId}`)}
                     disabled={t.estado === "completado"}
                   >
                     {t.estado === "completado" ? "✔️ Hecho" : "Comenzar"}
