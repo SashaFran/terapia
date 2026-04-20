@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyAzApqK19HsnUaxwtoPRNGiusVZyAzE92Q",
   authDomain: "terapiavr.firebaseapp.com",
   projectId: "terapiavr",

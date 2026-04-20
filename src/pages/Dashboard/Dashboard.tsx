@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   return (
     <div className={`global-container ${styles.container}`}>
-      <div className={styles.nav}>
+      <div className={`nav`}>
         <h2>Dashboard inicial</h2>
       </div>
       <nav className={styles.navCards}>

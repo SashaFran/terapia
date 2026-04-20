@@ -22,3 +22,19 @@
     flex-direction: column;
     width: 100%;
 }
+.testsGrid{
+    display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.testsGrid label{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+.warning {
+  color: #d9534f;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}

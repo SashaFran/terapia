@@ -59,7 +59,8 @@ export default function TestRunner() {
 }
 console.log("DATA FINAL:", data);
   await addDoc(collection(db, "resultados"), data);
-  navigate(`/pacientes/${pacienteId}`);
+  //navigate(`/admin/pacientes/${pacienteId}`);
+  navigate(`/admin/paciente/${pacienteId}`);
 };
 
 if (testId === "k10") {

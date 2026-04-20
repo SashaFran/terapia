@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "../Sidebar/Sidebar.module.css";
 import logo from "../../assets/IMAGES/JOIN SOLUTION.svg";
 import UserCard from "../UserCard/UserCard";
@@ -6,60 +6,67 @@ import BotonPersonalizado from "../Boton/Boton.tsx";
 
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebase.tsx";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-
 
 export default function Sidebar() {
-    const { pathname } = useLocation();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-    const { user } = useAuth();
+  const rol = localStorage.getItem("rol");
 
-    const handleLogout = async () => {
+  const handleLogout = async () => {
     await signOut(auth);
+    localStorage.clear();
     navigate("/login");
-    };
-    
-    return (
-        <aside className={styles.sidebar}>
-            <div className={`global-container ${styles.container}`}>
-                <div className={styles.logoBox}>
-                    <img src={logo} alt="Logo" />
-                </div>
-                <UserCard />
-                <nav className={styles.nav}>
-                    <Link
-                        to="/"
-                        className={`${styles.item} ${pathname === "/" ? styles.active : ""}`}
-                    >
-                        <span>Dashboard</span>
-                    </Link>
+  };
 
-                    <Link
-                        to="/pacientes"
-                        className={`${styles.item} ${pathname === "/pacientes" ? styles.active : ""}`}
-                    >
-                        <span>Pacientes</span>
-                    </Link>
+  // 🔥 LINKS SEGÚN ROL
+  const linksAdmin = [
+    { to: "/admin/dashboard", label: "Dashboard" },
+    { to: "/admin/pacientes", label: "Pacientes" },
+    { to: "/admin/sesiones", label: "Sesiones" },
+  ];
 
-                    <Link
-                        to="/sesiones"
-                        className={`${styles.item} ${pathname === "/sesiones" ? styles.active : ""}`}
-                    >
-                        <span>Sesiones</span>
-                    </Link>
-                </nav>
-            </div>
-            <div>
-                <BotonPersonalizado
-                    variant="secondary"
-                    onClick={handleLogout}
-                    disabled={false}
-                    >
-                    Cerrar sesión
-                </BotonPersonalizado>
-            </div>
-        </aside>
-    );
+  const linksPaciente = [
+    { to: "/app/dashboard", label: "Dashboard" },
+    { to: "/app/tests", label: "Mis Tests" },
+    { to: "/app/dni", label: "Tu Documentación" },
+  ];
+
+  const links = rol === "admin" ? linksAdmin : linksPaciente;
+
+  return (
+    <aside className={styles.sidebar}>
+      <div className={`global-container ${styles.container}`}>
+        <div className={styles.logoBox}>
+          <img src={logo} alt="Logo" />
+        </div>
+
+        <UserCard />
+
+        <nav className={styles.nav}>
+          {links.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`${styles.item} ${
+                pathname.startsWith(link.to) ? styles.active : ""
+              }`}
+            >
+              <span>{link.label}</span>
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      <div>
+        <BotonPersonalizado
+          variant="secondary"
+          onClick={handleLogout}
+          disabled={false}
+        >
+          Cerrar sesión
+        </BotonPersonalizado>
+      </div>
+    </aside>
+  );
 }

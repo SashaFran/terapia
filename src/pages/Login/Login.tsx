@@ -12,23 +12,31 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth(); // 👈 CLAVE
 
-  const handleLogin = async () => {
-    console.log("CLICK EN LOGIN");
+const handleLogin = async () => {
+  console.log("CLICK EN LOGIN");
 
-    if (!email || !password) {
-      setError("Completá email y contraseña");
-      return;
-    }
+  if (!email || !password) {
+    setError("Completá email y contraseña");
+    return;
+  }
 
-    try {
-      await login(email, password); // 👈 PASA POR EL CONTEXTO
-      console.log("LOGIN OK");
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      setError("Credenciales incorrectas");
-    }
-  };
+  try {
+    await login(email, password);
+
+    // 🔥 LIMPIAR SESIÓN PACIENTE
+    localStorage.removeItem("paciente");
+
+    // 🔥 SETEAR ROL ADMIN
+    localStorage.setItem("rol", "admin");
+
+    console.log("LOGIN OK");
+
+    navigate("/admin/dashboard");
+  } catch (err) {
+    console.error(err);
+    setError("Credenciales incorrectas");
+  }
+};
 
   return (
     <div className={styles.loginContainer}>

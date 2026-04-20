@@ -103,7 +103,7 @@ export default function TestBFQ({ onFinish }: Props) {
 
   return (
     <div className={`global-container ${styles.container}`}>
-      <div className={styles.nav}>
+      <div className={`nav`}>
         <h2>{BFQ_TEST.nombre}</h2>
       </div>
 

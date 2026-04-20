@@ -112,7 +112,7 @@ export default function TestK10({ onFinish }: Props) {
   // Si el test ya inició, mostramos el formulario normalmente
   return (
     <div className={`global-container ${styles.container}`}>
-      <div className={styles.nav}>
+      <div className={`nav`}>
         <h2>{K10_TEST.nombre}</h2>
       </div>
       

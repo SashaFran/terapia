@@ -152,13 +152,13 @@ export default function NuevaSesion() {
   return (
     <div className={`global-container ${styles.container}`}>
       {/* Header */}
-      <div className={styles.nav}>
+      <div className={`nav`}>
         <h2>Nueva evaluación</h2>
         <BotonPersonalizado
           variant="danger"
           onClick={async () => {
             if (confirm("¿Cancelar?")) {
-              navigate("/sesiones");
+              navigate("/app/sesiones");
             }
           }}
           disabled={false}

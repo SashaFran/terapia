@@ -51,7 +51,7 @@ export default function Dashboard() {
     const [showForm, setShowForm] = useState(false);
 
     const guardarNuevoPaciente = async (e: React.FormEvent) => {
-        navigate("/nuevo-paciente");
+        navigate("/admin/nuevo-paciente");
     };
 
     // ---------------------------------------
@@ -103,7 +103,7 @@ export default function Dashboard() {
     }
     return (
         <div className={`global-container ${styles.container}`}>
-            <div className={styles.nav}>
+            <div className={`nav`}>
                 <h2>Pacientes</h2> 
                 <BotonPersonalizado variant="primary" onClick={guardarNuevoPaciente} disabled={false}>
                     Nuevo paciente
@@ -129,7 +129,7 @@ export default function Dashboard() {
                             <td>
                                 <BotonPersonalizado
                                     variant="secondary"
-                                    onClick={() => navigate(`/perfil/${paciente.id}`)}>Ver
+                                    onClick={() => navigate(`/admin/paciente/${paciente.id}`)}>Ver
                                 </BotonPersonalizado>
                             </td>
 

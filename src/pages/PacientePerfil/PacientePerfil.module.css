@@ -1,17 +1,13 @@
 .container{
     color: #333;
 }
-.nav{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
 
 .navButtons{
     display: flex;
     gap: 1rem;
+}
+.perfilInfo p{
+  margin: 0;
 }
 .tablaPacientes {
   background: white;

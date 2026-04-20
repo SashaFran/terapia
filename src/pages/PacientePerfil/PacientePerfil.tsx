@@ -10,35 +10,34 @@ import { TESTS_REGISTRY } from "../../data/tests/index.ts";
 import { generarPDFClinico } from "../../utils/generarPDFClinico.ts";
 
 import {
+  addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   query,
+  Timestamp,
   where,
   updateDoc,
-  deleteDoc,
 } from "firebase/firestore";
 
 // --- Interfaces ---
 interface FilaTablaData {
-  resultadoId: string;
-  sesionId?: string;
+  resultadoRaw: Resultado;
   fecha: any;
   testId: string;
   nivel: string;
   observacionesIniciales: string;
-  resultadoRaw: Resultado;
 }
 
-
 interface Paciente {
+  activo: boolean;
+  dni: string;
+  fechaInicioAcceso: any;
+  fechaFinAcceso: any;
+  accesoUtilizado: any;
   nombre: string;
-  contacto: string;
-  fechaNacimiento?: any;
-  fechaIngreso?: any;
-  motivo?: string;
-  notasIniciales?: string;
 }
 
 interface Sesion {
@@ -58,11 +57,17 @@ interface Resultado {
   pacienteId?: string;
   observacionesIniciales?: string;
   tiempoTotalMs?: number;
-  score?: number; // 👈 ESTE CAMPO
+  score?: number;
   dimensiones?: any;
 }
 
-
+interface Asignacion {
+  id: string;
+  testId: string;
+  estado: "pendiente" | "completado";
+  fechaAsignacion?: any;
+  fechaCompletado?: any;
+}
 
 export default function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
@@ -80,6 +85,9 @@ export default function PacientePerfil() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
   // ---------------------------------------
   // Helpers
   // ---------------------------------------
@@ -90,12 +98,28 @@ export default function PacientePerfil() {
   };
 
   const formatearFecha = (timestamp: any) => {
-    if (!timestamp?.toDate) return "N/A";
-    return timestamp.toDate().toLocaleDateString("es-AR");
+    if (!timestamp) return "N/A";
+    
+    // Si ya es un objeto Date
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString("es-AR");
+    }
+    
+    // Si es un Timestamp de Firebase (tiene .toDate)
+    if (timestamp.toDate) {
+      return timestamp.toDate().toLocaleDateString("es-AR");
+    }
+    
+    return "N/A";
   };
 
+
 const handleOpenModal = (row: FilaTablaData) => {
-  setSelectedResultado(row.resultadoRaw);
+  setSelectedResultado({
+    ...row.resultadoRaw,
+    observacionesIniciales: row.observacionesIniciales, // 🔥 importante
+  });
+
   setIsModalOpen(true);
 };
 
@@ -123,7 +147,7 @@ const handleSuccessfulSave = (
     )
   );
 
-  setSelectedSessionData(null);
+  setSelectedResultado(null); // ✅ CORRECTO
   setIsModalOpen(false);
 };
 
@@ -149,12 +173,34 @@ const handleSuccessfulSave = (
     const cargarResultados = async () => { /* ... */ 
       const q = query(collection(db, "resultados"), where("pacienteId", "==", id));
       const snap = await getDocs(q);
-      setResultados(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setResultados(
+        snap.docs.map((d) => ({
+          id: d.id, // 🔥 ESTO ES CLAVE
+          ...d.data(),
+        }))
+      );
+    };
+
+    const cargarAsignaciones = async () => {
+      const q = query(
+        collection(db, "asignaciones"),
+        where("pacienteId", "==", id)
+      );
+
+      const snap = await getDocs(q);
+
+      setAsignaciones(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        })) as Asignacion[]
+      );
     };
 
     cargarPaciente();
     cargarSesiones();
     cargarResultados();
+    cargarAsignaciones();
 
   }, [id]);
 
@@ -189,15 +235,127 @@ const combinedData: FilaTablaData[] = resultados.map(resultado => {
   // ---------------------------------------
   // Handlers para acciones
   // ---------------------------------------
-  const handleEditSave = async () => {
-    if (!patient || !id) return;
+const getEstadoPaciente = () => {
+  if (!patient) return "—";
+
+  const ahora = new Date();
+  const fin = patient.fechaFinAcceso?.toDate?.();
+
+  if (!fin) return "—";
+
+  // ⛔ Expirado por fecha
+  if (ahora > fin) return "⛔ Expirado";
+
+  // ⛔ Desactivado manualmente
+  if (patient.activo === false) return "⛔ Inactivo";
+
+  // ✅ Todos los tests completados
+  const total = asignaciones.length;
+  const completados = asignaciones.filter(
+    (a) => a.estado === "completado"
+  ).length;
+
+  if (total > 0 && completados === total) {
+    return "✔️ Completado";
+  }
+
+  // 🟢 Activo (puede seguir)
+  return "🟢 Activo";
+};
+
+  //Guardado
+const handleGuardarConfig = async (data: {
+  activo: boolean;
+  fechaFinAcceso: any;
+  tests: string[];
+}) => {
+  if (!id) return;
+  try {
+    let fechaFinal: Date;
+
+    // 1. Convertir cualquier entrada a un objeto Date válido
+    if (data.fechaFinAcceso instanceof Date) {
+      fechaFinal = data.fechaFinAcceso;
+    } else if (typeof data.fechaFinAcceso === "string") {
+      // Si es string "YYYY-MM-DD", forzamos el fin del día
+      const [year, month, day] = data.fechaFinAcceso.split("-").map(Number);
+
+      // 🔥 CREAR FECHA LOCAL (NO UTC)
+      fechaFinal = new Date(year, month - 1, day);
+      fechaFinal.setHours(23, 59, 59, 999);
+      console.log("primera" + fechaFinal);
+    } else if (data.fechaFinAcceso?.seconds) {
+      // Si entra por acá, es un Timestamp de Firebase
+      fechaFinal = new Date(data.fechaFinAcceso.seconds * 1000);
+      
+      // 🔥 IMPORTANTE: Si la fecha viene de Firebase a las 00:00 UTC, 
+      // al convertirla a local te resta horas y te cambia el día.
+      // Forzamos que sea el final del día local.
+      fechaFinal.setHours(23, 59, 59, 999); 
+      console.log("segunda ajustada: " + fechaFinal);
+    } else {
+      fechaFinal = new Date(data.fechaFinAcceso);
+      console.log("Tercera");
+    }
+
+    // 2. Validar que la fecha sea real
+    if (isNaN(fechaFinal.getTime())) {
+      throw new Error("Fecha inválida");
+    }
+
+    const nuevoTimestamp = Timestamp.fromDate(fechaFinal);
+
+    // 3. Actualizar en Firebase
     await updateDoc(doc(db, "pacientes", id), {
-      nombre: patient.nombre,
-      contacto: patient.contacto,
+      activo: data.activo,
+      fechaFinAcceso: nuevoTimestamp,
     });
-    setIsEditModalOpen(false);
-  };
+
+    // 4. Actualizar estado local para reflejar el cambio en la UI inmediatamente
+    setPatient((prev: any) => prev ? {
+      ...prev,
+      activo: data.activo,
+      fechaFinAcceso: nuevoTimestamp
+    } : null);
+
+    // --- (Resto de tu lógica de asignaciones de tests se mantiene igual) ---
+    const actuales = asignaciones.map((a) => a.testId);
+    const nuevos = data.tests.filter((t) => !actuales.includes(t));
+    const eliminados = actuales.filter((t) => !data.tests.includes(t));
+
+    const ahora = new Date();
+    const promesasAdd = nuevos.map((testId) =>
+      addDoc(collection(db, "asignaciones"), {
+        pacienteId: id,
+        testId,
+        estado: "pendiente",
+        fechaAsignacion: Timestamp.fromDate(ahora),
+        fechaCompletado: null,
+      })
+    );
+
+    const promesasDelete = asignaciones
+      .filter((a) => eliminados.includes(a.testId))
+      .map((a) => deleteDoc(doc(db, "asignaciones", a.id)));
+
+    await Promise.all([...promesasAdd, ...promesasDelete]);
+
+    setIsConfigOpen(false);
+
+    // Recargar asignaciones para la tabla
+    const snap = await getDocs(
+      query(collection(db, "asignaciones"), where("pacienteId", "==", id))
+    );
+    setAsignaciones(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Asignacion[]);
+
+  } catch (error) {
+    console.error("Error detallado:", error);
+    alert("Hubo un problema al guardar los cambios. Revisa la fecha seleccionada.");
+  }
+};
+
   
+  // Descargar PDF
 const descargarPDF = (rowData: FilaTablaData) => {
   const resultado = rowData.resultadoRaw;
 
@@ -240,22 +398,15 @@ const descargarPDF = (rowData: FilaTablaData) => {
   return (
     <div className={`global-container ${styles.container}`}>
       {/* Header */}
-     <header className={styles.nav}>
+     <header className={`nav`}>
         <h2>{patient.nombre}</h2>
         <div className={styles.navButtons}>
-            <BotonPersonalizado
-                variant="primary"
-                onClick={() => setIsEditModalOpen(true)}
-                disabled={false}
-                >
-                Editar paciente
-            </BotonPersonalizado>
             <BotonPersonalizado
             variant="danger"
             onClick={async () => {
                 if (confirm("¿Eliminar paciente?")) {
                 await deleteDoc(doc(db, "pacientes", id));
-                navigate("/pacientes");
+                navigate("/admin/pacientes");
                 }
             }}
             disabled={false}
@@ -266,14 +417,60 @@ const descargarPDF = (rowData: FilaTablaData) => {
     </header>
     {/* Info */}
     <div className={styles.perfilInfo}>
-      <p><strong>Contacto:</strong> {patient.contacto}</p>
-      <p><strong>Fecha nacimiento:</strong> {formatearFecha(patient.fechaNacimiento)}</p>
-      <p><strong>Ingreso:</strong> {formatearFecha(patient.fechaIngreso)}</p>
-      <p><strong>Motivo:</strong> {patient.motivo || "—"}</p>
-      <p><strong>Notas:</strong> {patient.notasIniciales || "—"}</p>
+      <p><strong>DNI:</strong> {patient.dni}</p>
+      <p><strong>Estado:</strong> {getEstadoPaciente()}</p>
+      <p>
+        <strong>Acceso:</strong>{" "}
+        {formatearFecha(patient.fechaInicioAcceso)} →{" "}
+        {formatearFecha(patient.fechaFinAcceso)}
+      </p>
     </div>
 
-    <div className={styles.nav}>
+    <div className={`nav`}>
+  <h4>Tests asignados</h4>
+
+  <BotonPersonalizado
+    variant="secondary"
+    onClick={() => setIsConfigOpen(true)}
+    disabled={false}
+  >
+    Configuración
+  </BotonPersonalizado>
+</div>
+
+<div className={styles.tablaPacientes}>
+  <table className="tabla">
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Estado</th>
+        <th>Asignado</th>
+        <th>Completado</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {asignaciones.map((a) => (
+        <tr key={a.id}>
+          <td>{a.testId.toUpperCase()}</td>
+          <td>
+            {a.estado === "completado" ? "✔️ Completado" : "⏳ Pendiente"}
+          </td>
+          <td>{formatearFecha(a.fechaAsignacion)}</td>
+          <td>{formatearFecha(a.fechaCompletado)}</td>
+        </tr>
+      ))}
+
+      {asignaciones.length === 0 && (
+        <tr>
+          <td colSpan={4}>Sin tests asignados</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
+
+    <div className={`nav`}>
       <h4>Evaluaciones psicológicas</h4>
       <BotonPersonalizado variant="primary" disabled={false}
         onClick={() => navigate("/nueva-sesion")}>Nueva sesión
@@ -293,7 +490,6 @@ const descargarPDF = (rowData: FilaTablaData) => {
         </thead>
 
         <tbody>
-          {/* Mapeamos sobre tableData, donde r es de tipo FilaTablaData */}
           {tableData.map((r) => (
             <tr key={r.resultadoRaw.id}>
               <td>{formatearFecha(r.fecha)}</td>
@@ -307,7 +503,6 @@ const descargarPDF = (rowData: FilaTablaData) => {
               </td>
 
              <td className={styles.descargar}>
-              {/* Aquí r es FilaTablaData, por lo que funciona correctamente */}
               <button onClick={() => descargarPDF(r)}>⬇️</button>
                 <button
               onClick={() => {
@@ -332,20 +527,23 @@ const descargarPDF = (rowData: FilaTablaData) => {
                     </tbody>
                   </table>
                 </div>
-        <EditarPacienteModal
-            abierto={isEditModalOpen}
+        {isConfigOpen && (
+
+          <EditarPacienteModal
+            abierto={isConfigOpen}
             paciente={patient}
-            onCerrar={() => setIsEditModalOpen(false)}
-            onGuardar={handleEditSave}
-        />
+            asignacionesActuales={asignaciones.map(a => a.testId)} // 🔥 CLAVE
+            onCerrar={() => setIsConfigOpen(false)}
+            onGuardar={handleGuardarConfig}
+          />
+        )}
       <ObservacionesModal
         abierto={isModalOpen}
         onCerrar={handleCloseModal}
         sesion={selectedResultado}
         onGuardarExitoso={handleSuccessfulSave}
       />
-
-
     </div>
-          );
-        }
+);}
+
+        

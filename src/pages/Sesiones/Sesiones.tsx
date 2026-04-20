@@ -152,13 +152,12 @@ export default function Sesiones() {
 };
   return (
     <div className={`global-container ${styles.container}`}>
-      {/* HEADER */}
-      <div className={styles.nav}>
+      <div className={`nav`}>
         <h2>Evaluaciones psicológicas</h2>
         <div className={styles.navButtons}>
           <BotonPersonalizado
             variant="primary"
-            onClick={() => navigate("/nueva-sesion")}
+            onClick={() => navigate("/app/nueva-sesion")}
             disabled={false}
           >
             Nueva sesión
@@ -205,7 +204,7 @@ export default function Sesiones() {
                   {r.pacienteId ? (
                     <button
                       className={styles.linkPaciente}
-                      onClick={() => navigate(`/perfil/${r.pacienteId}`)}
+                      onClick={() => navigate(`/admin/perfil/${r.pacienteId}`)}
                     >
                       {pacientesMap[r.pacienteId] || "Paciente"} 🔗
                     </button>
