@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth, db } from "../../../firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 import styles from "./LoginPaciente.module.css";
@@ -14,61 +14,78 @@ export default function LoginPaciente() {
   const [error, setError] = useState("");
 
   const handleLogin = async (e: any) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
-  const dniLimpio = dni.replace(/\D/g, "");
+    const dniLimpio = dni.replace(/\D/g, "");
 
-  try {
-    // 🔎 1. BUSCAMOS AL PACIENTE EN LA COLECCIÓN POR DNI
-    const q = query(
-      collection(db, "pacientes"),
-      where("dni", "==", dniLimpio)
-    );
+    try {
+      const q = query(collection(db, "pacientes"), where("dni", "==", dniLimpio));
+      const snap = await getDocs(q);
 
-    const snap = await getDocs(q);
+      if (snap.empty) {
+        setError("Paciente no encontrado");
+        return;
+      }
 
-    if (snap.empty) {
-      setError("Paciente no encontrado");
-      return;
-    }
+      const docPaciente = snap.docs[0];
+      const pacienteData = docPaciente.data();
 
-    const docPaciente = snap.docs[0];
-    const pacienteData = docPaciente.data();
+      if (pacienteData.password !== password) {
+        setError("Contraseña incorrecta");
+        return;
+      }
 
-    // 🔑 2. VALIDAMOS LA CONTRASEÑA MANUALMENTE
-    // Comparamos lo que escribió el usuario con el campo 'password' del documento
-    if (pacienteData.password !== password) {
-      setError("Contraseña incorrecta");
-      return;
-    }
+      if (pacienteData.activo === false) {
+        setError("Tu acceso ha sido deshabilitado.");
+        return;
+      }
 
-    // ⛔ 3. VALIDACIÓN DE ESTADO ACTIVO
-    if (pacienteData.activo === false) {
-      setError("Tu acceso ha sido deshabilitado.");
-      return;
-    }
-
-    // ⏳ 4. VALIDACIÓN DE FECHA
+      // ⏳ VALIDACIÓN DE FECHA
+          // ⏳ 4. VALIDACIÓN DE FECHA (Modo estricto)
     const ahora = new Date();
-    const fin = pacienteData.fechaFinAcceso?.toDate();
-    if (fin && ahora > fin) {
-      setError("Tu acceso ha expirado.");
-      return;
-    }
+    const fechaExpiracion = pacienteData.fechaFinAcceso?.toDate ? pacienteData.fechaFinAcceso.toDate() : null;
 
-    // ✅ TODO OK -> GUARDAMOS EN LOCALSTORAGE Y ENTRAR
+
+    console.log("Datos del paciente desde Firebase:", pacienteData);
+
+    if (fechaExpiracion && ahora > fechaExpiracion) {
+  // 1. 🛑 BLOQUEO INMEDIATO
+  setError("Tu acceso ha expirado.");
+
+  // 2. ⚡ ACTUALIZACIÓN AUTOMÁTICA EN FIREBASE
+  // Si todavía figuraba como activo, lo pasamos a false para siempre
+    if (pacienteData.activo !== false) {
+      try {
+        await updateDoc(doc(db, "pacientes", docPaciente.id), {
+          activo: false
+        });
+        console.log("Estado del paciente actualizado a INACTIVO automáticamente.");
+      } catch (e) {
+        console.error("No se pudo desactivar el estado, pero el acceso igual fue denegado.");
+      }
+    }
+    
+    return; // ⛔ Cortamos el login aquí
+  }
+
+      // ⛔ VALIDACIÓN EXTRA DE SEGURIDAD (Por si ya estaba en false)
+  if (pacienteData.activo === false) {
+    setError("Tu acceso ha sido deshabilitado.");
+    return;
+  }
+    
     const pacienteLogueado = { id: docPaciente.id, ...pacienteData };
     localStorage.setItem("paciente", JSON.stringify(pacienteLogueado));
     localStorage.setItem("rol", "paciente");
-
     navigate("/app/dashboard");
 
-  } catch (err) {
-    console.error(err);
-    setError("Error al intentar ingresar");
-  }
-};
+    } catch (err) {
+      console.error(err);
+      setError("Error al intentar ingresar");
+    }
+  };
+
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
