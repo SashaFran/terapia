@@ -5,9 +5,11 @@ import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import EditarPacienteModal from "../../components/Modal/EditarPacienteModal.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
 import styles from "./PacientePerfil.module.css";
-import { generarPdfResultado } from "../../utils/generarPdfResultado.ts";
-import { TESTS_REGISTRY } from "../../data/tests/index.ts";
-import { generarPDFClinico } from "../../utils/generarPDFClinico.ts";
+import { descargarInforme } from "../../utils/descargarInforme";
+import guardadoIcono from "../../assets/Icons/guardado.svg";
+import  activoIcono  from "../../assets/Icons/checkmark-circle.svg";
+import  inactivoIcono  from "../../assets/Icons/line-slant-down-circle.svg";
+
 
 import {
   addDoc,
@@ -24,6 +26,7 @@ import {
 
 // --- Interfaces ---
 interface FilaTablaData {
+  pacienteId: string;
   resultadoRaw: Resultado;
   fecha: any;
   testId: string;
@@ -304,7 +307,11 @@ const handleGuardarConfig = async (data: {
     }
 
     const nuevoTimestamp = Timestamp.fromDate(fechaFinal);
-
+    await updateDoc(doc(db, "pacientes", id), {
+      activo: data.activo,
+      fechaFinAcceso: nuevoTimestamp
+    });
+    
    const promesasUpdate = asignaciones.map((a) =>
   updateDoc(doc(db, "asignaciones", a.id), {
     estado: "completado",
@@ -358,44 +365,6 @@ await Promise.all(promesasUpdate);
     console.error("Error detallado:", error);
     alert("Hubo un problema al guardar los cambios. Revisa la fecha seleccionada.");
   }
-};
-
-  
-  // Descargar PDF
-const descargarPDF = (rowData: FilaTablaData) => {
-  const resultado = rowData.resultadoRaw;
-
-  if (!resultado.testId || !TESTS_REGISTRY[resultado.testId]) {
-    alert("Test no soportado o incompleto");
-    return;
-  }
-
-  const testConfig = TESTS_REGISTRY[resultado.testId];
-
-  const duracionFormateada = resultado.tiempoTotalMs
-    ? formatDuration(resultado.tiempoTotalMs)
-    : "No registrado";
-
-  const isBFQ = resultado.testId === "bfq";
-
-  const resumen = testConfig.generarResumenClinico({
-    pacienteNombre: patient?.nombre || "Paciente",
-
-    // 🔥 CLAVE
-    score: isBFQ ? resultado.dimensiones : resultado.score,
-
-    nivel: resultado.nivel,
-    fecha: resultado.fecha?.toDate
-      ? resultado.fecha.toDate()
-      : new Date(),
-    duracionFormateada,
-  });
-
-  generarPDFClinico({
-    titulo: `Informe Clínico – ${testConfig.nombre}`,
-    contenido: resumen,
-    nombrePaciente: patient?.nombre || "Paciente",
-  });
 };
 
   if (!patient) {
@@ -453,7 +422,6 @@ const descargarPDF = (rowData: FilaTablaData) => {
         <th>Estado</th>
         <th>Asignado</th>
         <th>Completado</th>
-        <th>Acción</th>
       </tr>
     </thead>
 
@@ -466,17 +434,6 @@ const descargarPDF = (rowData: FilaTablaData) => {
           </td>
           <td>{formatearFecha(a.fechaAsignacion)}</td>
           <td>{formatearFecha(a.fechaCompletado)}</td>
-          <td>
-            {a.estado === "pendiente" && (
-              <button
-                onClick={() =>
-                  navigate(`/test/${a.testId}?paciente=${id}`)
-                }
-              >
-                ▶️ Iniciar
-              </button>
-            )}
-          </td>
         </tr>
       ))}
 
@@ -522,20 +479,17 @@ const descargarPDF = (rowData: FilaTablaData) => {
               </td>
 
              <td className={styles.descargar}>
-              <button onClick={() => descargarPDF(r)}>⬇️</button>
                 <button
-              onClick={() => {
-                 if (patient && r.resultadoRaw) {
-                   generarPdfResultado({
-                     pacienteNombre: patient.nombre,
-                     resultado: r.resultadoRaw, // r.resultadoRaw es de tipo Resultado
-                   });
-                 }
-              }}
-            >
-              ⬇️
-            </button>
-                </td>
+                  onClick={() =>
+                    descargarInforme(
+                      r.resultadoRaw,
+                      patient
+                    )
+                  }
+                >
+                  <img src={guardadoIcono} alt="Descargar PDF" />
+                </button>
+              </td>
                         </tr>
                       ))}
                       {tableData.length === 0 && (

@@ -9,6 +9,9 @@ import { TESTS_REGISTRY } from "../../data/tests";
 import { generarPDFClinico } from "../../utils/generarPDFClinico.ts";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { collection, getDocs } from "firebase/firestore";
+import { getPaciente } from "../../utils/Helper";
+import { descargarInforme } from "../../utils/descargarInforme.ts";
+import guardadoIcono from "../../assets/Icons/guardado.svg";
 
 interface Resultado {
   id: string;
@@ -107,40 +110,6 @@ const urlToBase64 = async (url: string): Promise<string> => {
 
 
 
-// Función que dispara la descarga
-const descargarInforme = async (resultado: Resultado) => {
-  const storage = getStorage();
-  const paciente = pacientesMap[resultado.pacienteId || ""];
-  
-  let urlDNI = null;
-  let urlCaptura = null;
-
-  // Intentamos obtener la URL del DNI
-  try {
-    const rutaDNI = paciente?.archivodni || paciente?.archivodni;
-    // Si la ruta es válida y NO es un blob, buscamos la URL
-    if (rutaDNI && !rutaDNI.startsWith('blob:')) {
-      urlDNI = await getDownloadURL(ref(storage, rutaDNI));
-    }
-  } catch (e) { console.log("DNI no encontrado en Storage"); }
-
-  // Intentamos obtener la URL de la Captura
-  try {
-    if (resultado.archivoCaptura) {
-      urlCaptura = await getDownloadURL(ref(storage, resultado.archivoCaptura));
-    }
-  } catch (e) { console.log("Captura no encontrada en Storage"); }
-
-  // Generamos el PDF (esto ahora SIEMPRE se va a ejecutar)
-  await generarPdfResultado({
-    pacienteNombre: paciente?.nombre || "Paciente",
-    resultado,
-    fotoDNI: urlDNI || undefined,
-    fotoCaptura: urlCaptura || undefined
-  });
-};
-
-
   const totalTests = resultados.length;
   const ultimaFecha = resultados
     .map((r) => r.fecha)
@@ -196,7 +165,11 @@ const descargarInforme = async (resultado: Resultado) => {
                   </button>
                 </td>
                 <td className={styles.descargar}>
-                  <button onClick={() => descargarInforme(r)}>⬇️ PDF</button>
+                  <button
+                    onClick={() => descargarInforme(r, pacientesMap[r.pacienteId || ""])}
+                  >
+                    <img src={guardadoIcono} alt="Descargar PDF" />
+                  </button>
                 </td>
               </tr>
             ))}
