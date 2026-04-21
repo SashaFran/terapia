@@ -79,7 +79,7 @@ export default function Dashboard() {
         return {
           id: docPaciente.id,
           nombre: docData.nombre || "Sin nombre",
-          fechaIngreso: formatearFecha(docData.fechaIngreso),
+          fechaIngreso: formatearFecha(docData.createdAt),
           sesiones: resultadosSnap.size, // 👈 ACÁ LA MAGIA
         };
       })

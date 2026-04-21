@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Importamos el hook
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
 import Modal from "../../Modal/Modal";
+import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
+import { iniciarMonitoreo } from "../../../services/cameraService.tsx"; 
 
 type ResultadoBFQ = {
   dimensiones: {
@@ -20,10 +22,12 @@ type ResultadoBFQ = {
 
 type Props = {
   onFinish: (resultado: ResultadoBFQ) => void | Promise<void>;
+  userId: string | number; // ID necesario para el monitoreo
 };
 
-export default function TestBFQ({ onFinish }: Props) {
-  const navigate = useNavigate(); // 2. Inicializamos navigate
+export default function TestBFQ({ onFinish, userId }: Props) {
+  const navigate = useNavigate();
+  const [canStart, setCanStart] = useState(false);
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(BFQ_TEST.preguntas.length).fill(0)
   );
@@ -31,8 +35,26 @@ export default function TestBFQ({ onFinish }: Props) {
   const [testIniciado, setTestIniciado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const startTimeRef = useRef<number>(0);
+  
+  // Referencia para la función de apagado de cámara
+  const stopCameraRef = useRef<(() => void) | null>(null);
 
-  const iniciarTest = () => {
+  // Limpieza automática si el usuario sale de la página o cierra la pestaña
+  useEffect(() => {
+    return () => {
+      if (stopCameraRef.current) {
+        stopCameraRef.current();
+      }
+    };
+  }, []);
+
+  const iniciarTest = async () => {
+    // Iniciamos la cámara antes de mostrar las preguntas
+    const cleanup = await iniciarMonitoreo(userId);
+    if (cleanup) {
+      stopCameraRef.current = cleanup;
+    }
+
     setTestIniciado(true);
     startTimeRef.current = Date.now();
   };
@@ -61,6 +83,12 @@ export default function TestBFQ({ onFinish }: Props) {
 
     setEnviando(true);
 
+    // Apagamos la cámara apenas se presiona finalizar
+    if (stopCameraRef.current) {
+      stopCameraRef.current();
+      stopCameraRef.current = null;
+    }
+
     const endTime = Date.now();
     const tiempoTotalMs = endTime - startTimeRef.current;
 
@@ -73,7 +101,6 @@ export default function TestBFQ({ onFinish }: Props) {
     };
 
     try {
-      // 3. Ejecutamos el guardado
       await onFinish({
         dimensiones: resultado,
         respuestas,
@@ -81,8 +108,6 @@ export default function TestBFQ({ onFinish }: Props) {
         tiempoTotalMs,
       });
 
-      // 4. NAVEGACIÓN DIRIGIDA (Cambia '/dashboard' por tu ruta de éxito)
-      // Usamos replace: true para que no pueda volver atrás al test vacío
       navigate('/dashboard', { replace: true }); 
 
     } catch (error) {
@@ -96,10 +121,20 @@ export default function TestBFQ({ onFinish }: Props) {
   if (!testIniciado) {
     return (
       <Modal abierto={true} onCerrar={() => {}} titulo="Instrucciones - Test BFQ">
-        <li>Esta evaluación mide diferentes dimensiones de la personalidad.</li>
-        <li>Responda con sinceridad. No hay respuestas correctas o incorrectas.</li>
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
-          <BotonPersonalizado variant="primary" onClick={iniciarTest} disabled={false}>
+        <div style={{ marginBottom: '15px' }}>
+          <li>Esta evaluación mide diferentes dimensiones de la personalidad.</li>
+          <li>Responda con sinceridad. No hay respuestas correctas o incorrectas.</li>
+          <li>Durante el test, se realizarán capturas aleatorias para validar su identidad.</li>
+        </div>
+
+        <ConsentimientoCamara changeStatus={setCanStart} />
+
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+          <BotonPersonalizado 
+            variant="primary" 
+            onClick={iniciarTest} 
+            disabled={!canStart}
+          >
             Comenzar Evaluación
           </BotonPersonalizado>
         </div>
@@ -119,12 +154,13 @@ export default function TestBFQ({ onFinish }: Props) {
             <p><strong>{i + 1}.</strong> {pregunta}</p>
             <div className={styles.testCardItems}>
               {BFQ_TEST.opciones.map((op) => (
-                <label key={op.valor} style={{ display: "flex", alignItems: "center" }}>
+                <label key={op.valor} style={{ display: "flex", alignItems: "center", cursor: 'pointer' }}>
                   <input
                     type="radio"
                     name={`pregunta-${i}`}
                     checked={respuestas[i] === op.valor}
                     onChange={() => responder(i, op.valor)}
+                    style={{ marginRight: '8px' }}
                   />
                   {op.label}
                 </label>

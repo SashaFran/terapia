@@ -1,9 +1,11 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Importamos el hook
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { K10_TEST } from "../../../data/tests/k10";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
 import Modal from "../../Modal/Modal.tsx";
+import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal.tsx";
+import { iniciarMonitoreo } from "../../../services/cameraService.tsx"; 
 
 type ResultadoK10 = {
   score: number;
@@ -14,21 +16,41 @@ type ResultadoK10 = {
 };
 
 type Props = {
-  // Cambiado a void | Promise<void> para esperar al guardado
   onFinish: (resultado: ResultadoK10) => void | Promise<void>;
+  userId: string | number; // Necesario para identificar las fotos
 };
 
-export default function TestK10({ onFinish }: Props) {
-  const navigate = useNavigate(); // 2. Inicializamos navigate
+export default function TestK10({ onFinish, userId }: Props) {
+  const navigate = useNavigate();
+  const [canStart, setCanStart] = useState(false);
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(K10_TEST.preguntas.length).fill(0),
   );
 
   const [testIniciado, setTestIniciado] = useState(false);
-  const [enviando, setEnviando] = useState(false); // 3. Estado de carga
+  const [enviando, setEnviando] = useState(false);
   const startTimeRef = useRef<number>(0);
+  
+  // Referencia para guardar la función que apaga la cámara
+  const stopCameraRef = useRef<(() => void) | null>(null);
 
-  const iniciarTest = () => {
+  // Efecto para limpiar la cámara cuando el componente se destruye (ej: cerrar pestaña o navegar)
+  useEffect(() => {
+    return () => {
+      if (stopCameraRef.current) {
+        stopCameraRef.current();
+      }
+    };
+  }, []);
+
+  const iniciarTest = async () => {
+    // 1. Iniciamos el monitoreo (cámara)
+    const cleanup = await iniciarMonitoreo(userId);
+    if (cleanup) {
+      stopCameraRef.current = cleanup;
+    }
+
+    // 2. Iniciamos estados visuales y tiempo
     setTestIniciado(true);
     startTimeRef.current = Date.now();
   };
@@ -41,15 +63,19 @@ export default function TestK10({ onFinish }: Props) {
     });
   };
 
-  // 4. Función asíncrona para manejar el final y la navegación
   const calcularResultado = async () => {
     if (!testIniciado || enviando) return;
 
-    setEnviando(true); // Bloqueamos el botón
+    setEnviando(true);
+
+    // Apagamos la cámara apenas termina el test
+    if (stopCameraRef.current) {
+      stopCameraRef.current();
+      stopCameraRef.current = null;
+    }
 
     const endTime = Date.now();
     const tiempoTotalMs = endTime - startTimeRef.current;
-
     const total = respuestas.reduce((a, b) => a + b, 0);
 
     let nivel = "";
@@ -59,7 +85,6 @@ export default function TestK10({ onFinish }: Props) {
     else nivel = "Malestar psicológico muy severo";
 
     try {
-      // Esperamos a que el proceso de guardado del padre termine
       await onFinish({
         score: total,
         nivel,
@@ -68,13 +93,10 @@ export default function TestK10({ onFinish }: Props) {
         tiempoTotalMs: tiempoTotalMs,
       });
 
-      // Navegamos al dashboard o ruta de éxito
-      // replace: true evita que al volver atrás regresen al test
       navigate('/app/dashboard', { replace: true });
-
     } catch (error) {
       console.error("Error al guardar el K10:", error);
-      setEnviando(false); // Permitimos reintentar si falla
+      setEnviando(false);
     }
   };
 
@@ -87,22 +109,28 @@ export default function TestK10({ onFinish }: Props) {
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación (K-10)"
       >
-        <li>
-          Esta evaluación <strong>monitoriza el tiempo</strong> que se tarda en
-          completarse, con fines exclusivamente estadísticos y de investigación
-          interna.
-        </li>
-        <li>
-          <strong>Importante:</strong> El tiempo empleado{" "}
-          <strong>no afectará</strong> a la puntuación final de su evaluación ni
-          a los resultados clínicos.
-        </li>
-        <li>
-          Por favor, <strong>relájese</strong>, lea atentamente cada pregunta y
-          responda con total <strong>sinceridad</strong>.
-        </li>
+        <div style={{ marginBottom: '15px' }}>
+          <li>
+            Esta evaluación <strong>monitoriza el tiempo</strong> que se tarda en
+            completarse, con fines exclusivamente estadísticos.
+          </li>
+          <li>
+            <strong>Importante:</strong> El tiempo empleado <strong>no afectará</strong> a su puntuación final.
+          </li>
+          <li>
+            Por favor, responda con total <strong>sinceridad</strong>.
+          </li>
+        </div>
+
+        {/* Componente de aviso legal con checkbox */}
+        <ConsentimientoCamara changeStatus={setCanStart} />
+
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-          <BotonPersonalizado variant="primary" onClick={iniciarTest} disabled={false}>
+          <BotonPersonalizado 
+            variant="primary" 
+            onClick={iniciarTest} 
+            disabled={!canStart}
+          >
             Comenzar Evaluación
           </BotonPersonalizado>
         </div>
@@ -119,18 +147,16 @@ export default function TestK10({ onFinish }: Props) {
       <div className={styles.testContainer}>
         {K10_TEST.preguntas.map((pregunta, i) => (
           <div key={i} className={styles.testCard}>
-            <p>
-              <strong>{i + 1}.</strong> {pregunta}
-            </p>
-
+            <p><strong>{i + 1}.</strong> {pregunta}</p>
             <div className={styles.testCardItems}>
               {K10_TEST.opciones.map((op) => (
-                <label key={op.valor} style={{ display: "flex", alignItems: "center" }}>
+                <label key={op.valor} style={{ display: "flex", alignItems: "center", cursor: 'pointer' }}>
                   <input
                     type="radio"
                     name={`pregunta-${i}`}
                     checked={respuestas[i] === op.valor}
                     onChange={() => responder(i, op.valor)}
+                    style={{ marginRight: '8px' }}
                   />
                   {op.label}
                 </label>

@@ -4,11 +4,10 @@ import { db } from "../../firebase/firebase.js";
 import styles from "./Sesiones.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal";
-
 import { generarPdfResultado } from "../../utils/generarPdfResultado";
 import { TESTS_REGISTRY } from "../../data/tests";
 import { generarPDFClinico } from "../../utils/generarPDFClinico.ts";
-
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { collection, getDocs } from "firebase/firestore";
 
 interface Resultado {
@@ -18,28 +17,24 @@ interface Resultado {
   nivel?: string;
   pacienteId?: string;
   observacionesIniciales?: string;
+  archivoCaptura?: string; // Ruta de la foto del test
 }
 
 interface Paciente {
   id: string;
   nombre: string;
+  archivodni?: string; // Ruta del DNI
 }
 
 export default function Sesiones() {
   const [resultados, setResultados] = useState<Resultado[]>([]);
-  const [pacientesMap, setPacientesMap] = useState<Record<string, string>>({});
+  const [pacientesMap, setPacientesMap] = useState<Record<string, Paciente>>({});
   const [loading, setLoading] = useState(true);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<Resultado | null>(
-    null,
-  );
+  const [selectedSession, setSelectedSession] = useState<Resultado | null>(null);
 
   const navigate = useNavigate();
 
-  // -------------------------------
-  // Helpers
-  // -------------------------------
   const formatearFecha = (timestamp: any): string => {
     if (!timestamp || !timestamp.toDate) return "N/A";
     return timestamp.toDate().toLocaleDateString("es-AR", {
@@ -49,137 +44,131 @@ export default function Sesiones() {
     });
   };
 
-  // 👈 Función para abrir el modal con la sesión correcta
   const handleOpenModal = (resultado: Resultado) => {
     setSelectedSession(resultado);
     setIsModalOpen(true);
   };
 
-  // 👈 Función para cerrar el modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedSession(null); // Limpiamos la sesión seleccionada al cerrar
+    setSelectedSession(null);
   };
 
-  // 👈 Función callback para actualizar el estado local cuando se guarda en el modal
   const handleSuccessfulSave = (id: string, nuevasObservaciones: string) => {
     setResultados((prev) =>
       prev.map((r) =>
-        r.id === id ? { ...r, observacionesIniciales: nuevasObservaciones } : r,
-      ),
+        r.id === id ? { ...r, observacionesIniciales: nuevasObservaciones } : r
+      )
     );
   };
 
-  // -------------------------------
-  // Cargar resultados + pacientes
-  // -------------------------------
   useEffect(() => {
     const cargarDatos = async () => {
-      // 🔹 Resultados
       const snapResultados = await getDocs(collection(db, "resultados"));
       const resultadosData = snapResultados.docs.map((d) => ({
         id: d.id,
         ...d.data(),
       })) as Resultado[];
 
-      // 🔹 Pacientes
       const snapPacientes = await getDocs(collection(db, "pacientes"));
-      const pacientesData = snapPacientes.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as { nombre: string }),
-      })) as Paciente[];
+      const map: Record<string, Paciente> = {};
 
-      // 🔹 Map pacienteId → nombre
-      const map: Record<string, string> = {};
-      pacientesData.forEach((p) => {
-        map[p.id] = p.nombre;
+      snapPacientes.docs.forEach((d) => {
+        const data = d.data();
+        map[d.id] = {
+          id: d.id,
+          nombre: data.nombre,
+          archivodni: data.archivodni || data.archivoDNI 
+        };
       });
 
       setResultados(resultadosData);
       setPacientesMap(map);
       setLoading(false);
     };
-
     cargarDatos();
   }, []);
 
-  // -------------------------------
-  // Métricas
-  // -------------------------------
-  const totalTests = resultados.length;
-
-  const ultimaFecha =
-    resultados
-      .map((r) => r.fecha)
-      .filter(Boolean)
-      .sort((a, b) => b.seconds - a.seconds)[0] || null;
-
-  // -------------------------------
-  // Render
-  // -------------------------------
-  if (loading) {
-    return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando evaluaciones…</h2>
-      </div>
-    );
-  }
- const descargarPDF = (resultado: any) => {
-  const testConfig = TESTS_REGISTRY[resultado.testId];
-
-  if (!testConfig) {
-    alert("Test no soportado todavía");
-    return;
-  }
-
-  // 🧠 Detectar BFQ vs otros tests
-  const isBFQ = resultado.testId === "bfq";
-
-  const resumen = testConfig.generarResumenClinico({
-    pacienteNombre: pacientesMap[resultado.pacienteId ?? ""] || "Paciente",
-    score: isBFQ ? resultado.dimensiones : resultado.score, // 🔥 clave
-    nivel: resultado.nivel,
-    fecha: resultado.fecha?.toDate
-      ? resultado.fecha.toDate()
-      : new Date(),
+  // Función corregida para descargar el PDF con fotos
+// Función auxiliar para convertir URL a Base64
+const urlToBase64 = async (url: string): Promise<string> => {
+  // El '?t=' + Date.now() fuerza al navegador a pedir la imagen de nuevo, saltando bloqueos de caché
+  const response = await fetch(url + '&t=' + Date.now(), {
+    mode: 'cors'
   });
-
-  generarPDFClinico({
-    titulo: `Informe Clínico – ${testConfig.nombre}`,
-    contenido: resumen,
-    nombrePaciente: pacientesMap[resultado.pacienteId || ""] || "Paciente",
+  const blob = await response.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
   });
 };
+
+
+
+
+// Función que dispara la descarga
+const descargarInforme = async (resultado: Resultado) => {
+  const storage = getStorage();
+  const paciente = pacientesMap[resultado.pacienteId || ""];
+  
+  let urlDNI = null;
+  let urlCaptura = null;
+
+  // Intentamos obtener la URL del DNI
+  try {
+    const rutaDNI = paciente?.archivodni || paciente?.archivodni;
+    // Si la ruta es válida y NO es un blob, buscamos la URL
+    if (rutaDNI && !rutaDNI.startsWith('blob:')) {
+      urlDNI = await getDownloadURL(ref(storage, rutaDNI));
+    }
+  } catch (e) { console.log("DNI no encontrado en Storage"); }
+
+  // Intentamos obtener la URL de la Captura
+  try {
+    if (resultado.archivoCaptura) {
+      urlCaptura = await getDownloadURL(ref(storage, resultado.archivoCaptura));
+    }
+  } catch (e) { console.log("Captura no encontrada en Storage"); }
+
+  // Generamos el PDF (esto ahora SIEMPRE se va a ejecutar)
+  await generarPdfResultado({
+    pacienteNombre: paciente?.nombre || "Paciente",
+    resultado,
+    fotoDNI: urlDNI || undefined,
+    fotoCaptura: urlCaptura || undefined
+  });
+};
+
+
+  const totalTests = resultados.length;
+  const ultimaFecha = resultados
+    .map((r) => r.fecha)
+    .filter(Boolean)
+    .sort((a, b) => (b.seconds || 0) - (a.seconds || 0))[0] || null;
+
+  if (loading) return <div className="global-container"><h2>Cargando...</h2></div>;
+
   return (
     <div className={`global-container ${styles.container}`}>
-      <div className={`nav`}>
+      <div className="nav">
         <h2>Evaluaciones psicológicas</h2>
-        <div className={styles.navButtons}>
-          <BotonPersonalizado
-            variant="primary"
-            onClick={() => navigate("/app/nueva-sesion")}
-            disabled={false}
-          >
-            Nueva sesión
-          </BotonPersonalizado>
-        </div>
+        <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
+          Nueva sesión
+        </BotonPersonalizado>
       </div>
-      {/* CARDS */}
+
       <nav className={styles.navCards}>
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Tests realizados</h3>
-          <p className={styles.cardResult}>{totalTests}</p>
+          <h3>Tests realizados</h3>
+          <p>{totalTests}</p>
         </div>
-
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Último test</h3>
-          <p className={styles.cardResult}>
-            {ultimaFecha ? formatearFecha(ultimaFecha) : "—"}
-          </p>
+          <h3>Último test</h3>
+          <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
         </div>
       </nav>
 
-      {/* TABLA */}
       <div className={styles.tablaPacientes}>
         <table className={styles.tabla}>
           <thead>
@@ -187,63 +176,30 @@ export default function Sesiones() {
               <th>Fecha</th>
               <th>Test</th>
               <th>Nivel</th>
-              <th className={styles.paciente}>Paciente</th>
-              <th className={styles.comentarios}>Comentarios</th>
-              <th className={styles.descargar}>Descargar</th>
+              <th>Paciente</th>
+              <th>Comentarios</th>
+              <th>Descargar</th>
             </tr>
           </thead>
-
           <tbody>
             {resultados.map((r) => (
               <tr key={r.id}>
                 <td>{formatearFecha(r.fecha)}</td>
-                <td>{r.testId?.toUpperCase() || "—"}</td>
+                <td>{r.testId?.toUpperCase()}</td>
                 <td>{r.nivel || "—"}</td>
-
                 <td>
-                  {r.pacienteId ? (
-                    <button
-                      className={styles.linkPaciente}
-                      onClick={() => navigate(`/admin/perfil/${r.pacienteId}`)}
-                    >
-                      {pacientesMap[r.pacienteId] || "Paciente"} 🔗
-                    </button>
-                  ) : (
-                    "—"
-                  )}
+                  {pacientesMap[r.pacienteId || ""]?.nombre || "—"}
                 </td>
-
                 <td>
-                  <button
-                    onClick={() => handleOpenModal(r)}
-                    title={r.observacionesIniciales || "Añadir comentario"}
-                  >
-                    {r.observacionesIniciales ? "📝 Ver/Editar" : "➕ Añadir"}
+                  <button onClick={() => handleOpenModal(r)}>
+                    {r.observacionesIniciales ? "📝 Ver" : "➕ Añadir"}
                   </button>
                 </td>
-
                 <td className={styles.descargar}>
-                  <button onClick={() => descargarPDF(r)}>⬇️</button>
-                  <button
-                    onClick={() =>
-                      generarPdfResultado({
-                        pacienteNombre:
-                          pacientesMap[r.pacienteId] || "Paciente",
-                        resultado: r,
-                      })
-                    }
-                  >
-                    ⬇️
-                  </button>
+                  <button onClick={() => descargarInforme(r)}>⬇️ PDF</button>
                 </td>
               </tr>
             ))}
-
-            {resultados.length === 0 && (
-              <tr>
-                <td colSpan={6}>No hay evaluaciones registradas</td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>

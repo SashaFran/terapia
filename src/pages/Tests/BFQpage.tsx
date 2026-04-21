@@ -55,7 +55,7 @@ export default function BFQPage() {
     });
 
     // 3️⃣ Volver al perfil
-    navigate(`/perfil/${pacienteId}`);
+    navigate(`/paciente/${pacienteId}`);
   };
 
   if (loading) return <p>Cargando test…</p>;

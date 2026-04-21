@@ -1,0 +1,20 @@
+.aviso{
+    padding: 15px;
+    background-color: rgb(249, 249, 249);
+    border-radius: 8px;
+    border: 1px solid rgb(221, 221, 221);
+    font-size: 0.9em;
+    margin: 1.5rem 0;
+}
+.avisoTitle{
+    margin: 0;
+}
+.checkbox{
+    display: flex; 
+    align-items: center; 
+    cursor: pointer;
+    font-weight: bold;
+}
+.checkboxInput{
+    margin-right: 10px;
+}

@@ -71,6 +71,7 @@ interface Asignacion {
 
 export default function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
+
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<Paciente | null>(null);
@@ -150,7 +151,12 @@ const handleSuccessfulSave = (
   setSelectedResultado(null); // ✅ CORRECTO
   setIsModalOpen(false);
 };
-
+  useEffect(() => {
+  if (id) {
+    localStorage.setItem("pacienteId", id);
+    console.log("Paciente activo seteado:", id);
+  }
+}, [id]);
 
   
   
@@ -204,25 +210,19 @@ const handleSuccessfulSave = (
 
   }, [id]);
 
-  // ---------------------------------------
-  // Efecto para COMBINAR los datos (JOIN)
-  // ---------------------------------------
- useEffect(() => {
-const combinedData: FilaTablaData[] = resultados.map(resultado => {
-  const sessionMatch = sessions.find(
-    session => session.id === resultado.sesionId
-  );
-
-  return {
-    id: resultado.sesionId, // 👈 ESTE es el id real de sesión
-    fecha: resultado.fecha,
-    testId: resultado.testId || 'N/A',
-    nivel: resultado.nivel || 'N/A',
-    observacionesIniciales: sessionMatch?.observacionesIniciales || '—',
-    resultadoRaw: resultado,
-  };
-});
-
+    // ---------------------------------------
+    // Efecto para COMBINAR los datos (JOIN)
+    // ---------------------------------------
+  useEffect(() => {
+    const combinedData: FilaTablaData[] = resultados.map(resultado => {
+      return {
+        fecha: resultado.fecha,
+        testId: resultado.testId || "N/A",
+        nivel: resultado.nivel || "N/A",
+        observacionesIniciales: resultado.observacionesIniciales || "—",
+        resultadoRaw: resultado,
+      };
+    });
 
   combinedData.sort((a, b) => {
     if (!a.fecha?.toDate || !b.fecha?.toDate) return 0;
@@ -305,11 +305,14 @@ const handleGuardarConfig = async (data: {
 
     const nuevoTimestamp = Timestamp.fromDate(fechaFinal);
 
-    // 3. Actualizar en Firebase
-   await updateDoc(doc(db, "asignaciones", id), {
-      estado: "completado",
-      fechaCompletado: new Date()
-    });
+   const promesasUpdate = asignaciones.map((a) =>
+  updateDoc(doc(db, "asignaciones", a.id), {
+    estado: "completado",
+    fechaCompletado: new Date()
+  })
+);
+
+await Promise.all(promesasUpdate);
 
     // 4. Actualizar estado local para reflejar el cambio en la UI inmediatamente
     setPatient((prev: any) => prev ? {
@@ -324,6 +327,8 @@ const handleGuardarConfig = async (data: {
     const eliminados = actuales.filter((t) => !data.tests.includes(t));
 
     const ahora = new Date();
+
+    // ➕ agregar nuevos
     const promesasAdd = nuevos.map((testId) =>
       addDoc(collection(db, "asignaciones"), {
         pacienteId: id,
@@ -334,6 +339,7 @@ const handleGuardarConfig = async (data: {
       })
     );
 
+    // ❌ eliminar quitados
     const promesasDelete = asignaciones
       .filter((a) => eliminados.includes(a.testId))
       .map((a) => deleteDoc(doc(db, "asignaciones", a.id)));
@@ -391,6 +397,7 @@ const descargarPDF = (rowData: FilaTablaData) => {
     nombrePaciente: patient?.nombre || "Paciente",
   });
 };
+
   if (!patient) {
     return <div className="page"><h2>Cargando paciente...</h2></div>;
   }
@@ -446,6 +453,7 @@ const descargarPDF = (rowData: FilaTablaData) => {
         <th>Estado</th>
         <th>Asignado</th>
         <th>Completado</th>
+        <th>Acción</th>
       </tr>
     </thead>
 
@@ -458,6 +466,17 @@ const descargarPDF = (rowData: FilaTablaData) => {
           </td>
           <td>{formatearFecha(a.fechaAsignacion)}</td>
           <td>{formatearFecha(a.fechaCompletado)}</td>
+          <td>
+            {a.estado === "pendiente" && (
+              <button
+                onClick={() =>
+                  navigate(`/test/${a.testId}?paciente=${id}`)
+                }
+              >
+                ▶️ Iniciar
+              </button>
+            )}
+          </td>
         </tr>
       ))}
 

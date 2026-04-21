@@ -8,6 +8,7 @@ import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 
 export default function LoginPaciente() {
+  
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function LoginPaciente() {
         setError("Tu acceso ha sido deshabilitado.");
         return;
       }
+      
 
       // ⏳ VALIDACIÓN DE FECHA
           // ⏳ 4. VALIDACIÓN DE FECHA (Modo estricto)
@@ -76,7 +78,10 @@ export default function LoginPaciente() {
   }
     
     const pacienteLogueado = { id: docPaciente.id, ...pacienteData };
+
     localStorage.setItem("paciente", JSON.stringify(pacienteLogueado));
+    localStorage.setItem("pacienteId", docPaciente.id); // 💎 ESTA ES LA CLAVE
+
     localStorage.setItem("rol", "paciente");
     navigate("/app/dashboard");
 
