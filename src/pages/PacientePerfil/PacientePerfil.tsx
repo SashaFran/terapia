@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../firebase/firebase.js";
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import EditarPacienteModal from "../../components/Modal/EditarPacienteModal.tsx";
@@ -7,9 +7,6 @@ import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
 import styles from "./PacientePerfil.module.css";
 import { descargarInforme } from "../../utils/descargarInforme";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
-import  activoIcono  from "../../assets/Icons/checkmark-circle.svg";
-import  inactivoIcono  from "../../assets/Icons/line-slant-down-circle.svg";
-
 
 import {
   addDoc,
@@ -24,34 +21,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-// --- Interfaces ---
-interface FilaTablaData {
-  pacienteId: string;
-  resultadoRaw: Resultado;
-  fecha: any;
-  testId: string;
-  nivel: string;
-  observacionesIniciales: string;
-}
-
-interface Paciente {
-  activo: boolean;
-  dni: string;
-  fechaInicioAcceso: any;
-  fechaFinAcceso: any;
-  accesoUtilizado: any;
-  nombre: string;
-}
-
-interface Sesion {
-  id: string;
-  fecha?: any;
-  entornoVR?: string;
-  nivelExposicion?: string;
-  ansiedadDespues?: string;
-  comentariosPaciente?: string;
-  observacionesIniciales?: string;
-}
+// -------- TYPES --------
 interface Resultado {
   id: string;
   fecha?: any;
@@ -59,9 +29,14 @@ interface Resultado {
   nivel?: string;
   pacienteId?: string;
   observacionesIniciales?: string;
-  tiempoTotalMs?: number;
-  score?: number;
-  dimensiones?: any;
+}
+
+interface Paciente {
+  activo: boolean;
+  dni: string;
+  fechaInicioAcceso: any;
+  fechaFinAcceso: any;
+  nombre: string;
 }
 
 interface Asignacion {
@@ -72,451 +47,275 @@ interface Asignacion {
   fechaCompletado?: any;
 }
 
+// -------- COMPONENT --------
 export default function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
-
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<Paciente | null>(null);
-  const [sessions, setSessions] = useState<Sesion[]>([]);
-  const [resultados, setResultados] = useState<any[]>([]);
-  
-  // Usaremos estos para la tabla y el modal
-  const [tableData, setTableData] = useState<FilaTablaData[]>([]);
+  const [resultados, setResultados] = useState<Resultado[]>([]);
+  const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]);
   const [selectedResultado, setSelectedResultado] = useState<Resultado | null>(null);
 
-  // Estados de modales
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
-  // ---------------------------------------
-  // Helpers
-  // ---------------------------------------
-  const formatDuration = (ms: number): string => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
-
+  // -------- HELPERS --------
   const formatearFecha = (timestamp: any) => {
     if (!timestamp) return "N/A";
-    
-    // Si ya es un objeto Date
-    if (timestamp instanceof Date) {
-      return timestamp.toLocaleDateString("es-AR");
-    }
-    
-    // Si es un Timestamp de Firebase (tiene .toDate)
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString("es-AR");
-    }
-    
+    if (timestamp.toDate) return timestamp.toDate().toLocaleDateString("es-AR");
+    if (timestamp instanceof Date) return timestamp.toLocaleDateString("es-AR");
     return "N/A";
   };
 
-
-const handleOpenModal = (row: FilaTablaData) => {
-  setSelectedResultado({
-    ...row.resultadoRaw,
-    observacionesIniciales: row.observacionesIniciales, // 🔥 importante
-  });
-
-  setIsModalOpen(true);
-};
-
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedResultado(null);
-  };
-const handleSuccessfulSave = (
-  resultadoId: string,
-  nuevasObservaciones: string
-) => {
-  setTableData(prev =>
-    prev.map(r =>
-      r.resultadoRaw.id === resultadoId
-        ? {
-            ...r,
-            observacionesIniciales: nuevasObservaciones,
-            resultadoRaw: {
-              ...r.resultadoRaw,
-              observacionesIniciales: nuevasObservaciones,
-            },
-          }
-        : r
-    )
-  );
-
-  setSelectedResultado(null); // ✅ CORRECTO
-  setIsModalOpen(false);
-};
-  useEffect(() => {
-  if (id) {
-    localStorage.setItem("pacienteId", id);
-    console.log("Paciente activo seteado:", id);
-  }
-}, [id]);
-
-  
-  
-  // ---------------------------------------
-  // Cargar datos de Firebase
-  // ---------------------------------------
-  useEffect(() => {
-    if (!id) return;
-    // ... (cargarPaciente, cargarSesiones, cargarResultados logic here) ...
-    const cargarPaciente = async () => { /* ... */ 
-      const ref = doc(db, "pacientes", id);
-      const snap = await getDoc(ref);
-      if (snap.exists()) setPatient(snap.data());
-    };
-    const cargarSesiones = async () => { /* ... */ 
-       const q = query(collection(db, "sesiones"), where("pacienteId", "==", id));
-       const snap = await getDocs(q);
-       setSessions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    };
-    const cargarResultados = async () => { /* ... */ 
-      const q = query(collection(db, "resultados"), where("pacienteId", "==", id));
-      const snap = await getDocs(q);
-      setResultados(
-        snap.docs.map((d) => ({
-          id: d.id, // 🔥 ESTO ES CLAVE
-          ...d.data(),
-        }))
-      );
-    };
-
-    const cargarAsignaciones = async () => {
-      const q = query(
-        collection(db, "asignaciones"),
-        where("pacienteId", "==", id)
-      );
-
-      const snap = await getDocs(q);
-
-      setAsignaciones(
-        snap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        })) as Asignacion[]
-      );
-    };
-
-    cargarPaciente();
-    cargarSesiones();
-    cargarResultados();
-    cargarAsignaciones();
-
-  }, [id]);
-
-    // ---------------------------------------
-    // Efecto para COMBINAR los datos (JOIN)
-    // ---------------------------------------
-  useEffect(() => {
-    const combinedData: FilaTablaData[] = resultados.map(resultado => {
-      return {
-        fecha: resultado.fecha,
-        testId: resultado.testId || "N/A",
-        nivel: resultado.nivel || "N/A",
-        observacionesIniciales: resultado.observacionesIniciales || "—",
-        resultadoRaw: resultado,
-      };
-    });
-
-  combinedData.sort((a, b) => {
-    if (!a.fecha?.toDate || !b.fecha?.toDate) return 0;
-    return b.fecha.toDate() - a.fecha.toDate();
-  });
-
-  setTableData(combinedData);
-}, [sessions, resultados]);
-
-  // ---------------------------------------
-  // Handlers para acciones
-  // ---------------------------------------
-const getEstadoPaciente = () => {
-  if (!patient) return "—";
-
-  const ahora = new Date();
-  const fin = patient.fechaFinAcceso?.toDate?.();
-
-  if (!fin) return "—";
-
-  // ⛔ Expirado por fecha
-  if (ahora > fin) return "⛔ Expirado";
-
-  // ⛔ Desactivado manualmente
-  if (patient.activo === false) return "⛔ Inactivo";
-
-  // ✅ Todos los tests completados
-  const total = asignaciones.length;
-  const completados = asignaciones.filter(
-    (a) => a.estado === "completado"
-  ).length;
-
-  if (total > 0 && completados === total) {
-    return "✔️ Completado";
-  }
-
-  // 🟢 Activo (puede seguir)
-  return "🟢 Activo";
-};
-
-  //Guardado
-const handleGuardarConfig = async (data: {
-  activo: boolean;
-  fechaFinAcceso: any;
-  tests: string[];
-}) => {
-  if (!id) return;
-  try {
-    let fechaFinal: Date;
-
-    // 1. Convertir cualquier entrada a un objeto Date válido
-    if (data.fechaFinAcceso instanceof Date) {
-      fechaFinal = data.fechaFinAcceso;
-    } else if (typeof data.fechaFinAcceso === "string") {
-      // Si es string "YYYY-MM-DD", forzamos el fin del día
-      const [year, month, day] = data.fechaFinAcceso.split("-").map(Number);
-
-      // 🔥 CREAR FECHA LOCAL (NO UTC)
-      fechaFinal = new Date(year, month - 1, day);
-      fechaFinal.setHours(23, 59, 59, 999);
-      console.log("primera" + fechaFinal);
-    } else if (data.fechaFinAcceso?.seconds) {
-      // Si entra por acá, es un Timestamp de Firebase
-      fechaFinal = new Date(data.fechaFinAcceso.seconds * 1000);
-      
-      // 🔥 IMPORTANTE: Si la fecha viene de Firebase a las 00:00 UTC, 
-      // al convertirla a local te resta horas y te cambia el día.
-      // Forzamos que sea el final del día local.
-      fechaFinal.setHours(23, 59, 59, 999); 
-      console.log("segunda ajustada: " + fechaFinal);
-    } else {
-      fechaFinal = new Date(data.fechaFinAcceso);
-      console.log("Tercera");
-    }
-
-    // 2. Validar que la fecha sea real
-    if (isNaN(fechaFinal.getTime())) {
-      throw new Error("Fecha inválida");
-    }
-
-    const nuevoTimestamp = Timestamp.fromDate(fechaFinal);
-    await updateDoc(doc(db, "pacientes", id), {
-      activo: data.activo,
-      fechaFinAcceso: nuevoTimestamp
-    });
-    
-   const promesasUpdate = asignaciones.map((a) =>
-  updateDoc(doc(db, "asignaciones", a.id), {
-    estado: "completado",
-    fechaCompletado: new Date()
-  })
-);
-
-await Promise.all(promesasUpdate);
-
-    // 4. Actualizar estado local para reflejar el cambio en la UI inmediatamente
-    setPatient((prev: any) => prev ? {
-      ...prev,
-      activo: data.activo,
-      fechaFinAcceso: nuevoTimestamp
-    } : null);
-
-    // --- (Resto de tu lógica de asignaciones de tests se mantiene igual) ---
-    const actuales = asignaciones.map((a) => a.testId);
-    const nuevos = data.tests.filter((t) => !actuales.includes(t));
-    const eliminados = actuales.filter((t) => !data.tests.includes(t));
+  const getEstadoPaciente = () => {
+    if (!patient) return "—";
 
     const ahora = new Date();
+    const fin = patient.fechaFinAcceso?.toDate?.();
 
-    // ➕ agregar nuevos
-    const promesasAdd = nuevos.map((testId) =>
-      addDoc(collection(db, "asignaciones"), {
-        pacienteId: id,
-        testId,
-        estado: "pendiente",
-        fechaAsignacion: Timestamp.fromDate(ahora),
-        fechaCompletado: null,
-      })
-    );
+    if (fin && ahora > fin) return "⛔ Expirado";
+    if (patient.activo === false) return "⛔ Inactivo";
 
-    // ❌ eliminar quitados
-    const promesasDelete = asignaciones
-      .filter((a) => eliminados.includes(a.testId))
-      .map((a) => deleteDoc(doc(db, "asignaciones", a.id)));
+    const total = asignaciones.length;
+    const completados = asignaciones.filter(a => a.estado === "completado").length;
 
-    await Promise.all([...promesasAdd, ...promesasDelete]);
+    if (total > 0 && total === completados) return "✔️ Completado";
 
-    setIsConfigOpen(false);
+    return "🟢 Activo";
+  };
 
-    // Recargar asignaciones para la tabla
-    const snap = await getDocs(
-      query(collection(db, "asignaciones"), where("pacienteId", "==", id))
-    );
-    setAsignaciones(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Asignacion[]);
+  // -------- LOAD DATA --------
+  useEffect(() => {
+    if (!id) return;
 
-  } catch (error) {
-    console.error("Error detallado:", error);
-    alert("Hubo un problema al guardar los cambios. Revisa la fecha seleccionada.");
-  }
-};
+    const load = async () => {
+      const pacienteSnap = await getDoc(doc(db, "pacientes", id));
+      if (pacienteSnap.exists()) setPatient(pacienteSnap.data() as Paciente);
 
-  if (!patient) {
-    return <div className="page"><h2>Cargando paciente...</h2></div>;
-  }
+      const resSnap = await getDocs(
+        query(collection(db, "resultados"), where("pacienteId", "==", id))
+      );
+      setResultados(resSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Resultado[]);
 
+      const asignSnap = await getDocs(
+        query(collection(db, "asignaciones"), where("pacienteId", "==", id))
+      );
+      setAsignaciones(asignSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Asignacion[]);
+    };
+
+    load();
+  }, [id]);
+
+  // -------- JOIN DATA --------
+  useEffect(() => {
+    const data = resultados.map(r => ({
+      ...r,
+      observacionesIniciales: r.observacionesIniciales || "—"
+    }));
+
+    data.sort((a, b) => {
+      if (!a.fecha?.toDate || !b.fecha?.toDate) return 0;
+      return b.fecha.toDate() - a.fecha.toDate();
+    });
+
+    setTableData(data);
+  }, [resultados]);
+
+  // -------- GUARDAR CONFIG (ARREGLADO) --------
+  const handleGuardarConfig = async (data: {
+    activo: boolean;
+    fechaFinAcceso: any;
+    tests: string[];
+  }) => {
+    if (!id) return;
+
+    try {
+      const fechaFinal = new Date(data.fechaFinAcceso);
+      fechaFinal.setHours(23, 59, 59, 999);
+
+      const timestamp = Timestamp.fromDate(fechaFinal);
+
+      // ✅ SOLO actualizar paciente
+      await updateDoc(doc(db, "pacientes", id), {
+        activo: data.activo,
+        fechaFinAcceso: timestamp
+      });
+
+      // -------- manejar asignaciones --------
+      const actuales = asignaciones.map(a => a.testId);
+
+      const nuevos = data.tests.filter(t => !actuales.includes(t));
+      const eliminados = actuales.filter(t => !data.tests.includes(t));
+
+      const ahora = new Date();
+
+      // ➕ agregar nuevos tests
+      const adds = nuevos.map(testId =>
+        addDoc(collection(db, "asignaciones"), {
+          pacienteId: id,
+          testId,
+          estado: "pendiente",
+          fechaAsignacion: Timestamp.fromDate(ahora)
+        })
+      );
+
+      // ❌ eliminar tests quitados
+      const dels = asignaciones
+        .filter(a => eliminados.includes(a.testId))
+        .map(a => deleteDoc(doc(db, "asignaciones", a.id)));
+
+      await Promise.all([...adds, ...dels]);
+
+      // 🔄 recargar asignaciones
+      const snap = await getDocs(
+        query(collection(db, "asignaciones"), where("pacienteId", "==", id))
+      );
+
+      setAsignaciones(snap.docs.map(d => ({ id: d.id, ...d.data() })) as Asignacion[]);
+
+      setPatient(prev => prev ? {
+        ...prev,
+        activo: data.activo,
+        fechaFinAcceso: timestamp
+      } : null);
+
+      setIsConfigOpen(false);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error guardando configuración");
+    }
+  };
+
+  if (!patient) return <h2>Cargando...</h2>;
+
+  // -------- UI --------
   return (
     <div className={`global-container ${styles.container}`}>
-      {/* Header */}
-     <header className={`nav`}>
+
+      {/* HEADER */}
+      <header className="nav">
         <h2>{patient.nombre}</h2>
-        <div className={styles.navButtons}>
-            <BotonPersonalizado
-            variant="danger"
-            onClick={async () => {
-                if (confirm("¿Eliminar paciente?")) {
-                await deleteDoc(doc(db, "pacientes", id));
-                navigate("/admin/pacientes");
-                }
-            }}
-            disabled={false}
-            >
-            Borrar paciente
-            </BotonPersonalizado>
-        </div>
-    </header>
-    {/* Info */}
-    <div className={styles.perfilInfo}>
-      <p><strong>DNI:</strong> {patient.dni}</p>
-      <p><strong>Estado:</strong> {getEstadoPaciente()}</p>
-      <p>
-        <strong>Acceso:</strong>{" "}
-        {formatearFecha(patient.fechaInicioAcceso)} →{" "}
-        {formatearFecha(patient.fechaFinAcceso)}
-      </p>
-    </div>
 
-    <div className={`nav`}>
-  <h4>Tests asignados</h4>
+        <BotonPersonalizado
+          variant="danger"
+          onClick={async () => {
+            if (confirm("¿Eliminar paciente?")) {
+              await deleteDoc(doc(db, "pacientes", id!));
+              navigate("/admin/pacientes");
+            }
+          }}
+        >
+          Borrar paciente
+        </BotonPersonalizado>
+      </header>
 
-  <BotonPersonalizado
-    variant="secondary"
-    onClick={() => setIsConfigOpen(true)}
-    disabled={false}
-  >
-    Configuración
-  </BotonPersonalizado>
-</div>
+      {/* INFO */}
+      <div className={styles.perfilInfo}>
+        <p><strong>DNI:</strong> {patient.dni}</p>
+        <p><strong>Estado:</strong> {getEstadoPaciente()}</p>
+        <p>
+          <strong>Acceso:</strong>{" "}
+          {formatearFecha(patient.fechaInicioAcceso)} →{" "}
+          {formatearFecha(patient.fechaFinAcceso)}
+        </p>
+      </div>
 
-<div className={styles.tablaPacientes}>
-  <table className="tabla">
-    <thead>
-      <tr>
-        <th>Test</th>
-        <th>Estado</th>
-        <th>Asignado</th>
-        <th>Completado</th>
-      </tr>
-    </thead>
+      {/* TESTS */}
+      <div className="nav">
+        <h4>Tests asignados</h4>
+        <BotonPersonalizado onClick={() => setIsConfigOpen(true)}>
+          Configuración
+        </BotonPersonalizado>
+      </div>
 
-    <tbody>
-      {asignaciones.map((a) => (
-        <tr key={a.id}>
-          <td>{a.testId.toUpperCase()}</td>
-          <td>
-            {a.estado === "completado" ? "✔️ Completado" : "⏳ Pendiente"}
-          </td>
-          <td>{formatearFecha(a.fechaAsignacion)}</td>
-          <td>{formatearFecha(a.fechaCompletado)}</td>
-        </tr>
-      ))}
+      <div className={styles.tablaPacientes}>
+        <table className="tabla">
+          <thead>
+            <tr>
+              <th>Test</th>
+              <th>Estado</th>
+              <th>Asignado</th>
+              <th>Completado</th>
+            </tr>
+          </thead>
 
-      {asignaciones.length === 0 && (
-        <tr>
-          <td colSpan={4}>Sin tests asignados</td>
-        </tr>
+          <tbody>
+            {asignaciones.map(a => (
+              <tr key={a.id}>
+                <td>{a.testId}</td>
+                <td>{a.estado}</td>
+                <td>{formatearFecha(a.fechaAsignacion)}</td>
+                <td>{formatearFecha(a.fechaCompletado)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* RESULTADOS */}
+      <div className="nav">
+        <h4>Evaluaciones</h4>
+      </div>
+
+      <div className={styles.tablaPacientes}>
+        <table className="tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Test</th>
+              <th>Nivel</th>
+              <th>Comentario</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {tableData.map(r => (
+              <tr key={r.id}>
+                <td>{formatearFecha(r.fecha)}</td>
+                <td>{r.testId}</td>
+                <td>{r.nivel}</td>
+
+                <td>
+                  <button onClick={() => {
+                    setSelectedResultado(r);
+                    setIsModalOpen(true);
+                  }}>
+                    📝
+                  </button>
+                </td>
+
+                <td>
+                  <button onClick={() => descargarInforme(r, patient)}>
+                    <img src={guardadoIcono} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* MODALES */}
+      {isConfigOpen && (
+        <EditarPacienteModal
+          abierto={isConfigOpen}
+          paciente={patient}
+          asignacionesActuales={asignaciones.map(a => a.testId)}
+          onCerrar={() => setIsConfigOpen(false)}
+          onGuardar={handleGuardarConfig}
+        />
       )}
-    </tbody>
-  </table>
-</div>
 
-    <div className={`nav`}>
-      <h4>Evaluaciones psicológicas</h4>
-      <BotonPersonalizado variant="primary" disabled={false}
-        onClick={() => navigate("/nueva-sesion")}>Nueva sesión
-      </BotonPersonalizado>
-     </div>
-
-    <div className={styles.tablaPacientes}>
-      <table className="tabla">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Test</th>
-            <th>Nivel</th>
-            <th className={styles.comentarios}>Comentarios</th>
-            <th className={styles.descargar}>Descargar</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {tableData.map((r) => (
-            <tr key={r.resultadoRaw.id}>
-              <td>{formatearFecha(r.fecha)}</td>
-              <td>{r.testId?.toUpperCase()}</td>
-              <td>{r.nivel}</td>
-
-              <td>
-                <button onClick={() => handleOpenModal(r)} title={r.observacionesIniciales || "Añadir comentario"}>
-                  {r.observacionesIniciales && r.observacionesIniciales !== '—' ? '📝 Ver/Editar' : '➕ Añadir'}
-                </button>
-              </td>
-
-             <td className={styles.descargar}>
-                <button
-                  onClick={() =>
-                    descargarInforme(
-                      r.resultadoRaw,
-                      patient
-                    )
-                  }
-                >
-                  <img src={guardadoIcono} alt="Descargar PDF" />
-                </button>
-              </td>
-                        </tr>
-                      ))}
-                      {tableData.length === 0 && (
-                        <tr>
-                          <td colSpan={5}>No hay evaluaciones registradas</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-        {isConfigOpen && (
-
-          <EditarPacienteModal
-            abierto={isConfigOpen}
-            paciente={patient}
-            asignacionesActuales={asignaciones.map(a => a.testId)} // 🔥 CLAVE
-            onCerrar={() => setIsConfigOpen(false)}
-            onGuardar={handleGuardarConfig}
-          />
-        )}
       <ObservacionesModal
         abierto={isModalOpen}
-        onCerrar={handleCloseModal}
+        onCerrar={() => setIsModalOpen(false)}
         sesion={selectedResultado}
-        onGuardarExitoso={handleSuccessfulSave}
+        onGuardarExitoso={() => {}}
       />
     </div>
-);}
-
-        
+  );
+}

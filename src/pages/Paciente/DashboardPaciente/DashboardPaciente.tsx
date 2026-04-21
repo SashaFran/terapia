@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import styles from "./DashboardPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
+import type { Asignacion } from "../../../models/asignacion";
 
 export default function DashboardPaciente() {
   const navigate = useNavigate();
@@ -65,7 +66,12 @@ export default function DashboardPaciente() {
 
       const snap = await getDocs(q);
 
-      setAsignaciones(snap.docs.map((d) => d.data()));
+      const asignacionesData = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    })) as Asignacion[];
+
+    setAsignaciones(asignacionesData);
     };
 
     cargarAsignaciones();
