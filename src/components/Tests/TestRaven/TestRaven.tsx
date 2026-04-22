@@ -4,7 +4,8 @@ import Modal from "../../Modal/Modal";
 import styles from "./TestRaven.module.css";
 import { RAVEN_TEST } from "../../../data/tests/raven_test";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import { iniciarMonitoreo } from "../../../services/cameraService.tsx"; 
+import CapturaAutomatica from "../../../services/cameraService.tsx";
+
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -105,6 +106,14 @@ export default function TestRaven({ onFinish, userId }: Props) {
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación con Láminas"
       >
+        <div>
+                    {/* El resto de tu test */}
+                    <CapturaAutomatica 
+                       pacienteId={userId} 
+                       onCapturaTerminada={(url) => console.log("Foto lista:", url)} 
+                    />
+                  </div>
+
         <div style={{ marginBottom: "1rem" }}>
           <li>
             Esta evaluación <strong>monitoriza el tiempo</strong> de completado y 

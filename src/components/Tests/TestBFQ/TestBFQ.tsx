@@ -5,7 +5,7 @@ import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
 import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import { iniciarMonitoreo } from "../../../services/cameraService.tsx"; 
+import CapturaAutomatica from "../../../services/cameraService.tsx";
 
 type ResultadoBFQ = {
   dimensiones: {
@@ -126,7 +126,13 @@ export default function TestBFQ({ onFinish, userId }: Props) {
           <li>Responda con sinceridad. No hay respuestas correctas o incorrectas.</li>
           <li>Durante el test, se realizarán capturas aleatorias para validar su identidad.</li>
         </div>
-
+        <div>
+            {/* El resto de tu test */}
+            <CapturaAutomatica 
+              pacienteId={userId} 
+              onCapturaTerminada={(url) => console.log("Foto lista:", url)} 
+            />
+          </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
 
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>

@@ -5,7 +5,7 @@ import BotonPersonalizado from "../../Boton/Boton";
 import styles from "./TestLaminas.module.css";
 import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import { iniciarMonitoreo } from "../../../services/cameraService.tsx"; 
+import  CapturaAutomatica  from "../../../services/cameraService.tsx"; 
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -21,7 +21,7 @@ export default function TestLaminas({ onFinish, userId }: Props) {
   const startTimeRef = useRef<number>(0);
   
   // Referencia para la función de apagado de cámara
-  const stopCameraRef = useRef<(() => void) | null>(null);
+  const stopCameraRef = useRef<any>(null);
 
   // Limpieza automática si el usuario sale de la página
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function TestLaminas({ onFinish, userId }: Props) {
 
   const iniciarTest = async () => {
     // Iniciamos la cámara antes de entrar al test
-    const cleanup = await iniciarMonitoreo(userId);
+    const cleanup = await CapturaAutomatica(userId);
     if (cleanup) {
       stopCameraRef.current = cleanup;
     }
@@ -85,6 +85,13 @@ export default function TestLaminas({ onFinish, userId }: Props) {
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación con Láminas"
       >
+        <div>
+            {/* El resto de tu test */}
+            <CapturaAutomatica 
+               pacienteId={userId} 
+               onCapturaTerminada={(url) => console.log("Foto lista:", url)} 
+            />
+          </div>
         <div style={{ marginBottom: "15px" }}>
           <li>
             Esta evaluación <strong>monitoriza el tiempo</strong> y realiza capturas de identidad aleatorias.

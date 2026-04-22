@@ -1,88 +1,122 @@
-// Definimos un tipo para la función de limpieza
-type CleanupFunction = () => void;
+import { useEffect, useRef, useState } from "react";
 
-let stream: MediaStream | null = null;
+interface Props {
+  pacienteId: string | number;
+  pacienteDni?: string;
+  onCapturaTerminada: (url: string) => void;
+}
 
-export const iniciarMonitoreo = async (
-  userId: string | number, 
-  intervaloMs: number = 120000
-): Promise<CleanupFunction | undefined> => {
-  try {
-    // 1. Pedimos acceso a la cámara
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480 }
-    });
+export default function CapturaAutomatica({
+  pacienteId,
+  pacienteDni,
+  onCapturaTerminada,
+}: Props) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [videoListo, setVideoListo] = useState(false);
 
-    // 2. Creamos el elemento de video en memoria
-    const videoElement = document.createElement('video');
-    videoElement.srcObject = stream;
-    
-    // Necesario para que funcione en algunos navegadores móviles
-    videoElement.muted = true;
-    videoElement.setAttribute("playsinline", "true");
-    
-    await videoElement.play();
+useEffect(() => {
+  console.log("🧠 pacienteId recibido en Captura:", pacienteId);
+}, [pacienteId]);
+  useEffect(() => {
+    console.log("🔥 CHECK pacienteId:", pacienteId, typeof pacienteId);
+    const idSeguro =
+      String(pacienteId)?.trim() ||
+      (pacienteDni ? `DNI_${pacienteDni}` : "SIN_ID");
 
-    // 3. Configuramos el intervalo
-    const timer = setInterval(() => {
-      capturarYSubir(videoElement, userId);
-    }, intervaloMs);
+    console.log("🧠 ID FINAL:", idSeguro);
 
-    // Retornamos la función de limpieza
-    return () => {
-      clearInterval(timer);
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        stream = null;
+    const iniciarCamara = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        streamRef.current = stream;
+        console.log("✅ Cámara iniciada para pacienteId:", pacienteId);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          console.log("✅ Stream asignado al videoRef");
+        }
+      } catch (err) {
+        console.error("❌ Error cámara:", err);
       }
     };
-  } catch (err) {
-    console.error("Error al acceder a la cámara:", err);
-    alert("Es obligatorio el acceso a la cámara para realizar el test.");
-    return undefined;
-  }
-};
 
-const capturarYSubir = (video: HTMLVideoElement, userId: string | number): void => {
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+    iniciarCamara();
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, [pacienteId]);
 
-  ctx.drawImage(video, 0, 0);
+  useEffect(() => {
+    if (!videoListo || !streamRef.current) return;
 
-  // Convertimos a Blob con calidad 0.5
-  canvas.toBlob(
-    (blob) => {
-      if (blob) {
-        enviarAlServidor(blob, userId);
+    const timer = setTimeout(() => {
+      tomarCapturaYSubir();
+      console.log("⏰ Tiempo límite alcanzado, tomando captura automática");
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [videoListo]);
+
+  const tomarCapturaYSubir = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const ctx = canvas.getContext("2d");
+    ctx?.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      const formData = new FormData();
+      formData.append("file", blob);
+      formData.append("upload_preset", "joinsolution_bucket");
+
+      // 💎 ID limpio SIEMPRE
+      let idFinal =
+        String(pacienteId)?.trim() ||
+        (pacienteDni ? `DNI_${pacienteDni}` : "SIN_ID");
+
+      const nombreArchivo = `captura_${idFinal}_${Date.now()}`;
+
+      formData.append("public_id", nombreArchivo);
+      formData.append("folder", "capturas_test");
+
+      try {
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/dni13rket/upload`,
+          { method: "POST", body: formData }
+        );
+
+        const data = await res.json();
+
+        if (data.secure_url) {
+          console.log("✅ Captura OK:", nombreArchivo);
+          onCapturaTerminada(data.secure_url);
+        } else {
+          console.error("❌ Cloudinary:", data);
+        }
+      } catch (err) {
+        console.error("❌ Upload error:", err);
       }
-    },
-    'image/jpeg',
-    0.5
+    }, "image/jpeg", 0.9);
+  };
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      style={{ width: "300px", border: "2px solid red" }}
+      onCanPlay={() => {
+  console.log("🎬 Video listo");
+  setVideoListo(true);
+}}
+    />
   );
-};
-
-const enviarAlServidor = async (blob: Blob, userId: string | number): Promise<void> => {
-  const formData = new FormData();
-  // El tercer argumento es el nombre del archivo
-  formData.append('foto', blob, `identidad_${userId}_${Date.now()}.jpg`);
-  formData.append('userId', userId.toString());
-
-  try {
-    const response = await fetch('/api/upload-capture', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Error en la respuesta del servidor');
-    }
-  } catch (e) {
-    console.error("Fallo en la subida silenciosa:", e);
-  }
-};
-
-export default iniciarMonitoreo;
+}

@@ -5,54 +5,64 @@ import { ref, uploadBytes } from "firebase/storage";
 import styles from "./SubirDNI.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 
+
 export default function SubirDNI() {
   const [file, setFile] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
 
-const handleUpload = async () => {
-  if (!file) return alert("Seleccioná un archivo");
-  
-  const pacienteData = localStorage.getItem("paciente");
-  if (!pacienteData) return alert("Sesión expirada");
-  const paciente = JSON.parse(pacienteData);
+const CLOUD_NAME = "dni13rket"; // <--- Verificá que sea todo en minúsculas
+  const UPLOAD_PRESET = "joinsolution_bucket"; // <--- Copialo tal cual del dashboard
 
-  setSubiendo(true);
+  const handleUpload = async () => {
+    if (!file) return alert("Seleccioná un archivo");
 
-  try {
-    // Referencia limpia
-    const storageRef = ref(storage, `test_${Date.now()}.jpg`);
+    const pacienteData = localStorage.getItem("paciente");
+    if (!pacienteData) return alert("Sesión expirada");
+    const paciente = JSON.parse(pacienteData);
 
-    // Forzamos metadatos básicos para ayudar al servidor
-    const metadata = {
-      contentType: file.type,
-    };
+    setSubiendo(true);
 
-    console.log("Subiendo archivo de tipo:", file.type);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", UPLOAD_PRESET);
+      
+      // Con esto vinculamos la foto al ID del paciente en Cloudinary
+      // El archivo se guardará en una carpeta "dnis" con el nombre del ID
+      formData.append("public_id", paciente.id);
+      formData.append("folder", "dnis"); 
 
-    // Intentamos la subida
-    const snapshot = await uploadBytes(storageRef, file, metadata);
-    console.log("Subida exitosa:", snapshot.metadata.fullPath);
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, // Quitamos "image/" para que sea más genérico (acepta PDF)
+        { method: "POST", body: formData }
+      );
 
-    // Actualizamos Firestore
-    await updateDoc(doc(db, "pacientes", paciente.id), {
-      archivodni: snapshot.metadata.fullPath,
-      activo: true
-    });
+      const data = await response.json();
 
-    alert("DNI subido con éxito");
+      if (data.secure_url) {
+        // Guardamos la URL y el ID de Cloudinary en tu Firestore
+        await updateDoc(doc(db, "pacientes", paciente.id), {
+          archivodni: data.secure_url, 
+          dni_public_id: data.public_id, // Guardamos esto para rastreo extra
+          activo: true,
+          fecha_subida: new Date().toISOString()
+        });
 
-  } catch (error: any) {
-    console.error("Error detallado:", error);
-    // Si el error es 404, es un problema de configuración en la consola de Firebase
-    if (error.code === 'storage/object-not-found') {
-       alert("Error: El servidor de almacenamiento no está activo en Firebase.");
-    } else {
-       alert("Error de conexión: Revisá tu configuración de CORS o red.");
+        alert("DNI vinculado al paciente con éxito ✨");
+        setFile(null);
+        setPreview(null);
+      } else {
+        // Esto te mostrará el error real en el alert si falla
+        console.error("Detalle de Cloudinary:", data.error.message);
+        alert(`Error de Cloudinary: ${data.error.message}`);
+      }
+    } catch (error) {
+      console.error("Error técnico:", error);
+      alert("Error de conexión al intentar subir el archivo.");
+    } finally {
+      setSubiendo(false);
     }
-  } finally {
-    setSubiendo(false);
-  }
-};
+  };
 
 
   return (
