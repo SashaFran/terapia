@@ -1,7 +1,7 @@
 /* Base button styles */
 .boton-base {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 14px;
   padding: 10px 20px;
   border: none;
   border-radius: var(--radius);
@@ -21,13 +21,11 @@
 
 /* Primary variant */
 .boton-primary {
-    background-color: var(--naranja2);
+  background: linear-gradient(90deg,rgba(255, 176, 0, 1) 0%, rgba(255, 60, 42, 1) 50%);
     color: white;
+    font-weight: var(--font-bold);
 }
 
-.boton-primary:hover {
-  background-color: var(--naranja);
-}
 
 /* Secondary variant */
 .boton-secondary {

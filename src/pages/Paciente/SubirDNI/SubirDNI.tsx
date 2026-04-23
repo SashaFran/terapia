@@ -81,8 +81,8 @@ const CLOUD_NAME = "dni13rket"; // <--- Verificá que sea todo en minúsculas
         <div className={styles.instrucciones}>
           <p className={styles.cardTitle}>Instrucciones:</p>
           <ul>
-            <li><strong>Qué subir</strong>: Una imagen clara del dorso o frente de tu DNI.</li>
-            <li><strong>Formato</strong>: JPG, JPEG o PDF.</li>
+            <li><strong>Qué subir</strong>: Una imagen clara del frente de tu DNI.</li>
+            <li><strong>Formato</strong>: JPG o JPEG.</li>
             <li><strong>Claridad</strong>: Asegurate de que los datos sean legibles.</li>
           </ul>
         </div>

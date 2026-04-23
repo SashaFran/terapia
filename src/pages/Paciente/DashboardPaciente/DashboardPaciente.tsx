@@ -125,7 +125,7 @@ export default function DashboardPaciente() {
             <li><strong> Sin interrupciones</strong>: Una vez iniciado un test, no podrás pausarlo ni cerrar la página. Si lo hacés, el acceso se bloqueará y deberás contactar a administración.</li>
             <li><strong>Tiempo estimado</strong>: Te sugerimos disponer de al menos 2 horas de tranquilidad para completar el proceso. Si tenés el tiempo ahora, ¡adelante! Si no, te recomendamos volver cuando puedas dedicarle toda tu atención.</li>
             <li><strong>Atención y tiempo</strong>: Cada test tiene un tiempo límite. Leé las instrucciones con cuidado y mantené el enfoque en cada respuesta.</li>
-            <li><strong>Identidad</strong>: Para finalizar, te solicitaremos una foto o PDF de tu DNI para validar tu identidad.</li>
+            <li><strong>Identidad</strong>: Para finalizar, te solicitaremos una foto de tu DNI para validar tu identidad.</li>
         </ul>
         Muchas gracias por tu compromiso.
       <div className={styles.buttonContainer}>

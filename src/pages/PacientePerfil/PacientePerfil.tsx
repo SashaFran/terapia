@@ -8,6 +8,7 @@ import styles from "./PacientePerfil.module.css";
 import { descargarInforme } from "../../utils/descargarInforme";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
 
+
 import {
   addDoc,
   collection,
@@ -124,71 +125,89 @@ export default function PacientePerfil() {
   }, [resultados]);
 
   // -------- GUARDAR CONFIG (ARREGLADO) --------
-  const handleGuardarConfig = async (data: {
-    activo: boolean;
-    fechaFinAcceso: any;
-    tests: string[];
-  }) => {
-    if (!id) return;
 
-    try {
-      const fechaFinal = new Date(data.fechaFinAcceso);
-      fechaFinal.setHours(23, 59, 59, 999);
 
-      const timestamp = Timestamp.fromDate(fechaFinal);
+const handleGuardarConfig = async (data: any) => {
+  try {
+    if (!id || !patient) return;
 
-      // ✅ SOLO actualizar paciente
-      await updateDoc(doc(db, "pacientes", id), {
-        activo: data.activo,
-        fechaFinAcceso: timestamp
-      });
+    const ref = doc(db, "pacientes", id);
 
-      // -------- manejar asignaciones --------
+    const updates: any = {};
+
+    // 🟢 ACTIVO
+    if (data.activo !== patient.activo) {
+      updates.activo = data.activo;
+    }
+
+    // 📅 FECHA (string → Timestamp)
+    if (data.fechaFinAcceso) {
+      const nuevaFecha = new Date(data.fechaFinAcceso + "T00:00:00"); // 👈 FIX timezone
+      const actualFecha = patient.fechaFinAcceso?.toDate?.();
+
+      const distinta =
+        !actualFecha || nuevaFecha.getTime() !== actualFecha.getTime();
+
+      if (distinta) {
+        updates.fechaFinAcceso = Timestamp.fromDate(nuevaFecha);
+      }
+    }
+
+    // 🚀 UPDATE REAL
+    if (Object.keys(updates).length > 0) {
+      console.log("ACTUALIZANDO:", updates);
+      await updateDoc(ref, updates);
+    }
+
+    // ---------------- TESTS ----------------
+    if (data.tests) {
       const actuales = asignaciones.map(a => a.testId);
 
-      const nuevos = data.tests.filter(t => !actuales.includes(t));
+      const nuevos = data.tests.filter((t: string) => !actuales.includes(t));
       const eliminados = actuales.filter(t => !data.tests.includes(t));
 
       const ahora = new Date();
 
-      // ➕ agregar nuevos tests
-      const adds = nuevos.map(testId =>
-        addDoc(collection(db, "asignaciones"), {
-          pacienteId: id,
-          testId,
-          estado: "pendiente",
-          fechaAsignacion: Timestamp.fromDate(ahora)
-        })
-      );
+      await Promise.all([
+        ...nuevos.map(testId =>
+          addDoc(collection(db, "asignaciones"), {
+            pacienteId: id,
+            testId,
+            estado: "pendiente",
+            fechaAsignacion: Timestamp.fromDate(ahora),
+          })
+        ),
+        ...asignaciones
+          .filter(a => eliminados.includes(a.testId))
+          .map(a => deleteDoc(doc(db, "asignaciones", a.id))),
+      ]);
 
-      // ❌ eliminar tests quitados
-      const dels = asignaciones
-        .filter(a => eliminados.includes(a.testId))
-        .map(a => deleteDoc(doc(db, "asignaciones", a.id)));
-
-      await Promise.all([...adds, ...dels]);
-
-      // 🔄 recargar asignaciones
       const snap = await getDocs(
         query(collection(db, "asignaciones"), where("pacienteId", "==", id))
       );
 
-      setAsignaciones(snap.docs.map(d => ({ id: d.id, ...d.data() })) as Asignacion[]);
-
-      setPatient(prev => prev ? {
-        ...prev,
-        activo: data.activo,
-        fechaFinAcceso: timestamp
-      } : null);
-
-      setIsConfigOpen(false);
-
-    } catch (err) {
-      console.error(err);
-      alert("Error guardando configuración");
+      setAsignaciones(
+        snap.docs.map(d => ({ id: d.id, ...d.data() })) as Asignacion[]
+      );
     }
-  };
 
+    // 🔄 estado local
+    setPatient(prev =>
+      prev
+        ? {
+            ...prev,
+            ...updates,
+          }
+        : null
+    );
+
+    setIsConfigOpen(false);
+
+  } catch (err) {
+    console.error("Error guardando configuración:", err);
+    alert("Error guardando configuración");
+  }
+};
   if (!patient) return <h2>Cargando...</h2>;
 
   // -------- UI --------
@@ -207,6 +226,7 @@ export default function PacientePerfil() {
               navigate("/admin/pacientes");
             }
           }}
+          disabled={false}
         >
           Borrar paciente
         </BotonPersonalizado>

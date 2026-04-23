@@ -46,7 +46,7 @@ export default function LoginPaciente() {
         return;
       }
 
-      // 📦 3. Traer asignaciones (CLAVE)
+      // 📦 3. Traer asignaciones
       const qAsignaciones = query(
         collection(db, "asignaciones"),
         where("pacienteId", "==", docPaciente.id)
@@ -59,13 +59,31 @@ export default function LoginPaciente() {
         ...d.data(),
       }));
 
-      // 🧠 4. Evaluar acceso correctamente
+      // 🧠 4. Evaluar acceso (VERSIÓN SANA)
       const ahora = new Date();
-      const fin = pacienteData.fechaFinAcceso?.toDate?.();
 
-      const accesoVencido = fin && ahora > fin;
+      const finRaw = pacienteData.fechaFinAcceso?.toDate?.();
+
+      let accesoVencido = false;
+
+      if (finRaw) {
+        // 🔥 FORZAMOS fin de día LOCAL (no UTC)
+        const fin = new Date(
+          finRaw.getFullYear(),
+          finRaw.getMonth(),
+          finRaw.getDate(),
+          23,
+          59,
+          59,
+          999
+        );
+
+        accesoVencido = ahora.getTime() > fin.getTime();
+      }
+
       const estaInactivo = pacienteData.activo === false;
 
+      // ⚠️ IMPORTANTE: esto ya NO bloquea login
       const total = asignaciones.length;
       const completados = asignaciones.filter(
         (a: any) => a.estado === "completado"
@@ -73,32 +91,39 @@ export default function LoginPaciente() {
 
       const testsCompletos = total > 0 && total === completados;
       const dniCargado = !!pacienteData.archivodni;
-
       const flujoTerminado = testsCompletos && dniCargado;
 
-      // 🚫 5. Bloqueo de acceso
-      if (accesoVencido || estaInactivo || flujoTerminado) {
-        setError("Tu acceso ha finalizado.");
+      console.log("DEBUG LOGIN:", {
+        ahora,
+        finRaw,
+        accesoVencido,
+        estaInactivo,
+        flujoTerminado,
+      });
 
-        // 🔥 Desactivar automáticamente si aún está activo
-        if (pacienteData.activo !== false) {
+      // 🚫 5. BLOQUEO REAL (solo lo importante)
+      if (accesoVencido || estaInactivo) {
+        setError("Tu acceso ha expirado.");
+
+        // 🔥 solo si venció por fecha
+        if (accesoVencido && pacienteData.activo !== false) {
           try {
             await updateDoc(doc(db, "pacientes", docPaciente.id), {
               activo: false,
             });
-            console.log("Paciente desactivado automáticamente");
           } catch (e) {
-            console.error("No se pudo actualizar el estado", e);
+            console.error("Error desactivando:", e);
           }
         }
 
         return;
       }
 
-      // ✅ 6. Login OK
+      // ✅ 6. Login OK (aunque haya terminado flujo)
       const pacienteLogueado = {
         id: docPaciente.id,
         ...pacienteData,
+        flujoTerminado, // 👈 útil para UI después
       };
 
       localStorage.setItem("paciente", JSON.stringify(pacienteLogueado));
@@ -106,6 +131,7 @@ export default function LoginPaciente() {
       localStorage.setItem("rol", "paciente");
 
       navigate("/app/dashboard");
+
     } catch (err) {
       console.error(err);
       setError("Error al intentar ingresar");
@@ -126,7 +152,7 @@ export default function LoginPaciente() {
 
           <input
             type="password"
-            placeholder="Contraseña (últimos 4)"
+            placeholder="Contraseña (últimos 6 dígitos del DNI)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

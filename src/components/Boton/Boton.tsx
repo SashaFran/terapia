@@ -10,9 +10,9 @@ import './BotonPersonalizado.css'; // Asegúrate de crear este archivo CSS
  * @param {boolean} props.disabled - Deshabilita el botón si es true.
  * @param {string} [props.className] - Clases CSS adicionales.
  */
-const BotonPersonalizado = ({ variant = 'primary', children, onClick, disabled = false, className = '' }: { variant: 'primary' | 'secondary' | 'danger'; children: string; onClick: Function; disabled: boolean; className?: string; }) => {
+const BotonPersonalizado = ({ variant = 'primary', children, onClick, disabled = false, className = '' }: { variant: 'primary' | 'secondary' | 'danger'; children: string; onClick: React.MouseEventHandler<HTMLButtonElement>; disabled: boolean; className?: string; }) => {
   // Construye las clases CSS dinámicamente según las props
-  const baseClasses = 'boton-base';
+  const baseClasses = 'botonase';
   const variantClass = `boton-${variant}`;
   
   return (

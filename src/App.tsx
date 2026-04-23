@@ -52,7 +52,7 @@ export default function App() {
                     <Sidebar />
                     <div className={styles.mainArea}>
                       <main className={styles.mainContent}>
-                        <BreadcrumbsNav />
+                        {/* <BreadcrumbsNav /> */}
                         <Outlet />
                       </main>
                     </div>
@@ -79,7 +79,7 @@ export default function App() {
                   <Sidebar />
                   <div className={styles.mainArea}>
                     <main className={styles.mainContent}>
-                      <BreadcrumbsNav />
+                      {/* <BreadcrumbsNav /> */}
                       <Routes>
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="pacientes" element={<AdminPacientes />} />

@@ -65,25 +65,20 @@ export default function EditarPacienteModal({
   // ---------------------------
   // Guardar
   // ---------------------------
-  const manejarGuardar = () => {
-    // ❌ No permitir guardar sin tests
-    if (testsSeleccionados.length === 0) {
-      alert("Debes asignar al menos un test");
-      return;
-    }
 
-    // ❌ Validar fecha
-    if (!fechaFin) {
-      alert("Debes seleccionar una fecha de finalización");
-      return;
-    }
+const manejarGuardar = () => {
+  // permitir guardar aunque no cambie todo
+  if (!fechaFin && testsSeleccionados.length === 0 && activo === paciente.activo) {
+    alert("Debes cambiar al menos un campo");
+    return;
+  }
 
-    onGuardar({
-      activo,
-      fechaFinAcceso: fechaFin,
-      tests: testsSeleccionados,
-    });
-  };
+  onGuardar({
+    activo,
+    fechaFinAcceso: fechaFin || null, // 👈 string YYYY-MM-DD o null
+    tests: testsSeleccionados,
+  });
+};
 
   if (!abierto) return null;
 
