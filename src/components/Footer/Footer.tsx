@@ -1,6 +1,6 @@
 
 import styles from './Footer.module.css';
-import logo from '../../assets/IMAGES/logo.png';
+import logo from '../../assets/images/logo.png';
 
 
 export default function Modal({ }) {

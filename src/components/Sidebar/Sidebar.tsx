@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "../Sidebar/Sidebar.module.css";
 
-import logo from "../../assets/IMAGES/JOIN SOLUTION.svg";
+import logo from "../../assets/images/JOIN SOLUTION.svg";
 import puntos from "../../assets/Icons/dots-y(1).svg";  
 
 import { signOut } from "firebase/auth";
