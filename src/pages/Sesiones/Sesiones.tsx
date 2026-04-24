@@ -119,64 +119,62 @@ const urlToBase64 = async (url: string): Promise<string> => {
   if (loading) return <div className="global-container"><h2>Cargando...</h2></div>;
 
   return (
-    <div className={`global-container ${styles.container}`}>
+    <div className={styles.container}>
       <div className="nav">
         <h2>Evaluaciones psicológicas</h2>
-        <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
-          Nueva sesión
-        </BotonPersonalizado>
       </div>
+      <div className={styles.containerCards}>
+            <div className={styles.navCards}>
+                <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
+                Nueva sesión
+              </BotonPersonalizado>
+              <div className={styles.card}>
+                <h3>Tests realizados</h3>
+                <p>{totalTests}</p>
+              </div>
+              <div className={styles.card}>
+                <h3>Último test</h3>
+                <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
+              </div>
+          </div>
 
-      <nav className={styles.navCards}>
-        <div className={styles.card}>
-          <h3>Tests realizados</h3>
-          <p>{totalTests}</p>
-        </div>
-        <div className={styles.card}>
-          <h3>Último test</h3>
-          <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
-        </div>
-      </nav>
-
-      <div className={styles.tablaPacientes}>
-        <table className={styles.tabla}>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Test</th>
-              <th>Nivel</th>
-              <th>Paciente</th>
-              <th>Comentarios</th>
-              <th>Descargar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resultados.map((r) => (
-              <tr key={r.id}>
-                <td>{formatearFecha(r.fecha)}</td>
-                <td>{r.testId?.toUpperCase()}</td>
-                <td>{r.nivel || "—"}</td>
-                <td>
-                  {pacientesMap[r.pacienteId || ""]?.nombre || "—"}
-                </td>
-                <td>
-                  <button onClick={() => handleOpenModal(r)}>
-                    {r.observacionesIniciales ? "📝 Ver" : "➕ Añadir"}
-                  </button>
-                </td>
-                <td className={styles.descargar}>
-                  <button
-                    onClick={() => descargarInforme(r, pacientesMap[r.pacienteId || ""])}
-                  >
-                    <img src={guardadoIcono} alt="Descargar PDF" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <div className={styles.tablaPacientes}>
+              <table className={styles.tabla}>
+                <thead>
+                  <tr>
+  <th>Fecha</th>
+  <th>Test</th>
+  <th>Paciente</th>
+  <th>Comentarios</th>
+  <th>Descargar</th>
+</tr>
+                </thead>
+                <tbody>
+                  {resultados.map((r) => (
+                    <tr key={r.id}>
+                      <td>{formatearFecha(r.fecha)}</td>
+                      <td>{r.testId?.toUpperCase()}</td>
+                      <td>
+                        {pacientesMap[r.pacienteId || ""]?.nombre || "—"}
+                      </td>
+                      <td>
+                        <button onClick={() => handleOpenModal(r)}>
+                          {r.observacionesIniciales ? "📝 Ver" : "➕ Añadir"}
+                        </button>
+                      </td>
+                      <td className={styles.descargar}>
+                        <button
+                          onClick={() => descargarInforme(r, pacientesMap[r.pacienteId || ""])}
+                        >
+                          <img src={guardadoIcono} alt="Descargar PDF" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
       </div>
-
       <ObservacionesModal
         abierto={isModalOpen}
         onCerrar={handleCloseModal}

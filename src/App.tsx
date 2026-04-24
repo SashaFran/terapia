@@ -26,6 +26,7 @@ import PrivatePacienteRoute from "./routes/PrivatePacienteRoute";
 import Sidebar from "./components/Sidebar/Sidebar";
 import BreadcrumbsNav from "./components/Breadcrumbs/BreadcrumbsNav";
 import TestRunner from "./pages/TestRunner/TestRunner";
+import Footer from "./components/Footer/Footer"
 
 import styles from "./App.module.css";
 
@@ -56,6 +57,7 @@ export default function App() {
                         <Outlet />
                       </main>
                     </div>
+                    <Footer/>
                   </div>
                 }
               >
@@ -90,6 +92,7 @@ export default function App() {
                       </Routes>
                     </main>
                   </div>
+                  <Footer/>
                 </div>
               </PrivateAdminRoute>
             }

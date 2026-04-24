@@ -1,37 +1,147 @@
-.container{
-    color: #333;
+/* 🔥 BASE GLOBAL (IMPORTANTE) */
+html, body, #root {
+  height: 100%;
 }
 
-.navButtons{
-    display: flex;
-    gap: 1rem;
+/* CONTENEDOR PRINCIPAL */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  height: 100%;
+  min-height: 0;
 }
-.perfilInfo p{
+
+/* HEADER */
+.header {
+  margin-bottom: 0.5rem;
+}
+
+/* LAYOUT */
+.layout {
+  display: flex;
+  gap: 1.5rem;
+
+  flex: 1;
+  min-height: 0; /* 🔥 clave */
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  justify-content: space-between;
+  align-items: center;
+
+  flex-shrink: 0;
+}
+
+/* CONTENIDO DERECHO */
+.content {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+    scrollbar-color: #f2e9e2 #f1f1f1; 
+  /* Grosor: auto o thin */
+  scrollbar-width: thin; 
+  min-height: 0;
+
+  padding-bottom: 2rem; /* aire para footer */
+}
+
+/* TITULOS */
+.content h4 {
   margin: 0;
 }
+
+/* 📊 TABLA CONTENEDOR */
 .tablaPacientes {
-background: white;
-  padding: 16px;
+  height: 220px;
+  max-height: 220px;
+
+  background: white;
   border-radius: var(--radius);
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+    scrollbar-color: #f2e9e2 #f1f1f1; 
+  /* Grosor: auto o thin */
+  scrollbar-width: thin; 
+  flex-shrink: 0;
+}
+
+/* TABLA */
+.tablaPacientes table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* 🚫 NUNCA pongas height: 100% a table */
+table {
+  height: auto;
+}
+
+/* HEADER */
+.tablaPacientes thead {
+  background: #6a040f;
+}
+
+.tablaPacientes thead th, .tablaPacientes thead {
+  color: white;
+  font-weight: 600;
+  padding: 14px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+/* CELDAS */
+.tablaPacientes th,
+.tablaPacientes td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* ALTURA FILAS */
+.tablaPacientes tbody tr {
+  height: 50px;
+}
+
+/* ZEBRA */
+.tablaPacientes tbody tr:nth-child(even) {
+  background: #faf5f6;
+}
+
+/* HOVER */
+.tablaPacientes tbody tr:hover {
+  background: #f3e1e4;
+  transition: 0.2s ease;
+}
+
+/* BOTONES */
+.tablaPacientes td > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.perfilInfo{
   display: flex;
   flex-direction: column;
-  text-align: center;
-}
-
-/* td:nth-child(4) > *, td:nth-child(3) > *{
-  text-align: center;
-  width: 100%;
-}
- */
-.descargar, .comentarios {
-  text-align: center !important;
-}
-
-.descargar{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
   align-items: center;
+  margin-top: 0.1rem;
+}
+.perfilInfo p{
+  margin-top: 0;
 }

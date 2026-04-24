@@ -1,6 +1,6 @@
 .container{
   margin: 0 auto;
-    color: #333;
+    color:  var(--font-color);
     
 }
 .nav{

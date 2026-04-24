@@ -104,39 +104,46 @@ export default function Dashboard() {
     return (
         <div className={`global-container ${styles.container}`}>
             <div className={`nav`}>
-                <h2>Pacientes</h2> 
+                <h2>Pacientes</h2>                 
+            </div>
+        <div className={styles.containerCards}>
+            <div className={styles.navCards}>
                 <BotonPersonalizado variant="primary" onClick={guardarNuevoPaciente} disabled={false}>
                     Nuevo paciente
                 </BotonPersonalizado>
             </div>
 
-            <table className={styles.tablaPacientes}>
+            <div className={styles.tablaPacientes}>
+            <table>
                 <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Fecha Ingreso</th>
-                        <th>Sesiones</th>
-                        <th className={styles.centerAlign}>Acción</th>
-                    </tr>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Sesiones</th>
+                    <th>Acción</th>
+                </tr>
                 </thead>
 
                 <tbody>
-                    {pacientes.map((paciente) => (
-                        <tr key={paciente.id}>
-                            <td>{paciente.nombre}</td>
-                            <td>{paciente.fechaIngreso}</td>
-                            <td >{paciente.sesiones}</td>
-                            <td>
-                                <BotonPersonalizado
-                                    variant="secondary"
-                                    onClick={() => navigate(`/admin/paciente/${paciente.id}`)}>Ver
-                                </BotonPersonalizado>
-                            </td>
-
-                        </tr>
-                    ))}
+                {pacientes.map((paciente) => (
+                    <tr key={paciente.id}>
+                    <td>{paciente.nombre}</td>
+                    <td>{paciente.fechaIngreso}</td>
+                    <td>{paciente.sesiones}</td>
+                    <td>
+                        <BotonPersonalizado
+                        variant="secondary"
+                        onClick={() => navigate(`/admin/paciente/${paciente.id}`)}
+                        >
+                        Ver
+                        </BotonPersonalizado>
+                    </td>
+                    </tr>
+                ))}
                 </tbody>
             </table>
+            </div>
         </div>
+    </div>
     );
 } 

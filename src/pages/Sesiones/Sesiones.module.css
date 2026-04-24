@@ -1,69 +1,135 @@
-.container{
-    color: #333;
+.container {
+color: var(--font-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
 }
+
+/* CONTENEDOR */
 .tablaPacientes {
   background: white;
   padding: 16px;
   border-radius: var(--radius);
   border: 1px solid #eef1f6;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
-  text-align: justify;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+  width: 100%;
+    overflow-x: hidden;
+  overflow-y: scroll;
+    scrollbar-color: #f2e9e2 #f1f1f1; 
+  /* Grosor: auto o thin */
+  scrollbar-width: thin; 
 }
-.nav{
+
+/* LA TABLA REAL */
+.tablaPacientes table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* CELDAS */
+.tablaPacientes th,
+.tablaPacientes td {
+  text-align: center;       /* horizontal */
+  vertical-align: middle;   /* vertical */
+  padding: 12px;
+}
+
+
+
+/* BOTONES */
+.tablaPacientes td > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* NAV */
+.nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   margin-bottom: 1.5rem;
 }
-
-.centerAlign {
-  text-align: center;
-}
-.navButtons{
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
 .navCards {
-  display: flex;
+display: flex;
   gap: 2rem;
-  margin: 0.5rem 0;
+  flex-direction: column;
+  width: 20%;
+  align-items: center;
 }
 .card {
   background: white;
-  padding: 1.2rem;
+  padding: 0 1.5rem;
   border-radius: var(--radius);
   width: 100%;
   border: 1px solid #eef1f6;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-}
-.cardTitle{
-  color: var(--gris-med);
-  font-weight: 500;
-  margin:  0 0 0.5rem 0;
-}
-.cardResult{
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--gris-dark);
-  margin: 0;
-}
-.tabla tbody button{
-  color: #1B263B;
-  border: none;
-  background-color: transparent;
-  padding: 0.6em 0;
-}
-
-td:nth-child(4) > *{
   text-align: center;
-  width: 100%;
+}
+.containerCards{
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  height: 100%;
 }
 
-.descargar, .comentarios, .paciente {
-  text-align: center !important;
+/* CONTENEDOR */
+
+/* TABLA */
+.tablaPacientes table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* HEADER */
+.tablaPacientes thead {
+  background: #6a040f;
+}
+
+.tablaPacientes thead th, .tablaPacientes thead {
+  color: white;
+  font-weight: 600;
+  padding: 14px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+table{
+  height: 100%;
+}
+/* CELDAS */
+.tablaPacientes td {
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+  color: #333;
+}
+
+/* GRID SUAVE */
+.tablaPacientes th,
+.tablaPacientes td {
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* ZEBRA (efecto Excel suave) */
+.tablaPacientes tbody tr:nth-child(even) {
+  background: #faf5f6; /* pastel rosado ultra suave */
+}
+
+/* HOVER */
+.tablaPacientes tbody tr:hover {
+  background: #f3e1e4;
+  transition: 0.2s ease;
+}
+
+/* BOTONES DENTRO */
+.tablaPacientes td > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

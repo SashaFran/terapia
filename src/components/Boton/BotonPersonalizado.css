@@ -29,19 +29,19 @@
 
 /* Secondary variant */
 .boton-secondary {
-  background-color: #1a1a1a;
+  background-color: #35251c;
   cursor: pointer;
   transition: border-color 0.25s;
   color: var(--gris-bg);
 }
 
 .boton-secondary:hover {
-  background-color: #545b62;
+  background-color: #900020;
 }
 
 /* Danger variant */
 .boton-danger {
-  background-color: #dc3545;
+  background-color: #900020;
   color: white;
 }
 

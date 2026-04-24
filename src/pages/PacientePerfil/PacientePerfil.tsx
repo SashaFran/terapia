@@ -211,12 +211,32 @@ const handleGuardarConfig = async (data: any) => {
   if (!patient) return <h2>Cargando...</h2>;
 
   // -------- UI --------
-  return (
-    <div className={`global-container ${styles.container}`}>
+return (
+  <div className={styles.container}>
 
-      {/* HEADER */}
-      <header className="nav">
-        <h2>{patient.nombre}</h2>
+    {/* HEADER */}
+    <header className={styles.header}>
+      <h2>{patient.nombre}</h2>
+    </header>
+
+    <div className={styles.layout}>
+
+      {/* 👈 IZQUIERDA */}
+      <div className={styles.sidebar}>
+        
+        <div className={styles.perfilInfo}>
+          <p><strong>DNI:</strong> {patient.dni}</p>
+          <p><strong>Estado:</strong> {getEstadoPaciente()}</p>
+          <p>
+            <strong>Acceso:</strong>{" "}
+            {formatearFecha(patient.fechaInicioAcceso)} →{" "}
+            {formatearFecha(patient.fechaFinAcceso)}
+          </p>
+          <BotonPersonalizado onClick={() => setIsConfigOpen(true)}>
+          Configuración
+        </BotonPersonalizado>
+        
+        </div>
 
         <BotonPersonalizado
           variant="danger"
@@ -226,116 +246,103 @@ const handleGuardarConfig = async (data: any) => {
               navigate("/admin/pacientes");
             }
           }}
-          disabled={false}
         >
           Borrar paciente
         </BotonPersonalizado>
-      </header>
 
-      {/* INFO */}
-      <div className={styles.perfilInfo}>
-        <p><strong>DNI:</strong> {patient.dni}</p>
-        <p><strong>Estado:</strong> {getEstadoPaciente()}</p>
-        <p>
-          <strong>Acceso:</strong>{" "}
-          {formatearFecha(patient.fechaInicioAcceso)} →{" "}
-          {formatearFecha(patient.fechaFinAcceso)}
-        </p>
+        
+
       </div>
 
-      {/* TESTS */}
-      <div className="nav">
-        <h4>Tests asignados</h4>
-        <BotonPersonalizado onClick={() => setIsConfigOpen(true)}>
-          Configuración
-        </BotonPersonalizado>
+      {/* 👉 DERECHA */}
+      <div className={styles.content}>
+
+        {/* TABLA 1 */}
+        <div>
+          <h4>Tests asignados</h4>
+          <div className={styles.tablaPacientes}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Test</th>
+                  <th>Estado</th>
+                  <th>Asignado</th>
+                  <th>Completado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {asignaciones.map(a => (
+                  <tr key={a.id}>
+                    <td>{a.testId}</td>
+                    <td>{a.estado}</td>
+                    <td>{formatearFecha(a.fechaAsignacion)}</td>
+                    <td>{formatearFecha(a.fechaCompletado)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* TABLA 2 */}
+        <div>
+          <h4>Evaluaciones</h4>
+          <div className={styles.tablaPacientes}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Test</th>
+                  <th>Nivel</th>
+                  <th>Comentario</th>
+                  <th>PDF</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map(r => (
+                  <tr key={r.id}>
+                    <td>{formatearFecha(r.fecha)}</td>
+                    <td>{r.testId}</td>
+                    <td>{r.nivel}</td>
+                    <td>
+                      <button onClick={() => {
+                        setSelectedResultado(r);
+                        setIsModalOpen(true);
+                      }}>
+                        📝
+                      </button>
+                    </td>
+                    <td>
+                      <button onClick={() => descargarInforme(r, patient)}>
+                        <img src={guardadoIcono} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
-
-      <div className={styles.tablaPacientes}>
-        <table className="tabla">
-          <thead>
-            <tr>
-              <th>Test</th>
-              <th>Estado</th>
-              <th>Asignado</th>
-              <th>Completado</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {asignaciones.map(a => (
-              <tr key={a.id}>
-                <td>{a.testId}</td>
-                <td>{a.estado}</td>
-                <td>{formatearFecha(a.fechaAsignacion)}</td>
-                <td>{formatearFecha(a.fechaCompletado)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* RESULTADOS */}
-      <div className="nav">
-        <h4>Evaluaciones</h4>
-      </div>
-
-      <div className={styles.tablaPacientes}>
-        <table className="tabla">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Test</th>
-              <th>Nivel</th>
-              <th>Comentario</th>
-              <th>PDF</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {tableData.map(r => (
-              <tr key={r.id}>
-                <td>{formatearFecha(r.fecha)}</td>
-                <td>{r.testId}</td>
-                <td>{r.nivel}</td>
-
-                <td>
-                  <button onClick={() => {
-                    setSelectedResultado(r);
-                    setIsModalOpen(true);
-                  }}>
-                    📝
-                  </button>
-                </td>
-
-                <td>
-                  <button onClick={() => descargarInforme(r, patient)}>
-                    <img src={guardadoIcono} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* MODALES */}
-      {isConfigOpen && (
-        <EditarPacienteModal
-          abierto={isConfigOpen}
-          paciente={patient}
-          asignacionesActuales={asignaciones.map(a => a.testId)}
-          onCerrar={() => setIsConfigOpen(false)}
-          onGuardar={handleGuardarConfig}
-        />
-      )}
-
-      <ObservacionesModal
-        abierto={isModalOpen}
-        onCerrar={() => setIsModalOpen(false)}
-        sesion={selectedResultado}
-        onGuardarExitoso={() => {}}
-      />
     </div>
-  );
-}
+
+    {/* MODALES */}
+    {isConfigOpen && (
+      <EditarPacienteModal
+        abierto={isConfigOpen}
+        paciente={patient}
+        asignacionesActuales={asignaciones.map(a => a.testId)}
+        onCerrar={() => setIsConfigOpen(false)}
+        onGuardar={handleGuardarConfig}
+      />
+    )}
+
+    <ObservacionesModal
+      abierto={isModalOpen}
+      onCerrar={() => setIsModalOpen(false)}
+      sesion={selectedResultado}
+      onGuardarExitoso={() => {}}
+    />
+  </div>
+)};
