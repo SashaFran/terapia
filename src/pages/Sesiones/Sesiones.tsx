@@ -120,25 +120,22 @@ const urlToBase64 = async (url: string): Promise<string> => {
 
   return (
     <div className={styles.container}>
-      <div className="nav">
-        <h2>Evaluaciones psicológicas</h2>
-      </div>
       <div className={styles.containerCards}>
             <div className={styles.navCards}>
                 <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
                 Nueva sesión
               </BotonPersonalizado>
-              <div className={styles.card}>
+              <div className="card">
                 <h3>Tests realizados</h3>
                 <p>{totalTests}</p>
               </div>
-              <div className={styles.card}>
+              <div className="card">
                 <h3>Último test</h3>
                 <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
               </div>
           </div>
 
-            <div className={styles.tablaPacientes}>
+            <div  className={`scrollbar ${styles.tablaPacientes}`}>
               <table className={styles.tabla}>
                 <thead>
                   <tr>

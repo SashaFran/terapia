@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import BotonPersonalizado from "../Boton/Boton";
 import Modal from "../Modal/Modal";
 import styles from "../Modal/EditarPacienteModal.module.css";
-import { Timestamp } from "firebase/firestore";
+import noEntry from "../../assets/Icons/no-entry(2).svg"
+import { doc, Timestamp, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 // Tests disponibles
 const TESTS_DISPONIBLES = [
@@ -34,21 +36,24 @@ export default function EditarPacienteModal({
   // ---------------------------
   // Sync inicial
   // ---------------------------
-  useEffect(() => {
-    if (abierto && paciente) {
-      setActivo(paciente.activo);
-      setTestsSeleccionados(asignacionesActuales);
-      
-      // 🔥 Convertimos el Timestamp a STRING YYYY-MM-DD para el input
-      if (paciente.fechaFinAcceso?.toDate) {
-        const date = paciente.fechaFinAcceso.toDate();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        setFechaFin(`${year}-${month}-${day}`); // Ahora sí es un string
-      }
+ // 🔥 Convertimos el Timestamp de Firebase a un Date de JS, y luego a String para el input
+useEffect(() => {
+  if (abierto && paciente) {
+    setActivo(paciente.activo);
+    setTestsSeleccionados(asignacionesActuales);
+    
+    // Si la fecha es null, ponemos un string vacío para el input
+    if (paciente.fechaFinAcceso) {
+      const date = paciente.fechaFinAcceso.toDate ? paciente.fechaFinAcceso.toDate() : new Date(paciente.fechaFinAcceso);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      setFechaFin(`${year}-${month}-${day}`);
+    } else {
+      setFechaFin(""); // Input vacío si no hay fecha en la BBDD
     }
-  }, [abierto, paciente, asignacionesActuales]);
+  }
+}, [abierto, paciente, asignacionesActuales]);
 
 
   // ---------------------------
@@ -66,19 +71,33 @@ export default function EditarPacienteModal({
   // Guardar
   // ---------------------------
 
-const manejarGuardar = () => {
-  // permitir guardar aunque no cambie todo
-  if (!fechaFin && testsSeleccionados.length === 0 && activo === paciente.activo) {
-    alert("Debes cambiar al menos un campo");
-    return;
-  }
+  const manejarGuardar = async () => {
+    // 1. Verificación de seguridad
+    if (!paciente?.id) {
+      console.error("No se encontró el ID del paciente para actualizar");
+      return;
+    }
 
-  onGuardar({
-    activo,
-    fechaFinAcceso: fechaFin || null, // 👈 string YYYY-MM-DD o null
-    tests: testsSeleccionados,
-  });
-};
+    try {
+      // 2. Convertir el string del input "YYYY-MM-DD" a objeto Date
+      // Usamos el reemplazo de guiones por barras para evitar el error de zona horaria que resta un día
+      const dateObj = new Date(fechaFin.replace(/-/g, '\/'));
+
+      // 3. Crear la referencia correcta
+      const pacienteRef = doc(db, "pacientes", paciente.id);
+
+      await updateDoc(pacienteRef, {
+        activo: activo,
+        fechaFinAcceso: dateObj, // Firebase lo guardará como Timestamp
+      });
+
+      onGuardar({ activo, fechaFinAcceso: dateObj });
+      onCerrar();
+    } catch (error) {
+      console.error("Error al guardar:", error);
+    }
+  };
+
 
   if (!abierto) return null;
 
@@ -98,7 +117,7 @@ const manejarGuardar = () => {
             onChange={(e) => setActivo(e.target.value === "true")}
           >
             <option value="true">🟢 Activo</option>
-            <option value="false">⛔ Inactivo</option>
+            <option value="false"><img src={noEntry} alt="inactivo"/> Inactivo</option>
           </select>
         </div>
 

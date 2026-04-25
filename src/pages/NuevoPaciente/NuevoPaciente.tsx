@@ -129,6 +129,7 @@ export default function NuevoPaciente() {
           onClick={() => {
             if (confirm("¿Cancelar?")) navigate("/admin/pacientes");
           }}
+          disabled={false}
         >
           Cancelar
         </BotonPersonalizado>

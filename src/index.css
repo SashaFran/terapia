@@ -29,6 +29,12 @@
   --opuesto: #6933ff;
   --opuesto-light: #7c4dff;
 
+  --font-size-regular: 1rem;
+  --font-size-small: 0.75rem;
+  --font-size-h1: 2rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h3: 1.125rem;
+
   --font-color: #35251c;
   --font-family-body: "inter", sans-serif;
   --font-light: 300;
@@ -56,18 +62,13 @@ body {
   place-items: center;
   min-height: 100vh;
   font-family: var(--font-family-body);
-  overflow: hidden; /* 🔥 clave */
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-  
+  overflow: hidden;
+  background-color: #F7FBFF;
 }
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-header);
-  
 }
+
 h4{
   margin-bottom: 0;
 }
@@ -124,7 +125,22 @@ textarea:focus,
 select:focus {
   outline: none;
 }
-
+.card {
+background: white;
+  padding: 0 1.5rem;
+  border-radius: var(--radius);
+  width: 100%;
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+}
+.scrollbar {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: #f2e9e2 #f1f1f1;
+  scrollbar-width: thin;
+  display: block;
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

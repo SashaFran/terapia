@@ -5,29 +5,15 @@ import autoTable from "jspdf-autotable";
 const cargarImagen = (src: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Permite cargar desde Firebase
+    img.crossOrigin = "anonymous"; // 👈 ESTO ES VITAL para Cloudinary
+    img.src = src; // La fuente siempre después del crossOrigin
     img.onload = () => resolve(img);
     img.onerror = (e) => reject(e);
-    img.src = src;
   });
 };
-const formatearDuracion = (ms: number) => {
-  const totalSegundos = Math.floor(ms / 1000);
 
-  const horas = Math.floor(totalSegundos / 3600);
-  const minutos = Math.floor((totalSegundos % 3600) / 60);
-  const segundos = totalSegundos % 60;
 
-  if (horas > 0) {
-    return `${horas}h ${minutos}m ${segundos}s`;
-  }
 
-  if (minutos > 0) {
-    return `${minutos}m ${segundos}s`;
-  }
-
-  return `${segundos}s`;
-};
 export async function generarPdfResultado({
   pacienteNombre,
   resultado,
@@ -43,45 +29,51 @@ export async function generarPdfResultado({
   doc.setFontSize(11);
   doc.text(`Paciente: ${pacienteNombre}`, margin, 30);
   doc.text(`Test: ${resultado.testId?.toUpperCase()}`, margin, 36);
-  doc.text(
-  `Tiempo total: ${formatearDuracion(resultado.tiempoTotalMs)}`,
-  margin,
-  42
-);
 
   // Sección de Identidad con carga asíncrona
   doc.setFontSize(12);
   doc.text("Verificación de Identidad", margin, 55);
 
-  try {
-    // Intentamos cargar y dibujar el DNI
-    if (fotoDNI) {
-      const imgDNI = await cargarImagen(fotoDNI);
-      doc.setFontSize(9);
-      doc.text("Foto DNI:", margin, 63);
-      doc.addImage(imgDNI, 'JPEG', margin, 65, 45, 30);
-    } else {
-      doc.text("[DNI No disponible]", margin, 70);
-    }
 
-    // Intentamos cargar y dibujar la Captura
-    if (fotoCaptura) {
-      const imgCaptura = await cargarImagen(fotoCaptura);
-      doc.setFontSize(9);
-      doc.text("Captura durante test:", 70, 63);
-      doc.addImage(imgCaptura, 'JPEG', 70, 65, 45, 30);
-    } else {
-      doc.text("[Captura No disponible]", 70, 70);
-    }
-  } catch (error) {
-    console.error("Error al renderizar imágenes:", error);
+if (fotoDNI) {
+  try {
+    const imgDNI = await cargarImagen(fotoDNI);
+    doc.setFontSize(9);
+    doc.text("Foto DNI:", margin, 63);
+    doc.addImage(imgDNI, 'JPEG', margin, 65, 45, 30);
+  } catch (e) {
+    console.error("Error cargando DNI:", e);
     doc.setTextColor(255, 0, 0);
-    doc.text("Error técnico al procesar imágenes de identidad.", margin, 80);
+    doc.text("[Error al cargar DNI]", margin, 70);
     doc.setTextColor(0, 0, 0);
   }
+}
+
+// PROCESAR CAPTURA (Independiente del DNI)
+if (fotoCaptura) {
+  try {
+    const imgCaptura = await cargarImagen(fotoCaptura);
+    doc.setFontSize(9);
+    doc.text("Captura durante test:", 70, 63);
+    doc.addImage(imgCaptura, 'JPEG', 70, 65, 45, 30);
+  } catch (e) {
+    console.error("Error cargando Captura:", e);
+    doc.setTextColor(255, 0, 0);
+    doc.text("[Error al cargar Captura]", 70, 70);
+    doc.setTextColor(0, 0, 0);
+  }
+}
+// Al final de la función generarPdfResultado
+if (pacienteNombre === "ZIP") {
+  return doc.output('blob'); // Retorna el contenido para el ZIP
+} else {
+  doc.save(`Informe-${pacienteNombre}.pdf`); // Descarga normal
+}
+
 
   const currentY = 105;
-
+  doc.setFontSize(12);
+  doc.text("Verificación de Identidad", margin, 55);
   // Resultados
   doc.setFontSize(12);
   doc.text("Resultado", margin, currentY);
@@ -98,7 +90,14 @@ export async function generarPdfResultado({
       ]),
       theme: 'striped'
     });
-  }
+  }// Al final de la función en generarPdfResultado.ts
+if (typeof window !== "undefined") {
+  // Si quieres que retorne el blob para el ZIP:
+  return doc.output('blob'); 
+  // Nota: Si dejas el doc.save(), se descargará automáticamente 
+  // siempre que la llames, lo cual no quieres dentro de un bucle ZIP.
+}
+
 
   doc.save(`Informe-${pacienteNombre}.pdf`);
 }

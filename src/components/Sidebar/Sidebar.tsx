@@ -121,64 +121,64 @@ if (rol === "admin") {
         </div>
 
         {/* DERECHA (USER) */}
-        <div className={styles.right}>
+        <div  className={`boton-secondary ${styles.right}`}>
           <div className={styles.userWrapper}>
             <div className={styles.userTrigger}>
-  <div className={styles.avatar}>
-    {iniciales}
-  </div>
+              <div className={styles.avatar}>
+                {iniciales}
+              </div>
 
-  <div className={styles.userInfo}>
-    <span className={styles.name}>{displayName}</span>
-    <span className={styles.sub}>{subText}</span>
-  </div>
+              <div className={styles.userInfo}>
+                <span className={styles.name}>{displayName}</span>
+                <span className={styles.sub}>{subText}</span>
+              </div>
 
-  <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span>
-</div>
+              {/* <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span> */}
+          </div>
 
             {/* SUBMENU PRO */}
             <div className={`${styles.subMenu} ${styles.triple}`}>
   
-  {/* 👤 PACIENTE */}
-  {rol !== "admin" && (
-    <>
-      <div className={styles.topContainer}>
-        <div className={styles.box}>
-          <h3>Tiempo restante:</h3>
-          <div className={styles.subText}>{tiempo}</div>
-        </div>
-      </div>
+            {/* 👤 PACIENTE */}
+            {rol !== "admin" && (
+                    <>
+                      <div className={styles.topContainer}>
+                        <div className={styles.box}>
+                          <h3>Tiempo restante:</h3>
+                          <div className={styles.subText}>{tiempo}</div>
+                        </div>
+                      </div>
 
-      <div className={styles.box}>
-        <h3>Tus archivos</h3>
-        <div className={styles.subText}>
-          DNI cargado: {dni !== "" ? "✔ Sí" : "✖ No"}
-        </div>
-      </div>
+                  <div className={styles.box}>
+                    <h3>Tus archivos</h3>
+                    <div className={styles.subText}>
+                      DNI cargado: {dni !== "" ? "✔ Sí" : "✖ No"}
+                    </div>
+                  </div>
 
-        <div className={styles.box}>
-          <h3>Email de contacto</h3>
-          <div className={styles.subText}>
-            ejemplo@ejemplo.com
+                  <div className={styles.box}>
+                    <h3>Email de contacto</h3>
+                    <div className={styles.subText}>
+                      ejemplo@ejemplo.com
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 🔐 COMÚN A TODOS */}
+              <div className={styles.box}>
+
+              <BotonPersonalizado
+                variant="secondary"
+                onClick={handleLogout}
+                disabled={false}
+              >
+                Cerrar sesión
+              </BotonPersonalizado>
+            </div>
           </div>
         </div>
-    </>
-  )}
-
-  {/* 🔐 COMÚN A TODOS */}
-  <div className={styles.box}>
-
-    <BotonPersonalizado
-      variant="secondary"
-      onClick={handleLogout}
-      disabled={false}
-    >
-      Cerrar sesión
-    </BotonPersonalizado>
-  </div>
-</div>
-          </div>
-        </div>
+      </div>
 
       </nav>
     </aside>

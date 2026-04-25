@@ -76,13 +76,13 @@ export default function TestsPaciente() {
 
       {/* PROGRESO */}
       <nav className={styles.navCards}>
-        <div className={styles.card}>
+        <div className="card">
           <h3 className={styles.cardTitle}>Fecha límite</h3>
           <p className={styles.cardResult}>
             {formatearFecha(paciente.fechaFinAcceso)}
           </p>
         </div>
-        <div className={styles.card}>
+        <div className="card">
           <h3 className={styles.cardTitle}>Tests realizados</h3>
           <p className={styles.cardResult}>
             {realizados} / {total}

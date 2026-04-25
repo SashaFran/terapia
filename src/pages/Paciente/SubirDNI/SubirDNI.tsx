@@ -71,7 +71,7 @@ const CLOUD_NAME = "dni13rket"; // <--- Verificá que sea todo en minúsculas
         <h2>Tu Documentación</h2>
       </div>
 
-      <div className={styles.card}>
+      <div className="card">
         <p className={styles.cardTitle}>Validación de Identidad</p>
         <p>
           Para garantizar la validez de los resultados, necesitamos confirmar la identidad 

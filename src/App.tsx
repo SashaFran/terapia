@@ -24,7 +24,7 @@ import PrivatePacienteRoute from "./routes/PrivatePacienteRoute";
 
 // COMPONENTES
 import Sidebar from "./components/Sidebar/Sidebar";
-import BreadcrumbsNav from "./components/Breadcrumbs/BreadcrumbsNav";
+import BreadcrumbsNav from "./components/Breadcrumbs/HeaderInfo";
 import TestRunner from "./pages/TestRunner/TestRunner";
 import Footer from "./components/Footer/Footer"
 
@@ -51,9 +51,10 @@ export default function App() {
                 element={
                   <div className={styles.layout}>
                     <Sidebar />
+                    <BreadcrumbsNav />
                     <div className={styles.mainArea}>
                       <main className={styles.mainContent}>
-                        {/* <BreadcrumbsNav /> */}
+                        
                         <Outlet />
                       </main>
                     </div>
@@ -79,9 +80,10 @@ export default function App() {
               <PrivateAdminRoute>
                 <div className={styles.layout}>
                   <Sidebar />
+                  <BreadcrumbsNav />
                   <div className={styles.mainArea}>
-                    <main className={styles.mainContent}>
-                      {/* <BreadcrumbsNav /> */}
+                    <main className={`scrollbar ${styles.mainContent}`}>
+                      
                       <Routes>
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="pacientes" element={<AdminPacientes />} />

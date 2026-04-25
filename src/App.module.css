@@ -12,14 +12,14 @@
   flex: 1;
   height: 100vh;
   overflow: hidden;
-  background-color: rgba(242, 233, 226, 0.2);
+  /* background-color: rgba(242, 233, 226, 0.2); */
 }
 
 
 .mainContent {
   height: 100%;
   overflow-y: hidden;
-  padding: 1.5rem;
+  padding: 0.5rem  1.5rem 1.5rem 1.5rem;
   width: 100vw;
 }
 

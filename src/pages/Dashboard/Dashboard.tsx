@@ -1,56 +1,128 @@
 import { useEffect, useState } from "react";
 import styles from "./Dashboard.module.css";
 import { db } from "../../firebase/firebase";
-import { collection, getDocs } from "firebase/firestore";
-
-interface Resultado {
-  id: string;
-  fecha?: any;
-}
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from "recharts";
 
 export default function Dashboard() {
-  const [totalPacientes, setTotalPacientes] = useState<number>(0);
-  const [totalSesiones, setTotalSesiones] = useState<number>(0);
-  const [ultimaSesion, setUltimaSesion] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [totalPacientes, setTotalPacientes] = useState(0);
+  const [testMasUsado, setTestMasUsado] = useState("—");
+  const [actividades, setActividades] = useState<any[]>([]);
+  const [dataNiveles, setDataNiveles] = useState<any[]>([]);
+  const [dataGrafico, setDataGrafico] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const formatearFecha = (timestamp: any): string => {
-    if (!timestamp || !timestamp.toDate) return "—";
-    return timestamp.toDate().toLocaleDateString("es-AR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const calcularTiempoRelativo = (timestamp: any) => {
+    if (!timestamp?.toDate) return "Reciente";
+
+    const ahora = new Date();
+    const fecha = timestamp.toDate();
+    const diff = (ahora.getTime() - fecha.getTime()) / 1000;
+
+    if (diff < 60) return "Hace segundos";
+    if (diff < 3600) return `Hace ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} hs`;
+
+    return fecha.toLocaleDateString("es-AR");
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 🔹 Total pacientes
         const pacientesSnap = await getDocs(collection(db, "pacientes"));
+        const resultadosSnap = await getDocs(collection(db, "resultados"));
+
+        const resultados = resultadosSnap.docs.map(d => d.data());
+
         setTotalPacientes(pacientesSnap.size);
 
-        // 🔹 Total sesiones
-        const sesionesSnap = await getDocs(collection(db, "resultados"));
-        setTotalSesiones(sesionesSnap.size);
+const convertir = (pacienteId: any): any => {
+  for (const doc of pacientesSnap.docs) {
+    if (doc.id === pacienteId) {
+      const data = doc.data();
+      return `${data.nombre}`;
+    }
+  }
+  return undefined;
+}
+        // -------------------------
+        // 📊 TEST MÁS USADO
+        // -------------------------
+        const conteo: Record<string, number> = {};
 
-        // 🔹 Resultados (para última fecha)
-        const resultadosSnap = await getDocs(collection(db, "resultados"));
-        const resultados: Resultado[] = resultadosSnap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
+        resultados.forEach(r => {
+          const test = r.testId || "Sin nombre";
+          conteo[test] = (conteo[test] || 0) + 1;
+        });
+
+        const total = resultados.length || 1;
+
+        const niveles = Object.keys(conteo).map((test, i) => ({
+          label: test,
+          valor: Math.round((conteo[test] / total) * 100),
+          color: ["var(--rojo)", "var(--naranja)", "var(--opuesto)", "var(--bordo)", "var(--marron)"][i % 5]
         }));
 
-        const ultimaFecha =
-          resultados
-            .map((r) => r.fecha)
-            .filter(Boolean)
-            .sort((a, b) => b.seconds - a.seconds)[0] || null;
+        niveles.sort((a, b) => b.valor - a.valor);
 
-        setUltimaSesion(ultimaFecha);
-      } catch (error) {
-        console.error("Error cargando dashboard:", error);
-        setUltimaSesion(null);
+        setDataNiveles(niveles);
+        if (niveles.length) setTestMasUsado(niveles[0].label);
+
+        // -------------------------
+        // 📈 GRÁFICO REAL POR MES
+        // -------------------------
+        const meses: Record<string, number> = {};
+
+        resultados.forEach(r => {
+          if (!r.fecha?.toDate) return;
+
+          const fecha = r.fecha.toDate();
+          const key = `${fecha.getFullYear()}-${fecha.getMonth()}`;
+
+          meses[key] = (meses[key] || 0) + 1;
+        });
+
+        const mesesOrdenados = Object.keys(meses).sort();
+
+        const dataGraf = mesesOrdenados.map(key => {
+          const [year, month] = key.split("-");
+          const fecha = new Date(Number(year), Number(month));
+
+          return {
+            name: fecha.toLocaleString("es-AR", { month: "short" }),
+            p: meses[key]
+          };
+        });
+
+        setDataGrafico(dataGraf);
+
+        // -------------------------
+        // 🕒 ACTIVIDAD RECIENTE
+        // -------------------------
+        const q = query(
+          collection(db, "resultados"),
+          orderBy("fecha", "desc"),
+          limit(5)
+        );
+
+        const snap = await getDocs(q);
+
+        const actividad = snap.docs.map(d => {
+          const data = d.data();
+
+          return {
+            titulo: `Evaluación ${data.testId || "—"}`,
+            subtitulo: convertir(data.pacienteId) || "Paciente",
+            tiempo: calcularTiempoRelativo(data.fecha)
+          };
+        });
+
+        setActividades(actividad);
+
+      } catch (err) {
+        console.error("Error dashboard:", err);
       } finally {
         setLoading(false);
       }
@@ -60,36 +132,92 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando…</h2>
-      </div>
-    );
+    return <div className={styles.loading}>Cargando Dashboard...</div>;
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
-      <div className={`nav`}>
-        <h2>Dashboard inicial</h2>
-      </div>
-      <nav className={styles.navCards}>
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Total pacientes</h3>
-          <p className={styles.cardResult}>{totalPacientes}</p>
+    <div className={styles.dashboardLayout}>
+      <main className={styles.mainContent}>
+
+        {/* KPI */}
+        <section className={styles.navCards}>
+          <div className={`card && ${styles.cardKpi}`}>
+            <h3>Total Pacientes</h3>
+            <p>{totalPacientes}</p>
+          </div>
+
+          <div className={`card && ${styles.cardKpi}`}>
+            <h3>Test más usado</h3>
+            <p className={styles.highlight}>{testMasUsado}</p>
+          </div>
+        </section>
+
+        {/* 📈 GRÁFICO */}
+        <div className={styles.chartContainer}>
+          <h3>Evolución de pacientes</h3>
+
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={dataGrafico}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--gris)" vertical={false} />
+              <XAxis dataKey="name" stroke="var(--marron)"/>
+              <YAxis allowDecimals={false} stroke="var(--marron)"/>
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="p"
+                stroke='var(--bordo)'
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Total sesiones</h3>
-          <p className={styles.cardResult}>{totalSesiones}</p>
-        </div>
+        {/* 📊 BARRAS */}
+        <div className={`card && ${styles.statsLevelCard}`}>
+          <h3>Uso por Test</h3>
 
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Última sesión</h3>
-          <p className={styles.cardResult}>
-            {ultimaSesion ? formatearFecha(ultimaSesion) : "—"}
-          </p>
+<div className={styles.containerNiveles}>
+          {dataNiveles.map((n, i) => (
+            <div key={i} className={styles.levelRow}>
+              <div className={styles.levelInfo}>
+                <p>{n.label}</p>
+                <p>{n.valor}%</p>
+              </div>
+
+              <div className={styles.progressBarBg}>
+                <div
+                  className={styles.progressBarFill}
+                  style={{
+                    width: `${n.valor}%`,
+                    background: n.color
+                  }}
+                />
+              </div>
+            </div>
+            
+          ))}
+          </div>
         </div>
-      </nav>
+      </main>
+
+      {/* 🕒 ACTIVIDAD */}
+      <aside className={`card && ${styles.notificationsAside}`}>
+        <h3>Actividad reciente</h3>
+
+        <div className={styles.feedList}>
+          {actividades.map((act, i) => (
+            <div key={i} className={styles.feedItem}>
+              <div className={styles.dot}></div>
+
+              <div className={styles.feedText}>
+                <h4>{act.titulo}</h4>
+                <p>{act.subtitulo} · {act.tiempo}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </aside>
     </div>
   );
 }
