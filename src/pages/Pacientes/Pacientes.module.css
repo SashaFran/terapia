@@ -19,12 +19,12 @@ color: var(--font-color);
   border-radius: var(--radius);
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
-  width: 100%;
+  width: var(--width-complete);
 }
 
 /* TABLA */
 .tablaPacientes table {
-  width: 100%;
+  width: var(--width-complete);
   border-collapse: collapse;
   font-size: 14px;
   height: auto; /* IMPORTANTE: para que no se estire al alto del div */
@@ -76,7 +76,7 @@ table {
 
 
 .layout{
-  width: 100%;
+  width: var(--width-complete);
   display: flex;
   flex-direction: row;
   gap: 2rem;
@@ -94,14 +94,14 @@ table {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  width: var(--width-complete);
   margin-bottom: 1.5rem;
 }
 .navCards {
 display: flex;
   gap: 2rem;
   flex-direction: column;
-  width: 20%;
+  width: var(--width-third);
   align-items: center;
 }
 .containerCards{
@@ -115,7 +115,7 @@ display: flex;
 
 /* TABLA */
 .tablaPacientes table {
-  width: 100%;
+  width: var(--width-complete);
   border-collapse: collapse;
   font-size: 14px;
 }

@@ -14,7 +14,7 @@
   text-wrap: nowrap;
   border: 1px solid transparent;
   min-width: 120px;
-  max-width: 100%;
+  max-width: var(--width-complete);
   min-height: 50px;
   max-height: 50px;
 }

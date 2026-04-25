@@ -97,8 +97,8 @@ export default function DashboardPaciente() {
         <h2>¡Bienvenido/a {paciente.nombre} a nuestra plataforma de evaluación!</h2>
       </div>
 
-      <nav className={styles.navCards}>
-        <div className="card">
+      <nav className={'panelVertical'}>
+        <div className={'card'}>
           <h3 className={styles.cardTitle}>DNI</h3>
           <p className={styles.cardResult}>{paciente.dni}</p>
         </div>

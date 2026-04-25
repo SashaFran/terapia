@@ -5,7 +5,7 @@
 .nav{
   display: inline-flex;
   justify-content: space-between;
-  width: 100%;
+  width: var(--width-complete);
 }
 .form {
   display: flex;
@@ -20,7 +20,7 @@
 .inputGroup{
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: var(--width-complete);
 }
 .testsGrid{
     display: flex;

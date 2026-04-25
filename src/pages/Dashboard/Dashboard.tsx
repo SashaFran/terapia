@@ -136,11 +136,12 @@ const convertir = (pacienteId: any): any => {
   }
 
   return (
+    <div className={'scrollbar'}>
     <div className={styles.dashboardLayout}>
       <main className={styles.mainContent}>
 
         {/* KPI */}
-        <section className={styles.navCards}>
+        <section className={`nav && ${styles.nav}`}>
           <div className={`card && ${styles.cardKpi}`}>
             <h3>Total Pacientes</h3>
             <p>{totalPacientes}</p>
@@ -174,7 +175,7 @@ const convertir = (pacienteId: any): any => {
         </div>
 
         {/* 📊 BARRAS */}
-        <div className={`card && ${styles.statsLevelCard}`}>
+        <div className={`card paddingHorizontal && ${styles.statsLevelCard}`}>
           <h3>Uso por Test</h3>
 
 <div className={styles.containerNiveles}>
@@ -218,6 +219,7 @@ const convertir = (pacienteId: any): any => {
           ))}
         </div>
       </aside>
+      </div>
     </div>
   );
 }

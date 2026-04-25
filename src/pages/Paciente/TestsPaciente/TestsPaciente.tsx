@@ -75,7 +75,7 @@ export default function TestsPaciente() {
       </div>
 
       {/* PROGRESO */}
-      <nav className={styles.navCards}>
+      <nav className={'panelVertical'}>
         <div className="card">
           <h3 className={styles.cardTitle}>Fecha límite</h3>
           <p className={styles.cardResult}>

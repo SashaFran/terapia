@@ -82,8 +82,8 @@ export default function App() {
                   <Sidebar />
                   <BreadcrumbsNav />
                   <div className={styles.mainArea}>
-                    <main className={`scrollbar ${styles.mainContent}`}>
-                      
+                    {/* <main className={`scrollbar ${styles.mainContent}`}> */}
+                      <main className={`${styles.mainContent}`}>
                       <Routes>
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="pacientes" element={<AdminPacientes />} />

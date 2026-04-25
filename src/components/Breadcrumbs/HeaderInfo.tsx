@@ -23,7 +23,7 @@ import { getSoftDateInfo } from "../../utils/getGreetings/getGreetings";
           <span className={styles.fecha}>{info.fecha}</span>
         </div>
         <div className={styles.bottomRow}>          
-          <span className={styles.hora}>{info.hora} hs</span>
+          <span className={styles.hora}>{info.hora}</span>
           <span className={styles.emoji}>{info.emoji}</span>
         </div>
     </div>

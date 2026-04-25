@@ -7,7 +7,7 @@
 }
 
 .containerStyle{
-width: 100%;
+width: var(--width-complete);
   display: flex;
   justify-content: center;
   align-items: center;

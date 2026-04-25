@@ -6,7 +6,7 @@
 .nav{
   display: inline-flex;
   justify-content: space-between;
-  width: 100%;
+  width: var(--width-complete);
 }
 .form {
   display: flex;
@@ -21,7 +21,7 @@
 
 
 .tablaPacientes {
-  width: 100%;
+  width: var(--width-complete);
   background-color: var(--gris-bg);
   padding: 16px;
   border-radius: var(--radius);
@@ -40,5 +40,5 @@ span{
 .inputGroup{
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: var(--width-complete);
 }

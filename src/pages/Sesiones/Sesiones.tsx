@@ -4,14 +4,11 @@ import { db } from "../../firebase/firebase.js";
 import styles from "./Sesiones.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal";
-import { generarPdfResultado } from "../../utils/generarPdfResultado";
-import { TESTS_REGISTRY } from "../../data/tests";
-import { generarPDFClinico } from "../../utils/generarPDFClinico.ts";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { collection, getDocs } from "firebase/firestore";
-import { getPaciente } from "../../utils/Helper";
 import { descargarInforme } from "../../utils/descargarInforme.ts";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
+import editar from "../../assets/Icons/pen.svg";
+import agregar from "../../assets/Icons/plus.svg";
 
 interface Resultado {
   id: string;
@@ -121,15 +118,15 @@ const urlToBase64 = async (url: string): Promise<string> => {
   return (
     <div className={styles.container}>
       <div className={styles.containerCards}>
-            <div className={styles.navCards}>
+            <div className={'panelVertical'}>
                 <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
                 Nueva sesión
               </BotonPersonalizado>
-              <div className="card">
+              <div className="card paddingHorizontal">
                 <h3>Tests realizados</h3>
                 <p>{totalTests}</p>
               </div>
-              <div className="card">
+              <div className="card paddingHorizontal">
                 <h3>Último test</h3>
                 <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
               </div>
@@ -156,7 +153,7 @@ const urlToBase64 = async (url: string): Promise<string> => {
                       </td>
                       <td>
                         <button onClick={() => handleOpenModal(r)}>
-                          {r.observacionesIniciales ? "📝 Ver" : "➕ Añadir"}
+                          {r.observacionesIniciales ? <img src={editar} alt="Editar" /> : <img src={agregar} alt="Agregar" />}
                         </button>
                       </td>
                       <td className={styles.descargar}>
