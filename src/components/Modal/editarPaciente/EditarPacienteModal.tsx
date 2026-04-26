@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import BotonPersonalizado from "../Boton/Boton";
-import Modal from "../Modal/Modal";
-import styles from "../Modal/EditarPacienteModal.module.css";
-import noEntry from "../../assets/Icons/no-entry(2).svg";
-import { doc, Timestamp, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase/firebase";
+import BotonPersonalizado from "../../Boton/Boton";
+import Modal from "../Modal";
+import styles from "./editarPacienteModal.module.css";
+import noEntry from "../../../assets/Icons/no-entry(2).svg";
+import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import { db } from "../../../firebase/firebase";
 
 // Tests disponibles
 const TESTS_DISPONIBLES = [
@@ -91,8 +91,50 @@ export default function EditarPacienteModal({
         activo: activo,
         fechaFinAcceso: dateObj, // Firebase lo guardará como Timestamp
       });
+      // 🔥 SINCRONIZAR TESTS
 
-      onGuardar({ activo, fechaFinAcceso: dateObj });
+// 1. Traer asignaciones actuales desde Firebase
+const asignacionesSnap = await getDocs(
+  query(collection(db, "asignaciones"), where("pacienteId", "==", paciente.id))
+);
+
+const actuales = asignacionesSnap.docs.map(doc => ({
+  id: doc.id,
+  testId: doc.data().testId
+}));
+
+// 2. Detectar cuáles agregar
+const nuevos = testsSeleccionados.filter(
+  test => !actuales.some(a => a.testId === test)
+);
+
+// 3. Detectar cuáles eliminar
+const eliminados = actuales.filter(
+  a => !testsSeleccionados.includes(a.testId)
+);
+
+// 4. Crear nuevos
+const crear = nuevos.map(testId =>
+  addDoc(collection(db, "asignaciones"), {
+    pacienteId: paciente.id,
+    testId,
+    estado: "pendiente",
+    fechaAsignacion: new Date()
+  })
+);
+
+// 5. Borrar eliminados
+const borrar = eliminados.map(a =>
+  deleteDoc(doc(db, "asignaciones", a.id))
+);
+
+// 6. Ejecutar todo
+await Promise.all([...crear, ...borrar]);
+      onGuardar({
+        activo,
+        fechaFinAcceso: dateObj,
+        testsSeleccionados, // 🔥 ESTE ES EL QUE FALTABA
+      });
       onCerrar();
     } catch (error) {
       console.error("Error al guardar:", error);

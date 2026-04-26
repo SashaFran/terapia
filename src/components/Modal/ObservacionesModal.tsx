@@ -1,9 +1,9 @@
 // components/ObservacionesModal/ObservacionesModal.tsx
 import { useState, useEffect } from "react";
-import Modal from "../Modal/Modal";
+import Modal from "./Modal";
 import BotonPersonalizado from "../Boton/Boton";
 import { db } from "../../firebase/firebase";
-import styles from "../Modal/EditarPacienteModal.module.css";
+import styles from "./editarPaciente/EditarPacienteModal.module.css";
 import { doc, updateDoc } from "firebase/firestore";
 
 interface Props {

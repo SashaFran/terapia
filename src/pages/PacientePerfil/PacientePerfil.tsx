@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../firebase/firebase.js";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -15,7 +16,7 @@ import {
 // Componentes y Estilos
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
-import EditarPacienteModal from "../../components/Modal/EditarPacienteModal.tsx";
+import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal.tsx";
 import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal.tsx";
 
 import styles from "./PacientePerfil.module.css";
@@ -108,44 +109,45 @@ export default function PacientePerfil() {
         query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
       );
       setAsignaciones(
-        asignSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Asignacion[],
+        asignSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Asignacion, "id">),
+        })) as Asignacion[],
       );
     };
 
     loadData();
   }, [id]);
   useEffect(() => {
-  if (!patient?.id) return;
+    if (!patient?.id) return;
 
-  const ahora = new Date();
+    const ahora = new Date();
 
-  let fin: Date | null = null;
-  if (patient.fechaFinAcceso) {
-    fin = patient.fechaFinAcceso.toDate
-      ? patient.fechaFinAcceso.toDate()
-      : new Date(patient.fechaFinAcceso);
-  }
+    let fin: Date | null = null;
+    if (patient.fechaFinAcceso) {
+      fin = patient.fechaFinAcceso.toDate
+        ? patient.fechaFinAcceso.toDate()
+        : new Date(patient.fechaFinAcceso);
+    }
 
-  // 🔥 Si está expirado PERO sigue activo en DB → lo corregimos
-  if (fin && ahora > fin && patient.activo === true) {
-    const actualizarEstado = async () => {
-      try {
-        await updateDoc(doc(db, "pacientes", patient.id!), {
-          activo: false,
-        });
+    // 🔥 Si está expirado PERO sigue activo en DB → lo corregimos
+    if (fin && ahora > fin && patient.activo === true) {
+      const actualizarEstado = async () => {
+        try {
+          await updateDoc(doc(db, "pacientes", patient.id!), {
+            activo: false,
+          });
 
-        // 🧠 actualizamos estado local también
-        setPatient((prev) =>
-          prev ? { ...prev, activo: false } : prev
-        );
-      } catch (error) {
-        console.error("Error auto-expirando paciente:", error);
-      }
-    };
+          // 🧠 actualizamos estado local también
+          setPatient((prev) => (prev ? { ...prev, activo: false } : prev));
+        } catch (error) {
+          console.error("Error auto-expirando paciente:", error);
+        }
+      };
 
-    actualizarEstado();
-  }
-}, [patient]);
+      actualizarEstado();
+    }
+  }, [patient]);
 
   useEffect(() => {
     const data = resultados.map((r) => ({
@@ -265,18 +267,62 @@ export default function PacientePerfil() {
   if (!patient) return <h2>Cargando...</h2>;
 
   // -------- ACCIÓN CONFIGURACIÓN --------
-  const handleGuardarConfig = async (datosActualizados: Partial<Paciente>) => {
+  const handleGuardarConfig = async (datosActualizados: any) => {
     if (!id) return;
-    try {
-      await updateDoc(doc(db, "pacientes", id), datosActualizados);
-      setPatient((prev) => (prev ? { ...prev, ...datosActualizados } : null));
-      setIsConfigOpen(false);
-    } catch (error) {
-      console.error("Error al actualizar paciente:", error);
-      alert("No se pudieron guardar los cambios.");
-    }
-  };
 
+    // 🔥 1. Actualizar paciente
+    await updateDoc(doc(db, "pacientes", id), {
+      activo: datosActualizados.activo,
+      fechaFinAcceso: datosActualizados.fechaFinAcceso,
+    });
+
+    // 🔥 2. Sync de tests (ACÁ está la magia)
+    const asignSnap = await getDocs(
+      query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
+    );
+
+    const actuales = asignSnap.docs.map((d) => ({
+      id: d.id,
+      testId: d.data().testId,
+    }));
+
+    const nuevos = datosActualizados.testsSeleccionados.filter(
+      (test: string) => !actuales.some((a) => a.testId === test),
+    );
+
+    const eliminados = actuales.filter(
+      (a) => !datosActualizados.testsSeleccionados.includes(a.testId),
+    );
+
+    // Crear nuevos
+    await Promise.all(
+      nuevos.map((testId: string) =>
+        addDoc(collection(db, "asignaciones"), {
+          pacienteId: id,
+          testId,
+          estado: "pendiente",
+          fechaAsignacion: new Date(),
+        }),
+      ),
+    );
+
+    // Borrar eliminados
+    await Promise.all(
+      eliminados.map((a) => deleteDoc(doc(db, "asignaciones", a.id))),
+    );
+
+    // 🔥 3. Recargar asignaciones (IMPORTANTE)
+    const nuevoSnap = await getDocs(
+      query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
+    );
+
+    setAsignaciones(
+      nuevoSnap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<Asignacion, "id">),
+      })) as Asignacion[],
+    );
+  };
   // -------- UI (RENDER) --------
   return (
     <div className={styles.layout}>
