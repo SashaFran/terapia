@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../Modal";
-import styles from "./editarPacienteModal.module.css";
+import styles from "./EditarPacienteModal.module.css";
 import noEntry from "../../../assets/Icons/no-entry(2).svg";
 import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
