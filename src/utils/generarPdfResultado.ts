@@ -63,13 +63,6 @@ if (fotoCaptura) {
     doc.setTextColor(0, 0, 0);
   }
 }
-// Al final de la función generarPdfResultado
-if (pacienteNombre === "ZIP") {
-  return doc.output('blob'); // Retorna el contenido para el ZIP
-} else {
-  doc.save(`Informe-${pacienteNombre}.pdf`); // Descarga normal
-}
-
 
   const currentY = 105;
   doc.setFontSize(12);
@@ -90,14 +83,12 @@ if (pacienteNombre === "ZIP") {
       ]),
       theme: 'striped'
     });
-  }// Al final de la función en generarPdfResultado.ts
-if (typeof window !== "undefined") {
-  // Si quieres que retorne el blob para el ZIP:
-  return doc.output('blob'); 
-  // Nota: Si dejas el doc.save(), se descargará automáticamente 
-  // siempre que la llames, lo cual no quieres dentro de un bucle ZIP.
-}
+  }
 
+  if (pacienteNombre === "ZIP") {
+    return doc.output("blob"); // 👉 para zip
+  }
 
+  doc.save(`Informe-${pacienteNombre}-${resultado.testId}.pdf`); // individual
   doc.save(`Informe-${pacienteNombre}.pdf`);
 }

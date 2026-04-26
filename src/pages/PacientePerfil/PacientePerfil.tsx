@@ -194,8 +194,12 @@ export default function PacientePerfil() {
 
   // -------- ACCIONES DE DESCARGA --------
   const descargarIndividual = async (r: any) => {
-    // Usamos descargarInforme porque ya gestiona las promesas de imágenes correctamente
-    await descargarInforme(r, patient);
+    await generarPdfResultado({
+      pacienteNombre: patient?.nombre,
+      resultado: r,
+      fotoDNI: patient?.archivodni,
+      fotoCaptura: r?.archivoCaptura,
+    });
   };
 
   const descargarZip = async () => {
@@ -205,7 +209,7 @@ export default function PacientePerfil() {
     for (const r of tableData) {
       try {
         const blob = await generarPdfResultado({
-          pacienteNombre: "ZIP", // Flag para que la función retorne BLOB y no descargue
+          pacienteNombre: "ZIP", // 👈 EL TRUCO
           resultado: r,
           fotoDNI: patient.archivodni,
           fotoCaptura: r.archivoCaptura,
