@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase/firebase";
-import { addDoc, collection, doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useCameraCapture } from "./useCameraCapture";
 
 type Config = {
@@ -133,8 +133,6 @@ export function useTestEngine({
 
     console.log("📦 FINAL DATA:", finalData); // 👈 debug hermoso
 
-    await addDoc(collection(db, "resultados"), finalData);
-console.log("FINAL DATA:", finalData);
     setLoading(false);
     onFinish(finalData);
   };

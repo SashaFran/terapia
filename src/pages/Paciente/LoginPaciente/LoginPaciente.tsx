@@ -130,7 +130,7 @@ export default function LoginPaciente() {
       localStorage.setItem("pacienteId", docPaciente.id);
       localStorage.setItem("rol", "paciente");
 
-      navigate("/app/dashboard");
+      navigate("/app/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
       setError("Error al intentar ingresar");
