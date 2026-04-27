@@ -49,6 +49,7 @@ export default function TestPage() {
     {/* Test Kessler K10 */}
     {testId === "k10" && (
       <TestK10
+        userId={pacienteId}
         onFinish={(resultado) => {
           console.log("Resultado K10:", resultado);
         }}
@@ -58,6 +59,7 @@ export default function TestPage() {
     {/* Test Big Five (BFQ) */}
     {testId === "bfq" && (
       <TestBFQ
+        userId={pacienteId}
         onFinish={(resultado) => {
           console.log("Resultado BFQ:", resultado);
 
@@ -113,6 +115,7 @@ export default function TestPage() {
 
     {testId === "laminas" && (
       <TestLaminas
+        userId={pacienteId}
         onFinish={(resultado) => {
           console.log("Resultado Láminas:", resultado);
 

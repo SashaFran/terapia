@@ -8,7 +8,6 @@ import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import { useTestEngine } from "../helpers/useTestEngine";
 import { LAMINAS_TEST } from "../../../data/tests/LAMINAS_TEST";
-import CapturaAutomatica from "../../../services/cameraService";
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -22,12 +21,6 @@ export default function TestLaminas({ onFinish, userId }: Props) {
   const [enviando, setEnviando] = useState(false);
   const zulligerCompleto = zulliger.some((r) => r && r !== "");
   const benderCompleto = bender.some((r) => r && r !== "");
-  const [captura, setCaptura] = useState<{
-  url: string;
-  public_id: string;
-} | null>(null);
-const [cameraOn, setCameraOn] = useState(false);
-
   const puedeFinalizar = zulligerCompleto && benderCompleto;
 
   const totalPreguntas = LAMINAS_TEST.preguntas.length;
@@ -46,20 +39,7 @@ const [cameraOn, setCameraOn] = useState(false);
   if (tiempoRestante < 60) timerClass += ` ${styles.danger}`;
   else if (tiempoRestante < 300) timerClass += ` ${styles.warning}`;
 
-const iniciarTest = () => {
-  setCameraOn(true);
-  engine.start();
-};
-const esperarCaptura = async () => {
-  let intentos = 0;
-
-  while (!captura?.url && intentos < 20) {
-    await new Promise((r) => setTimeout(r, 200));
-    intentos++;
-  }
-
-  return captura;
-};
+const iniciarTest = () => engine.start();
 const finalizar = async () => {
   setEnviando(true);
 
@@ -74,15 +54,10 @@ const finalizar = async () => {
     })),
   ];
 
-  const capturaFinal = await esperarCaptura();
-
-  // 🔥 APAGÁS cámara después de capturar
-  setCameraOn(false);
-
-  engine.submit({
+  await engine.submit({
     respuestas: respuestasFinales,
-    archivoCaptura: capturaFinal?.url || null,
-    captura_public_id: capturaFinal?.public_id || null,
+    metodo: "Laminas",
+    nivel: "Interpretación Láminas",
   });
 
   setEnviando(false);
@@ -138,12 +113,7 @@ const finalizar = async () => {
               </div>
             </aside>
           </div>
-{cameraOn && (
-  <CapturaAutomatica
-    pacienteId={userId}
-    onCapturaTerminada={(data) => setCaptura(data)}
-  />
-)}
+          {engine.CameraComponent && <engine.CameraComponent />}
         </div>
 
         <div className="width-complete">

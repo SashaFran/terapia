@@ -1,67 +1,45 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { K10_TEST } from "../../../data/tests/k10";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
-import Modal from "../../Modal/Modal.tsx";
-import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal.tsx";
-import CapturaAutomatica from "../../../services/cameraService.tsx";
+import Modal from "../../Modal/Modal";
+import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
 
-import {
-  addDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
-import { db } from "../../../firebase/firebase.tsx";
-
-type ResultadoK10 = {
-  score: number;
-  nivel: string;
-  respuestas: number[];
-  metodo: string;
-  tiempoTotalMs: number;
-  archivoCaptura: string | null;
+type Props = {
+  onFinish?: (resultado: any) => void | Promise<void>;
+  userId?: string | number;
 };
 
-export default function TestK10() {
+export default function TestK10({ onFinish, userId }: Props) {
   const navigate = useNavigate();
 
   const [canStart, setCanStart] = useState(false);
-  const [testIniciado, setTestIniciado] = useState(false);
   const [enviando, setEnviando] = useState(false);
-
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(K10_TEST.preguntas.length).fill(0),
   );
 
-  const [captura, setCaptura] = useState<{
-    url: string;
-    public_id: string;
-  } | null>(null);
-
-  const startTimeRef = useRef<number>(0);
-
-  // 🔥 Fuente única de verdad
   const pacienteStorage = localStorage.getItem("paciente");
   const paciente = pacienteStorage ? JSON.parse(pacienteStorage) : null;
-  const userId = paciente?.id;
+  const resolvedUserId = userId ?? paciente?.id ?? localStorage.getItem("pacienteId");
 
-  // ----------------------------
-  // Acciones
-  // ----------------------------
-  const iniciarTest = () => {
-    if (!userId) {
-      alert("Error de sesión. Volvé a iniciar.");
-      return;
-    }
+  const engine = useTestEngine({
+    userId: resolvedUserId,
+    testId: "k10",
+    timeLimitMs: 15 * 60 * 1000,
+    onFinish: async (data) => {
+      if (onFinish) await onFinish(data);
+      navigate("/app/dashboard", { replace: true });
+    },
+  });
 
-    setTestIniciado(true);
-    startTimeRef.current = Date.now();
-  };
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
   const responder = (index: number, valor: number) => {
     setRespuestas((prev) => {
@@ -72,16 +50,9 @@ export default function TestK10() {
   };
 
   const calcularResultado = async () => {
-    if (!testIniciado || enviando) return;
-
-    if (!userId) {
-      alert("Error crítico: paciente no identificado");
-      return;
-    }
-
+    if (!engine.started || enviando) return;
     setEnviando(true);
 
-    const tiempoTotalMs = Date.now() - startTimeRef.current;
     const total = respuestas.reduce((a, b) => a + b, 0);
 
     let nivel = "";
@@ -90,47 +61,13 @@ export default function TestK10() {
     else if (total <= 29) nivel = "Malestar psicológico severo";
     else nivel = "Malestar psicológico muy severo";
 
-    const resultado: ResultadoK10 = {
-      score: total,
-      nivel,
-      respuestas,
-      metodo: "K10",
-      tiempoTotalMs,
-      archivoCaptura: fotoUrl,
-    };
-
     try {
-      // 🧾 1. Guardar resultado
-      await addDoc(collection(db, "resultados"), {
-        pacienteId: userId,
-        testId: "k10",
-        ...resultado,
-        fecha: new Date(),
-        archivoCaptura: captura?.url || null,
-captura_public_id: captura?.public_id || null,
+      await engine.submit({
+        score: total,
+        nivel,
+        respuestas,
+        metodo: "K10",
       });
-
-      // 🔗 2. Sincronizar asignación automáticamente
-      const q = query(
-        collection(db, "asignaciones"),
-        where("pacienteId", "==", userId),
-        where("testId", "==", "k10"),
-      );
-
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        const asignacionDoc = snap.docs[0];
-
-        await updateDoc(doc(db, "asignaciones", asignacionDoc.id), {
-          estado: "completado",
-          fechaCompletado: new Date(),
-        });
-
-        console.log("✅ Asignación actualizada automáticamente");
-      }
-
-      navigate("/app/dashboard", { replace: true });
     } catch (error) {
       console.error("❌ Error al guardar el K10:", error);
       setEnviando(false);
@@ -139,10 +76,7 @@ captura_public_id: captura?.public_id || null,
 
   const incompleto = respuestas.some((r) => r === 0);
 
-  // ----------------------------
-  // UI inicial
-  // ----------------------------
-  if (!testIniciado) {
+  if (!engine.started) {
     return (
       <Modal
         abierto={true}
@@ -150,14 +84,13 @@ captura_public_id: captura?.public_id || null,
         titulo="Instrucciones para la Evaluación (K-10)"
       >
         <div className="nav">
-<div style={{ marginBottom: "15px" }}>
-          <li>Esta evaluación monitoriza el tiempo (solo estadístico).</li>
-          <li>El tiempo NO afecta el resultado.</li>
-          <li>Respondé con sinceridad.</li>
+          <div style={{ marginBottom: "15px" }}>
+            <li>Esta evaluación monitoriza el tiempo (solo estadístico).</li>
+            <li>El tiempo NO afecta el resultado.</li>
+            <li>Respondé con sinceridad.</li>
+          </div>
         </div>
 
-        </div>
-        
         <ConsentimientoCamara changeStatus={setCanStart} />
 
         <div
@@ -169,8 +102,8 @@ captura_public_id: captura?.public_id || null,
         >
           <BotonPersonalizado
             variant="primary"
-            onClick={iniciarTest}
-            disabled={!canStart}
+            onClick={engine.start}
+            disabled={!canStart || !resolvedUserId}
           >
             Comenzar Evaluación
           </BotonPersonalizado>
@@ -179,17 +112,15 @@ captura_public_id: captura?.public_id || null,
     );
   }
 
-  // ----------------------------
-  // UI test
-  // ----------------------------
   return (
     <div className={`global-container ${styles.container}`}>
-      {userId && (
-        <CapturaAutomatica
-          pacienteId={userId}
-          onCapturaTerminada={(data) => setCaptura(data)}
-        />
-      )}
+      <div className={styles.nav}>
+        <h2>{K10_TEST.nombre}</h2>
+        <div className={timerClass}>
+          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+        </div>
+      </div>
+      {engine.CameraComponent && <engine.CameraComponent />}
 
       <div className={styles.testContainer}>
         {K10_TEST.preguntas.map((pregunta, i) => (
