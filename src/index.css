@@ -91,6 +91,93 @@ h4 {
   align-items: center;
   width: var(--width-complete);
 }
+
+.layout{
+  width: var(--width-complete);
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  height: 100%;
+}
+.tablaPacientes {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+
+  scrollbar-width: thin;
+  scrollbar-color: #f2e9e2 #f1f1f1;
+}
+
+.tablaPacientes table {
+  width: var(--width-complete);
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.container table th:nth-child(5),
+.container table td:nth-child(4) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.tablaPacientes thead {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 176, 0, 1) 0%,
+    rgba(255, 60, 42, 1) 100%
+  );
+}
+
+.tablaPacientes thead th {
+  color: white;
+  font-weight: 600;
+  padding: 12px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  height: 48px;
+}
+
+.tablaPacientes tbody tr {
+  height: 48px;
+}
+
+.tablaPacientes th,
+.tablaPacientes td {
+  padding: 0 10px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.tablaPacientes td {
+  color: #333;
+}
+
+.tablaPacientes tbody tr:nth-child(even) {
+  background: #faf5f6;
+}
+
+.tablaPacientes tbody tr:hover {
+  background: #ffe0bd;
+  transition: 0.2s ease;
+}
+
+.tablaPacientes td > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.gap {
+  gap: 1rem;
+}
 .panelVertical {
   display: flex;
   gap: 2rem;
@@ -115,9 +202,6 @@ button {
   align-items: center;
 }
 
-button:hover {
-  font-weight: var(--font-bold);
-}
 
 button:focus,
 button:focus-visible {
@@ -161,6 +245,10 @@ select:focus {
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
 }
+
+.padding{
+  padding: 1rem;
+}
 .paddingHorizontal {
   padding: 0 1rem;
 }
@@ -172,6 +260,11 @@ select:focus {
   scrollbar-color: #f2e9e2 #f1f1f1;
   scrollbar-width: thin;
   display: block;
+}
+.cardPaciente {
+margin: 0 1rem;
+  padding: 1.5rem;
+  justify-content: space-between;
 }
 @media (prefers-color-scheme: light) {
   :root {

@@ -394,7 +394,11 @@ export default function PacientePerfil() {
                       ),
                     ]);
 
-                    await deleteDoc(doc(db, "pacientes", id));
+                    await fetch("http://localhost:3001/api/delete-paciente", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ pacienteId: id }),
+                    });
                     navigate("/admin/pacientes");
                   } finally {
                     setLoadingConfirm(false);
@@ -514,16 +518,19 @@ export default function PacientePerfil() {
                     <td>
                       <button
                         onClick={async () => {
-                          if (
-                            confirm("¿Eliminar este resultado de evaluación?")
-                          ) {
-                            await deleteDoc(doc(db, "resultados", r.id)); // 'r' es el item del map
-                            // Actualizamos el estado local para que desaparezca de la tabla
-                            setResultados((prev) =>
-                              prev.filter((item) => item.id !== r.id),
-                            );
-                          }
-                        }}
+  if (!confirm("¿Eliminar este resultado de evaluación?")) return;
+
+  try {
+    await deleteDoc(doc(db, "resultados", r.id));
+
+    setResultados((prev) =>
+      prev.filter((item) => item.id !== r.id)
+    );
+  } catch (e) {
+    console.error("Error borrando:", e);
+    alert("No se pudo borrar");
+  }
+}}
                       >
                         <img src={borrar} alt="Borrar record" />
                       </button>

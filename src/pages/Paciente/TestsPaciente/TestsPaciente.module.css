@@ -1,61 +1,15 @@
-.container{
-    color:  var(--font-color);
+/* SIDEBAR */
+.sidebar p{
+  display: 0.2rem;
+  font-size: var(--font-size-small);
+  margin: 1rem 0;
 }
-.tablaPacientes {
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid #eef1f6;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
-  text-align: justify;
+.container{
+  color: var(--font-color);
   display: flex;
   flex-direction: column;
-}
-.nav{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: var(--width-complete);
-  margin-bottom: 1.5rem;
-}
-
-.centerAlign {
-  text-align: center;
-}
-.navButtons{
-  display: flex;
   gap: 1rem;
-  align-items: center;
-}
-
-.navCards {
-  display: flex;
-  gap: 2rem;
-  margin: 0.5rem 0;
-}
-.cardTitle{
-  color: var(--gris-med);
-  font-weight: 500;
-  margin:  0 0 0.5rem 0;
-}
-.cardResult{
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--gris-dark);
-  margin: 0;
-}
-.tabla tbody button{
-  color: #1B263B;
-  border: none;
-  background-color: transparent;
-  padding: 0.6em 0;
-}
-
-td:nth-child(4) > *{
-  text-align: center;
+  height: 100%;
   width: var(--width-complete);
-}
-
-.descargar, .comentarios, .paciente {
-  text-align: center !important;
+  min-height: 0;
 }

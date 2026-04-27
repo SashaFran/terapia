@@ -35,11 +35,6 @@ color: var(--font-color);
   height: 2rem;
 }
 
-/* 🚫 NUNCA pongas height: 100% a table */
-table {
-  height: auto;
-}
-
 .tablaPacientes thead, .tablaPacientes thead th {
   color: white;
   font-weight: 600;
@@ -132,10 +127,6 @@ display: flex;
   text-align: center;
   position: sticky;
   top: 0;
-}
-
-table{
-  height: 100%;
 }
 /* CELDAS */
 .tablaPacientes td {

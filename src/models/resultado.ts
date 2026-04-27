@@ -6,4 +6,5 @@ export type Resultado = {
   testId: string;
   archivoCaptura?: string;
   observacionesIniciales?: string;
+  captura_public_id?: string;
 };

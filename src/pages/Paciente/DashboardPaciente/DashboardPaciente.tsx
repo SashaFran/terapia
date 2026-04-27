@@ -92,25 +92,25 @@ export default function DashboardPaciente() {
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
+    <div className={`container ${styles.container}`}>
       <div className={`nav`}>
         <h2>¡Bienvenido/a {paciente.nombre} a nuestra plataforma de evaluación!</h2>
       </div>
 
-      <nav className={'panelVertical'}>
-        <div className={'card'}>
+      <nav className={`nav gap`}>
+        <div className={'card padding'}>
           <h3 className={styles.cardTitle}>DNI</h3>
           <p className={styles.cardResult}>{paciente.dni}</p>
         </div>
 
-        <div className="card">
+        <div className="card padding">
           <h3 className={styles.cardTitle}>Fecha límite</h3>
           <p className={styles.cardResult}>
             {formatearFecha(paciente.fechaFinAcceso)}
           </p>
         </div>
 
-        <div className="card">
+        <div className="card padding">
           <h3 className={styles.cardTitle}>Tests realizados</h3>
           <p className={styles.cardResult}>
             {realizados} / {total}
@@ -118,7 +118,7 @@ export default function DashboardPaciente() {
         </div>
       </nav>
 
-      <div className="card">
+      <div className="card padding">
         <p className={styles.cardTitle}>Para facilitar tu proceso de ingreso, hemos asignado los tests psicológicos necesarios en tu perfil. Estos estarán disponibles durante las próximas 24 horas (o hasta la fecha indicada en la tarjeta superior).
             Antes de comenzar, por favor tené en cuenta:</p>
         <ul>
@@ -137,7 +137,7 @@ export default function DashboardPaciente() {
           Subir DNI
         </BotonPersonalizado>
         <BotonPersonalizado
-            variant="primary"
+            variant="secondary"
             onClick={() => navigate("/app/tests")}
             disabled={false}
           >

@@ -20,7 +20,7 @@ export default function TestsPaciente() {
   // 🧠 CALCULAR PROGRESO
   const calcularProgreso = (tests: Test[]) => {
     const total = tests.length;
-    const realizados = tests.filter(t => t.estado === "completado").length;
+    const realizados = tests.filter((t) => t.estado === "completado").length;
 
     return { realizados, total };
   };
@@ -42,7 +42,7 @@ export default function TestsPaciente() {
 
       const q = query(
         collection(db, "asignaciones"),
-        where("pacienteId", "==", pacienteParsed.id)
+        where("pacienteId", "==", pacienteParsed.id),
       );
 
       const snap = await getDocs(q);
@@ -69,56 +69,65 @@ export default function TestsPaciente() {
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
-      <div className={`nav`}>
-        <h2>Tests asignados</h2>
-      </div>
-
-      {/* PROGRESO */}
-      <nav className={'panelVertical'}>
-        <div className="card">
-          <h3 className={styles.cardTitle}>Fecha límite</h3>
-          <p className={styles.cardResult}>
-            {formatearFecha(paciente.fechaFinAcceso)}
-          </p>
+    <div className={`container`}>
+      <div className={`layout`}>
+        {/* PROGRESO */}
+        <div className={"panelVertical"}>
+          <div className={`card panelVertical ${styles.cardPaciente}`}>
+                <h2>Tests asignados</h2>
+                <aside className={styles.sidebar}>
+                  <p>
+                    <strong>Fecha límite</strong>{" "}
+                    {formatearFecha(paciente.fechaFinAcceso)}
+                  </p>
+                  <p>
+                    <strong>Tests realizados</strong>{" "}
+                    {realizados} / {total}
+                  </p>
+                </aside>
+              </div>
+            
         </div>
-        <div className="card">
-          <h3 className={styles.cardTitle}>Tests realizados</h3>
-          <p className={styles.cardResult}>
-            {realizados} / {total}
-          </p>
-        </div>
-      </nav>
 
-      {/* TABLA */}
-      <div className={styles.tablaPacientes}>
-        <table className={styles.tabla}>
-          <thead>
-            <tr>
-              <th>Test</th>
-              <th>Estado</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {tests.map((t) => (
-              <tr key={t.id}>
-                <td>{t.testId}</td>
-                <td>{t.estado}</td>
-                <td>
-                  <BotonPersonalizado
-                    variant="primary"
-                    onClick={() => navigate(`/app/test/${t.testId}`)}
-                    disabled={t.estado === "completado"}
-                  >
-                    {t.estado === "completado" ? "✔️ Hecho" : "Comenzar"}
-                  </BotonPersonalizado>
-                </td>
+        {/* TABLA */}
+        <main className={`scrollbar tablaPacientes`}>
+          <table>
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Estado</th>
+                <th>Acción</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {tests.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.testId}</td>
+                  <td>{t.estado}</td>
+                  <td>
+                    {t.estado === "completado" ? (
+                      <BotonPersonalizado
+                        variant="secondary"
+                        disabled={true}                      
+                        >
+                        Hecho
+                      </BotonPersonalizado>
+                    ) : (
+                      <BotonPersonalizado
+                        variant="primary"
+                        onClick={() => navigate(`/app/test/${t.testId}`)}
+                        disabled={false}
+                      >
+                        Comenzar
+                      </BotonPersonalizado>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
       </div>
     </div>
   );

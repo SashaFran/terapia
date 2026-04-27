@@ -132,7 +132,7 @@ if (rol === "admin") {
                 <span className={styles.name}>{displayName}</span>
                 <span className={styles.sub}>{subText}</span>
               </div>
-
+              <div>{" "}</div>
               {/* <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span> */}
           </div>
 

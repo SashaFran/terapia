@@ -59,13 +59,23 @@ const handleLogin = async () => {
 
           {error && <p className="error">{error}</p>}
 
-          <BotonPersonalizado
+<div className="nav">
+<BotonPersonalizado
             variant="primary"
             onClick={handleLogin}
             disabled={!email || !password}
           >
             Ingresar
           </BotonPersonalizado>
+<BotonPersonalizado
+              variant="secondary"
+              onClick={() => navigate("/login")}
+              disabled={false}
+            >
+              Ingresar como paciente
+            </BotonPersonalizado>
+</div>
+          
         </div>
       </div>
     </div>

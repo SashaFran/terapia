@@ -35,10 +35,13 @@ export default function TestK10() {
   const [enviando, setEnviando] = useState(false);
 
   const [respuestas, setRespuestas] = useState<number[]>(
-    Array(K10_TEST.preguntas.length).fill(0)
+    Array(K10_TEST.preguntas.length).fill(0),
   );
 
-  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [captura, setCaptura] = useState<{
+    url: string;
+    public_id: string;
+  } | null>(null);
 
   const startTimeRef = useRef<number>(0);
 
@@ -103,14 +106,15 @@ export default function TestK10() {
         testId: "k10",
         ...resultado,
         fecha: new Date(),
-        archivoCaptura: resultado.archivoCaptura || null,
+        archivoCaptura: captura?.url || null,
+captura_public_id: captura?.public_id || null,
       });
 
       // 🔗 2. Sincronizar asignación automáticamente
       const q = query(
         collection(db, "asignaciones"),
         where("pacienteId", "==", userId),
-        where("testId", "==", "k10")
+        where("testId", "==", "k10"),
       );
 
       const snap = await getDocs(q);
@@ -145,15 +149,24 @@ export default function TestK10() {
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación (K-10)"
       >
-        <div style={{ marginBottom: "15px" }}>
+        <div className="nav">
+<div style={{ marginBottom: "15px" }}>
           <li>Esta evaluación monitoriza el tiempo (solo estadístico).</li>
           <li>El tiempo NO afecta el resultado.</li>
           <li>Respondé con sinceridad.</li>
         </div>
 
+        </div>
+        
         <ConsentimientoCamara changeStatus={setCanStart} />
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+          }}
+        >
           <BotonPersonalizado
             variant="primary"
             onClick={iniciarTest}
@@ -174,7 +187,7 @@ export default function TestK10() {
       {userId && (
         <CapturaAutomatica
           pacienteId={userId}
-          onCapturaTerminada={(url) => setFotoUrl(url)}
+          onCapturaTerminada={(data) => setCaptura(data)}
         />
       )}
 

@@ -1,113 +1,137 @@
-import { useState } from "react";
-import { db, storage } from "../../../firebase/firebase";
+import { useEffect, useState } from "react";
+import { db } from "../../../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
 import styles from "./SubirDNI.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
-
 
 export default function SubirDNI() {
   const [file, setFile] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [dniUrl, setDniUrl] = useState<string | null>(null);
 
-const CLOUD_NAME = "dni13rket"; // <--- Verificá que sea todo en minúsculas
-  const UPLOAD_PRESET = "joinsolution_bucket"; // <--- Copialo tal cual del dashboard
-
-  const handleUpload = async () => {
-    if (!file) return alert("Seleccioná un archivo");
-
+  useEffect(() => {
     const pacienteData = localStorage.getItem("paciente");
-    if (!pacienteData) return alert("Sesión expirada");
+    if (!pacienteData) return;
     const paciente = JSON.parse(pacienteData);
+    setDniUrl(paciente.archivodni || null);
+  }, []);
 
-    setSubiendo(true);
+const handleUpload = async () => {
+  const CLOUD_NAME = "dni13rket";
+  if (!file) return alert("Seleccioná un archivo");
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", UPLOAD_PRESET);
-      
-      // Con esto vinculamos la foto al ID del paciente en Cloudinary
-      // El archivo se guardará en una carpeta "dnis" con el nombre del ID
-      formData.append("public_id", paciente.id);
-      formData.append("folder", "dnis"); 
+  const pacienteData = localStorage.getItem("paciente");
+  if (!pacienteData) return alert("Sesión expirada");
+  const paciente = JSON.parse(pacienteData);
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, // Quitamos "image/" para que sea más genérico (acepta PDF)
-        { method: "POST", body: formData }
-      );
+  setSubiendo(true);
 
-      const data = await response.json();
-
-      if (data.secure_url) {
-        // Guardamos la URL y el ID de Cloudinary en tu Firestore
-        await updateDoc(doc(db, "pacientes", paciente.id), {
-          archivodni: data.secure_url, 
-          dni_public_id: data.public_id, // Guardamos esto para rastreo extra
-          activo: true,
-          fecha_subida: new Date().toISOString()
-        });
-
-        alert("DNI vinculado al paciente con éxito ✨");
-        setFile(null);
-        setPreview(null);
-      } else {
-        // Esto te mostrará el error real en el alert si falla
-        console.error("Detalle de Cloudinary:", data.error.message);
-        alert(`Error de Cloudinary: ${data.error.message}`);
-      }
-    } catch (error) {
-      console.error("Error técnico:", error);
-      alert("Error de conexión al intentar subir el archivo.");
-    } finally {
-      setSubiendo(false);
+  try {
+    // 1. DISPARAR BORRADO (Sin 'await' crítico)
+    // Lo lanzamos y si falla, que falle solo, no nos detiene.
+    if (paciente.dni_public_id) {
+      fetch("http://localhost:3001/api/delete-cloudinary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ public_id: paciente.dni_public_id }),
+      }).catch(err => console.log("El borrado falló silenciosamente, normal en localhost."));
     }
-  };
 
+    // 2. SUBIR NUEVA IMAGEN (Lógica de Cloudinary API directa)
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "joinsolution_bucket");
 
-  return (
-    <div className={`global-container ${styles.container}`}>
-      <div className="nav">
-        <h2>Tu Documentación</h2>
-      </div>
+    const resCloud = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`,
+      { method: "POST", body: formData }
+    );
 
-      <div className="card">
-        <p className={styles.cardTitle}>Validación de Identidad</p>
-        <p>
-          Para garantizar la validez de los resultados, necesitamos confirmar la identidad 
-          de la persona que realiza las evaluaciones.
-        </p>
+    const data = await resCloud.json();
+    if (data.error) throw new Error(data.error.message);
 
-        <div className={styles.instrucciones}>
-          <p className={styles.cardTitle}>Instrucciones:</p>
+    // 3. ACTUALIZAR FIREBASE Y LOCALSTORAGE
+    const nuevoEstado = { 
+      ...paciente, 
+      archivodni: data.secure_url, 
+      dni_public_id: data.public_id 
+    };
+
+    await updateDoc(doc(db, "pacientes", paciente.id), {
+      archivodni: nuevoEstado.archivodni,
+      dni_public_id: nuevoEstado.dni_public_id,
+    });
+
+    localStorage.setItem("paciente", JSON.stringify(nuevoEstado));
+    setDniUrl(data.secure_url);
+    setFile(null);
+    alert("¡DNI cargado con éxito! ✨");
+
+  } catch (e: any) {
+    alert(`Error al subir: ${e.message}`);
+  } finally {
+    setSubiendo(false);
+  }
+};
+   return (
+    <div className="container">
+      <div className="layout">
+
+        {/* PANEL */}
+        <div className="panelVertical">
+          <div className={`card panelVertical ${styles.cardPaciente}`}>
+            <h2>Tu Documentación</h2>
+
+            {dniUrl ? (
+              <div className={styles.sidebar}>
+                <a href={dniUrl} target="_blank">
+                  <p> Ver / Descargar DNI </p>
+                </a>
+              </div>
+            ) : (
+              <p>No hay DNI cargado</p>
+            )}
+          </div>
+        </div>
+
+        {/* SUBIDA */}
+        <div className={`container card panelVertical padding ${styles.containerDNI}`}>
+          <h2>Validación de Identidad</h2>
+
+          <p>
+            Para garantizar la validez de los resultados, necesitamos confirmar
+            la identidad de la persona que realiza las evaluaciones.
+          </p>
+
+          <h2>Instrucciones:</h2>
           <ul>
-            <li><strong>Qué subir</strong>: Una imagen clara del frente de tu DNI.</li>
-            <li><strong>Formato</strong>: JPG o JPEG.</li>
-            <li><strong>Claridad</strong>: Asegurate de que los datos sean legibles.</li>
+            <li><strong>Qué subir</strong>: Frente del DNI</li>
+            <li><strong>Formato</strong>: JPG o JPEG</li>
+            <li><strong>Claridad</strong>: Datos legibles</li>
           </ul>
+
+          <small className={styles.disclaimer}>
+            Tus datos serán tratados de forma confidencial.
+          </small>
+
+          <div className="nav padding margin">
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg"
+              className={styles.fileInput}
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+
+            <BotonPersonalizado
+              variant="primary"
+              disabled={subiendo || !file}
+              onClick={handleUpload}
+            >
+              {subiendo ? "Subiendo..." : "Subir DNI"}
+            </BotonPersonalizado>
+          </div>
         </div>
-
-        <small className={styles.disclaimer}>
-          Tus datos serán tratados de forma confidencial y utilizados exclusivamente para este proceso.
-        </small>
-
-        <div className={styles.inputDNI}>
-          <input
-            type="file"
-            accept=".pdf,.jpg,.jpeg"
-            className={styles.fileInput}
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-          />
-
-          <BotonPersonalizado
-            variant="primary"
-            disabled={subiendo || !file}
-            onClick={handleUpload}
-          >
-            {subiendo ? "Subiendo archivo..." : "Subir y Habilitar Acceso"}
-          </BotonPersonalizado>
         </div>
-      </div>
-    </div>
+        </div>
   );
 }

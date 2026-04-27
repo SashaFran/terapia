@@ -28,7 +28,7 @@ export default function LoginPaciente() {
       // 🔍 1. Buscar paciente
       const q = query(
         collection(db, "pacientes"),
-        where("dni", "==", dniLimpio)
+        where("dni", "==", dniLimpio),
       );
       const snap = await getDocs(q);
 
@@ -49,7 +49,7 @@ export default function LoginPaciente() {
       // 📦 3. Traer asignaciones
       const qAsignaciones = query(
         collection(db, "asignaciones"),
-        where("pacienteId", "==", docPaciente.id)
+        where("pacienteId", "==", docPaciente.id),
       );
 
       const snapAsignaciones = await getDocs(qAsignaciones);
@@ -75,7 +75,7 @@ export default function LoginPaciente() {
           23,
           59,
           59,
-          999
+          999,
         );
 
         accesoVencido = ahora.getTime() > fin.getTime();
@@ -86,7 +86,7 @@ export default function LoginPaciente() {
       // ⚠️ IMPORTANTE: esto ya NO bloquea login
       const total = asignaciones.length;
       const completados = asignaciones.filter(
-        (a: any) => a.estado === "completado"
+        (a: any) => a.estado === "completado",
       ).length;
 
       const testsCompletos = total > 0 && total === completados;
@@ -131,7 +131,6 @@ export default function LoginPaciente() {
       localStorage.setItem("rol", "paciente");
 
       navigate("/app/dashboard");
-
     } catch (err) {
       console.error(err);
       setError("Error al intentar ingresar");
@@ -159,13 +158,22 @@ export default function LoginPaciente() {
 
           {error && <p className="error">{error}</p>}
 
-          <BotonPersonalizado
-            variant="primary"
-            onClick={handleLogin}
-            disabled={!dni || !password}
-          >
-            Ingresar
-          </BotonPersonalizado>
+          <div className="nav">
+            <BotonPersonalizado
+              variant="primary"
+              onClick={handleLogin}
+              disabled={!dni || !password}
+            >
+              Ingresar
+            </BotonPersonalizado>
+            <BotonPersonalizado
+              variant="secondary"
+              onClick={() => navigate("/admin/login")}
+              disabled={false}
+            >
+              Ingresar como administrador
+            </BotonPersonalizado>
+          </div>
         </div>
       </div>
     </div>

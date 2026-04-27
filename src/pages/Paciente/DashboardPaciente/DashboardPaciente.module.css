@@ -13,11 +13,7 @@
   flex-direction: column;
 }
 .nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: var(--width-complete);
-  margin-bottom: 1.5rem;
+gap: 1rem;
 }
 .centerAlign {
   text-align: center;

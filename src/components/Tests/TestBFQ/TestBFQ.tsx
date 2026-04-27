@@ -28,14 +28,18 @@ type Props = {
 export default function TestBFQ({ onFinish, userId }: Props) {
   const navigate = useNavigate();
   const [canStart, setCanStart] = useState(false);
+    const [captura, setCaptura] = useState<{
+    url: string;
+    public_id: string;
+  } | null>(null);
   const [respuestas, setRespuestas] = useState<number[]>(
-    Array(BFQ_TEST.preguntas.length).fill(0)
+    Array(BFQ_TEST.preguntas.length).fill(0),
   );
 
   const [testIniciado, setTestIniciado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const startTimeRef = useRef<number>(0);
-  
+
   // Referencia para la función de apagado de cámara
   const stopCameraRef = useRef<(() => void) | null>(null);
 
@@ -108,8 +112,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
         tiempoTotalMs,
       });
 
-      navigate('/dashboard', { replace: true }); 
-
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Error al finalizar:", error);
       setEnviando(false);
@@ -120,25 +123,42 @@ export default function TestBFQ({ onFinish, userId }: Props) {
 
   if (!testIniciado) {
     return (
-      <Modal abierto={true} onCerrar={() => {}} titulo="Instrucciones - Test BFQ">
-        <div style={{ marginBottom: '15px' }}>
-          <li>Esta evaluación mide diferentes dimensiones de la personalidad.</li>
-          <li>Responda con sinceridad. No hay respuestas correctas o incorrectas.</li>
-          <li>Durante el test, se realizarán capturas aleatorias para validar su identidad.</li>
+      <Modal
+        abierto={true}
+        onCerrar={() => {}}
+        titulo="Instrucciones - Test BFQ"
+      >
+        <div style={{ marginBottom: "15px" }}>
+          <li>
+            Esta evaluación mide diferentes dimensiones de la personalidad.
+          </li>
+          <li>
+            Responda con sinceridad. No hay respuestas correctas o incorrectas.
+          </li>
+          <li>
+            Durante el test, se realizarán capturas aleatorias para validar su
+            identidad.
+          </li>
         </div>
         <div>
-            {/* El resto de tu test */}
-            <CapturaAutomatica 
-              pacienteId={userId} 
-              onCapturaTerminada={(url) => console.log("Foto lista:", url)} 
-            />
-          </div>
+          {/* El resto de tu test */}
+          <CapturaAutomatica
+            pacienteId={userId}
+            onCapturaTerminada={(data) => setCaptura(data)}
+          />
+        </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-          <BotonPersonalizado 
-            variant="primary" 
-            onClick={iniciarTest} 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+          }}
+        >
+          <BotonPersonalizado
+            variant="primary"
+            onClick={iniciarTest}
             disabled={!canStart}
           >
             Comenzar Evaluación
@@ -157,16 +177,25 @@ export default function TestBFQ({ onFinish, userId }: Props) {
       <div className={styles.testContainer}>
         {BFQ_TEST.preguntas.map((pregunta, i) => (
           <div key={i} className={styles.testCard}>
-            <p><strong>{i + 1}.</strong> {pregunta}</p>
+            <p>
+              <strong>{i + 1}.</strong> {pregunta}
+            </p>
             <div className={styles.testCardItems}>
               {BFQ_TEST.opciones.map((op) => (
-                <label key={op.valor} style={{ display: "flex", alignItems: "center", cursor: 'pointer' }}>
+                <label
+                  key={op.valor}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="radio"
                     name={`pregunta-${i}`}
                     checked={respuestas[i] === op.valor}
                     onChange={() => responder(i, op.valor)}
-                    style={{ marginRight: '8px' }}
+                    style={{ marginRight: "8px" }}
                   />
                   {op.label}
                 </label>

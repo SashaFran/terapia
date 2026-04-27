@@ -12,7 +12,7 @@ import './BotonPersonalizado.css'; // Asegúrate de crear este archivo CSS
  */
 const BotonPersonalizado = ({ variant = 'primary', children, onClick, disabled = false, className = '' }: { variant: 'primary' | 'secondary' | 'danger'; children: string; onClick: React.MouseEventHandler<HTMLButtonElement>; disabled: boolean; className?: string; }) => {
   // Construye las clases CSS dinámicamente según las props
-  const baseClasses = 'botonase';
+  const baseClasses = 'boton-base';
   const variantClass = `boton-${variant}`;
   
   return (

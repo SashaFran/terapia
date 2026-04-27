@@ -6,7 +6,6 @@ import { RAVEN_TEST } from "../../../data/tests/raven_test";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import CapturaAutomatica from "../../../services/cameraService.tsx";
 
-
 type Props = {
   onFinish: (resultado: any) => void;
   userId: string | number; // Prop necesaria para las fotos
@@ -16,13 +15,17 @@ const RESPUESTAS_CORRECTAS = [1, 7, 8, 5, 5, 7, 6, 8, 1, 1, 6, 3];
 
 export default function TestRaven({ onFinish, userId }: Props) {
   const [canStart, setCanStart] = useState(false);
+  const [captura, setCaptura] = useState<{
+    url: string;
+    public_id: string;
+  } | null>(null);
   const [respuestas, setRespuestas] = useState<string[]>(
-    Array(RAVEN_TEST.imagenes.length).fill("")
+    Array(RAVEN_TEST.imagenes.length).fill(""),
   );
 
   const [testIniciado, setTestIniciado] = useState(false);
   const startTimeRef = useRef<number>(0);
-  
+
   // Referencia para la función de apagado de cámara
   const stopCameraRef = useRef<(() => void) | null>(null);
 
@@ -107,32 +110,39 @@ export default function TestRaven({ onFinish, userId }: Props) {
         titulo="Instrucciones para la Evaluación con Láminas"
       >
         <div>
-                    {/* El resto de tu test */}
-                    <CapturaAutomatica 
-                       pacienteId={userId} 
-                       onCapturaTerminada={(url) => console.log("Foto lista:", url)} 
-                    />
-                  </div>
+          {/* El resto de tu test */}
+          <CapturaAutomatica
+            pacienteId={userId}
+            onCapturaTerminada={(data) => setCaptura(data)}
+          />
+        </div>
 
         <div style={{ marginBottom: "1rem" }}>
           <li>
-            Esta evaluación <strong>monitoriza el tiempo</strong> de completado y 
-            realiza capturas de identidad aleatorias.
+            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
+            y realiza capturas de identidad aleatorias.
           </li>
           <li>
             <strong>Importante:</strong> Esto no afecta su puntuación final.
           </li>
           <li style={{ marginTop: "1rem" }}>
-            Se presentarán matrices <strong>incompletas</strong>. Indique el número de la opción <strong>correcta</strong>.
+            Se presentarán matrices <strong>incompletas</strong>. Indique el
+            número de la opción <strong>correcta</strong>.
           </li>
         </div>
 
         <ConsentimientoCamara changeStatus={setCanStart} />
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-          <BotonPersonalizado 
-            variant="primary" 
-            onClick={iniciarTest} 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+          }}
+        >
+          <BotonPersonalizado
+            variant="primary"
+            onClick={iniciarTest}
             disabled={!canStart}
           >
             Comenzar Evaluación
@@ -151,7 +161,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
 
       {RAVEN_TEST.imagenes.map((img: string, i: number) => (
         <div key={i} className={styles.fila}>
-          <img src={img} alt={`Matriz ${i+1}`} className={styles.imagen} />
+          <img src={img} alt={`Matriz ${i + 1}`} className={styles.imagen} />
 
           <input
             type="text"

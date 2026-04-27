@@ -13,7 +13,7 @@ color: var(--font-color);
   position: relative;
 }
 table{
-  height: 100%;
+/*   height: 100%; OJO CUIDADO*/
   table-layout: auto;
   width: var(--width-complete);   
 }
@@ -41,11 +41,6 @@ table{
 
 .tablaPacientes tbody tr {
   height: 2rem;
-}
-
-/* 🚫 NUNCA pongas height: 100% a table */
-table {
-  height: auto;
 }
 
 .tablaPacientes thead, .tablaPacientes thead th {

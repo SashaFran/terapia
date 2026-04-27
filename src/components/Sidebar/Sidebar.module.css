@@ -19,7 +19,10 @@ display: flex;
 .right {
   display: flex;
   gap: 1.2rem;
-  width: 10%;
+}
+
+.right > *{
+  color: var(--marron);
 }
 
 /* Ajuste opcional para las imágenes dentro de los contenedores */

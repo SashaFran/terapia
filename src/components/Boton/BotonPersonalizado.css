@@ -1,22 +1,16 @@
 /* Base button styles */
 .boton-base {
-  font-weight: 700;
-  font-size: 14px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--radius);
-  display: inline-block;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  min-width: 0;
-  align-self: center;
-  text-wrap: nowrap;
-  border: 1px solid transparent;
-  min-width: 120px;
-  max-width: var(--width-complete);
-  min-height: 50px;
-  max-height: 50px;
+cursor: pointer;
+  border-radius: 45px;
+  width: 100px;
+  height: 45px;
+  transition: .3s;
+  width: 200px;
+  white-space: nowrap;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Primary variant */
@@ -29,7 +23,7 @@
 
 /* Secondary variant */
 .boton-secondary {
-  background-color: #35251c;
+  background-color: var(--marron);
   cursor: pointer;
   transition: border-color 0.25s;
   color: var(--gris-bg);
