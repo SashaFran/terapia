@@ -27,6 +27,8 @@ export default function TestRunner() {
       metodo: resultado.metodo || "",
       fecha: Timestamp.fromDate(ahora),
       pacienteId, // 🔥 AHORA NUNCA VA NULL
+      archivoCaptura: resultado.archivoCaptura || null,
+      captura_public_id: resultado.captura_public_id || null,
     };
 
     // K10
@@ -85,10 +87,10 @@ export default function TestRunner() {
     navigate("/app/tests");
   };
 
-  if (testId === "k10") return <TestK10 onFinish={handleFinish} />;
-  if (testId === "bfq") return <TestBFQ onFinish={handleFinish} />;
-  if (testId === "laminas") return <TestLaminas onFinish={handleFinish} />;
-  if (testId === "raven") return <TestRaven onFinish={handleFinish} />;
+  if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "laminas") return <TestLaminas onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "raven") return <TestRaven onFinish={handleFinish} userId={pacienteId} />;
 
   return <p>Test no encontrado</p>;
 }
