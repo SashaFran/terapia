@@ -111,10 +111,14 @@ export function useTestEngine({
       console.warn("📸 No se pudo obtener la captura a tiempo");
     }
 
-    const finalData = {
+  const finalData = {
       userId: String(userId),
+      pacienteId: String(userId),
       testId,
       respuestas: payload.respuestas || [],
+      score: payload.score ?? null,
+      nivel: payload.nivel ?? null,
+      metodo: payload.metodo ?? testId.toUpperCase(),
 
 archivoCaptura: payload.archivoCaptura || camera.imageUrl || null,
 captura_public_id: payload.captura_public_id || camera.publicId || null,

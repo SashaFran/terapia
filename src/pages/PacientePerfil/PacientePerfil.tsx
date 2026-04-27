@@ -454,9 +454,26 @@ export default function PacientePerfil() {
                             onConfirm: async () => {
                               setLoadingConfirm(true);
                               try {
+                                const resultadosDelTest = await getDocs(
+                                  query(
+                                    collection(db, "resultados"),
+                                    where("pacienteId", "==", id),
+                                    where("testId", "==", a.testId),
+                                  ),
+                                );
+
                                 await deleteDoc(doc(db, "asignaciones", a.id));
+                                await Promise.all(
+                                  resultadosDelTest.docs.map((d) =>
+                                    deleteDoc(doc(db, "resultados", d.id)),
+                                  ),
+                                );
+
                                 setAsignaciones((prev) =>
                                   prev.filter((x) => x.id !== a.id),
+                                );
+                                setResultados((prev) =>
+                                  prev.filter((r) => r.testId !== a.testId),
                                 );
                               } finally {
                                 setLoadingConfirm(false);

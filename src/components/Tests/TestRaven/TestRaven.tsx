@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect, type Key } from "react";
+import { useState } from "react";
 import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../../Modal/Modal";
 import styles from "./TestRaven.module.css";
 import { RAVEN_TEST } from "../../../data/tests/raven_test";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import CapturaAutomatica from "../../../services/cameraService.tsx";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -15,42 +16,26 @@ const RESPUESTAS_CORRECTAS = [1, 7, 8, 5, 5, 7, 6, 8, 1, 1, 6, 3];
 
 export default function TestRaven({ onFinish, userId }: Props) {
   const [canStart, setCanStart] = useState(false);
-  const [captura, setCaptura] = useState<{
-    url: string;
-    public_id: string;
-  } | null>(null);
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(RAVEN_TEST.imagenes.length).fill(""),
   );
 
-  const [testIniciado, setTestIniciado] = useState(false);
-  const startTimeRef = useRef<number>(0);
+  const engine = useTestEngine({
+    userId,
+    testId: "raven",
+    timeLimitMs: 20 * 60 * 1000,
+    onFinish,
+  });
 
-  // Referencia para la función de apagado de cámara
-  const stopCameraRef = useRef<(() => void) | null>(null);
-
-  // Limpieza automática al desmontar el componente
-  useEffect(() => {
-    return () => {
-      if (stopCameraRef.current) {
-        stopCameraRef.current();
-      }
-    };
-  }, []);
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
   // ----------------------
   // INICIO TEST
   // ----------------------
-  const iniciarTest = async () => {
-    // Iniciamos monitoreo antes de marcar el inicio del test
-    const cleanup = await iniciarMonitoreo(userId);
-    if (cleanup) {
-      stopCameraRef.current = cleanup;
-    }
-
-    setTestIniciado(true);
-    startTimeRef.current = Date.now();
-  };
+  const iniciarTest = () => engine.start();
 
   // ----------------------
   // HANDLE INPUT
@@ -65,15 +50,6 @@ export default function TestRaven({ onFinish, userId }: Props) {
   // FINALIZAR
   // ----------------------
   const finalizar = () => {
-    // Apagamos la cámara inmediatamente
-    if (stopCameraRef.current) {
-      stopCameraRef.current();
-      stopCameraRef.current = null;
-    }
-
-    const endTime = Date.now();
-    const tiempoTotalMs = endTime - startTimeRef.current;
-
     let errores = 0;
     respuestas.forEach((r, i) => {
       if (Number(r) !== RESPUESTAS_CORRECTAS[i]) {
@@ -86,7 +62,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
     else if (errores <= 2) nivel = "Normal Superior";
     else if (errores <= 4) nivel = "Normal Promedio";
 
-    onFinish({
+    engine.submit({
       score: 12 - errores,
       errores,
       nivel,
@@ -95,28 +71,19 @@ export default function TestRaven({ onFinish, userId }: Props) {
         respuesta: r || "Sin respuesta",
       })),
       metodo: "Test Raven",
-      tiempoTotalMs,
     });
   };
 
   // ----------------------
   // MODAL INICIAL
   // ----------------------
-  if (!testIniciado) {
+  if (!engine.started) {
     return (
       <Modal
         abierto={true}
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación con Láminas"
       >
-        <div>
-          {/* El resto de tu test */}
-          <CapturaAutomatica
-            pacienteId={userId}
-            onCapturaTerminada={(data) => setCaptura(data)}
-          />
-        </div>
-
         <div style={{ marginBottom: "1rem" }}>
           <li>
             Esta evaluación <strong>monitoriza el tiempo</strong> de completado
@@ -157,7 +124,13 @@ export default function TestRaven({ onFinish, userId }: Props) {
   // ----------------------
   return (
     <div className={styles.container}>
-      <h2>Test de Raven</h2>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <h2>Test de Raven</h2>
+        <div className={timerClass}>
+          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+        </div>
+      </div>
+      {engine.CameraComponent && <engine.CameraComponent />}
 
       {RAVEN_TEST.imagenes.map((img: string, i: number) => (
         <div key={i} className={styles.fila}>

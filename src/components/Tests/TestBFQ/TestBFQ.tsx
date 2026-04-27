@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
 import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import CapturaAutomatica from "../../../services/cameraService.tsx";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
 
 type ResultadoBFQ = {
   dimensiones: {
@@ -28,40 +29,25 @@ type Props = {
 export default function TestBFQ({ onFinish, userId }: Props) {
   const navigate = useNavigate();
   const [canStart, setCanStart] = useState(false);
-    const [captura, setCaptura] = useState<{
-    url: string;
-    public_id: string;
-  } | null>(null);
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(BFQ_TEST.preguntas.length).fill(0),
   );
 
-  const [testIniciado, setTestIniciado] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const startTimeRef = useRef<number>(0);
+  const engine = useTestEngine({
+    userId,
+    testId: "bfq",
+    timeLimitMs: 20 * 60 * 1000,
+    onFinish: async (data) => {
+      await onFinish(data);
+      navigate("/dashboard", { replace: true });
+    },
+  });
 
-  // Referencia para la función de apagado de cámara
-  const stopCameraRef = useRef<(() => void) | null>(null);
-
-  // Limpieza automática si el usuario sale de la página o cierra la pestaña
-  useEffect(() => {
-    return () => {
-      if (stopCameraRef.current) {
-        stopCameraRef.current();
-      }
-    };
-  }, []);
-
-  const iniciarTest = async () => {
-    // Iniciamos la cámara antes de mostrar las preguntas
-    const cleanup = await iniciarMonitoreo(userId);
-    if (cleanup) {
-      stopCameraRef.current = cleanup;
-    }
-
-    setTestIniciado(true);
-    startTimeRef.current = Date.now();
-  };
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
   const responder = (index: number, valor: number) => {
     setRespuestas((prev) => {
@@ -83,18 +69,9 @@ export default function TestBFQ({ onFinish, userId }: Props) {
     indices.reduce((acc, i) => acc + (respuestas[i] || 0), 0);
 
   const calcularResultado = async () => {
-    if (!testIniciado || enviando) return;
+    if (!engine.started || enviando) return;
 
     setEnviando(true);
-
-    // Apagamos la cámara apenas se presiona finalizar
-    if (stopCameraRef.current) {
-      stopCameraRef.current();
-      stopCameraRef.current = null;
-    }
-
-    const endTime = Date.now();
-    const tiempoTotalMs = endTime - startTimeRef.current;
 
     const resultado = {
       extraversion: calcularDimension(dimensionesMap.extraversion),
@@ -105,14 +82,13 @@ export default function TestBFQ({ onFinish, userId }: Props) {
     };
 
     try {
-      await onFinish({
+      await engine.submit({
         dimensiones: resultado,
         respuestas,
         metodo: "BFQ",
-        tiempoTotalMs,
+        nivel: "Perfil Big Five",
+        score: Object.values(resultado).reduce((acc, val) => acc + val, 0),
       });
-
-      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Error al finalizar:", error);
       setEnviando(false);
@@ -121,7 +97,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
 
   const incompleto = respuestas.some((r) => r === 0);
 
-  if (!testIniciado) {
+  if (!engine.started) {
     return (
       <Modal
         abierto={true}
@@ -140,13 +116,6 @@ export default function TestBFQ({ onFinish, userId }: Props) {
             identidad.
           </li>
         </div>
-        <div>
-          {/* El resto de tu test */}
-          <CapturaAutomatica
-            pacienteId={userId}
-            onCapturaTerminada={(data) => setCaptura(data)}
-          />
-        </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
 
         <div
@@ -158,7 +127,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
         >
           <BotonPersonalizado
             variant="primary"
-            onClick={iniciarTest}
+            onClick={engine.start}
             disabled={!canStart}
           >
             Comenzar Evaluación
@@ -172,7 +141,11 @@ export default function TestBFQ({ onFinish, userId }: Props) {
     <div className={`global-container ${styles.container}`}>
       <div className={`nav`}>
         <h2>{BFQ_TEST.nombre}</h2>
+        <div className={timerClass}>
+          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+        </div>
       </div>
+      {engine.CameraComponent && <engine.CameraComponent />}
 
       <div className={styles.testContainer}>
         {BFQ_TEST.preguntas.map((pregunta, i) => (
