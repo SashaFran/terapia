@@ -36,17 +36,22 @@ export default function BFQPage() {
   const handleFinish = async (resultado: any) => {
     if (!pacienteId || !sesionId) return;
 
+    const data = Object.fromEntries(
+      Object.entries({
+        pacienteId,
+        sesionId,
+        testId: "bfq",
+        respuestas: resultado.respuestas,
+        puntaje: resultado.score,
+        nivel: resultado.nivel,
+        metodo: resultado.metodo,
+        fecha: serverTimestamp(),
+        dimensiones: resultado.dimensiones,
+      }).filter(([, value]) => value !== undefined),
+    );
+
     // 1️⃣ Guardar resultado del test
-    await addDoc(collection(db, "resultados"), {
-      pacienteId,
-      sesionId,
-      testId: "bfq",
-      respuestas: resultado.respuestas,
-      puntaje: resultado.score,
-      nivel: resultado.nivel,
-      metodo: resultado.metodo,
-      fecha: serverTimestamp(),
-    });
+    await addDoc(collection(db, "resultados"), data);
 
     // 2️⃣ Actualizar sesión
     await updateDoc(doc(db, "sesiones", sesionId), {
@@ -63,12 +68,8 @@ export default function BFQPage() {
   return (
     <div className="page">
       <BFQTEST
-        onFinish={(resultado) => handleFinish({
-            score: resultado.respuestas,
-            nivel: resultado.dimensiones,
-            metodo: "BFQ",
-            respuestas: resultado.respuestas,
-            })}
+        userId={pacienteId}
+        onFinish={handleFinish}
       />
     </div>
   );

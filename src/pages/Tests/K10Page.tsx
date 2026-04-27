@@ -63,12 +63,8 @@ export default function K10Page() {
   return (
     <div className="page">
       <TestK10
-        onFinish={(resultado) => handleFinish({
-            score: resultado.score,
-            nivel: resultado.nivel,
-            metodo: "K10 - método 1",
-            respuestas: resultado.respuestas,
-            })}
+        userId={pacienteId}
+        onFinish={handleFinish}
       />
     </div>
   );

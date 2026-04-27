@@ -111,7 +111,8 @@ export function useTestEngine({
       console.warn("📸 No se pudo obtener la captura a tiempo");
     }
 
-  const finalData = {
+    const finalDataRaw = {
+      ...payload,
       userId: String(userId),
       pacienteId: String(userId),
       testId,
@@ -119,15 +120,16 @@ export function useTestEngine({
       score: payload.score ?? null,
       nivel: payload.nivel ?? null,
       metodo: payload.metodo ?? testId.toUpperCase(),
-
-archivoCaptura: payload.archivoCaptura || camera.imageUrl || null,
-captura_public_id: payload.captura_public_id || camera.publicId || null,
-
+      archivoCaptura: payload.archivoCaptura || camera.imageUrl || null,
+      captura_public_id: payload.captura_public_id || camera.publicId || null,
       tiempoTotalMs: endTime - startTimeRef.current,
       out_of_time: forcedOut,
       createdAt: new Date(),
-      
     };
+
+    const finalData = Object.fromEntries(
+      Object.entries(finalDataRaw).filter(([, value]) => value !== undefined),
+    );
 
     console.log("📦 FINAL DATA:", finalData); // 👈 debug hermoso
 
