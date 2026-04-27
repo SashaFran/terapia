@@ -13,3 +13,10 @@
   width: var(--width-complete);
   min-height: 0;
 }
+.cardPaciente{
+  margin: 0 1rem;
+  padding: 1.5rem;
+}
+.cardPaciente h2{
+  margin: 0;
+}

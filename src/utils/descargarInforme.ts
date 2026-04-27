@@ -35,8 +35,11 @@ await generarPdfResultado({
   pacienteNombre: paciente.nombre,
   resultado: resultado,
   fotoDNI: urlDNI,
-  fotoCaptura: resultado.archivoCaptura
+  fotoCaptura: urlCaptura
 });
 
-
+if (!urlCaptura) {
+  console.warn("⚠️ No hay captura, esperando...");
+  await new Promise(r => setTimeout(r, 1000));
+}
 };

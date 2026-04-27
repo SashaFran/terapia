@@ -1,6 +1,25 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const getBase64FromUrl = async (url: string) => {
+  // 🔥 pequeño delay para asegurar disponibilidad en Cloudinary
+  await new Promise(r => setTimeout(r, 500));
+
+  const res = await fetch(url, { mode: "cors" });
+
+  if (!res.ok) {
+    throw new Error("No se pudo cargar la imagen");
+  }
+
+  const blob = await res.blob();
+
+  return new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+};
+
 // Función crítica para asegurar que la imagen esté lista para jsPDF
 const cargarImagen = (src: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
@@ -52,10 +71,15 @@ if (fotoDNI) {
 // PROCESAR CAPTURA (Independiente del DNI)
 if (fotoCaptura) {
   try {
-    const imgCaptura = await cargarImagen(fotoCaptura);
+    const base64Captura = await getBase64FromUrl(fotoCaptura);
+
     doc.setFontSize(9);
     doc.text("Captura durante test:", 70, 63);
-    doc.addImage(imgCaptura, 'JPEG', 70, 65, 45, 30);
+
+    const format = base64Captura.includes("image/png") ? "PNG" : "JPEG";
+
+    doc.addImage(base64Captura, format, 70, 65, 45, 30);
+
   } catch (e) {
     console.error("Error cargando Captura:", e);
     doc.setTextColor(255, 0, 0);

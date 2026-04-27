@@ -178,6 +178,18 @@ h4 {
 .gap {
   gap: 1rem;
 }
+.justify-content-space-around{
+  justify-content: space-around;
+}
+.justify-content-space-evenly{
+  justify-content: space-evenly;
+}
+.font-size-small{
+  font-size: var(--font-size-small);
+}
+.width-complete{
+ width: var(--width-complete);
+}
 .panelVertical {
   display: flex;
   gap: 2rem;
@@ -245,7 +257,9 @@ select:focus {
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
 }
-
+.margin {
+  margin: 1rem;
+}
 .padding{
   padding: 1rem;
 }

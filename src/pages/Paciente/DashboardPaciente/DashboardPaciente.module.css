@@ -45,3 +45,8 @@ tbody button {
     display: flex;
     justify-content: space-evenly;
 }
+.sidebar p{
+  display: 0.2rem;
+  font-size: var(--font-size-small);
+  margin: 1rem 0;
+}

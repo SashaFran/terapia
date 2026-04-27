@@ -1,8 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styles from "../Sidebar/Sidebar.module.css";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/firebase"; // Ajusta la ruta a tu config de firebase
 
 import logo from "../../assets/images/JOIN SOLUTION.svg";
-import puntos from "../../assets/Icons/dots-y(1).svg";  
+import puntos from "../../assets/Icons/dots-y(1).svg";
 
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebase.tsx";
@@ -36,70 +38,104 @@ export default function Sidebar() {
 
   const links = rol === "admin" ? linksAdmin : linksPaciente;
 
-  const getTiempoRestante = (fechaLimite) => {
-    const ahora = new Date();
-    const fin = new Date(fechaLimite);
+const getTiempoRestante = (fechaLimite) => {
+  if (!fechaLimite) return "Sin fecha";
+  
+  const ahora = new Date();
+  const fin = new Date(fechaLimite);
+  const diff = fin - ahora;
 
-    const diff = fin - ahora; // en ms
+  if (diff <= 0) return "Expirado";
 
-    if (diff <= 0) return "Expirado";
+  const minutosTotales = Math.floor(diff / 1000 / 60);
+  const horasTotales = Math.floor(minutosTotales / 60);
+  const dias = Math.floor(horasTotales / 24);
+  const horas = horasTotales % 24;
+  const minutos = minutosTotales % 60;
 
-    const minutosTotales = Math.floor(diff / 1000 / 60);
-    const horas = Math.floor(minutosTotales / 60);
-    const minutos = minutosTotales % 60;
+  if (dias > 0) return `${dias}d ${horas}h`; 
+  if (horas > 0) return `${horas}h ${minutos}m`;
+  return `${minutos}m`;
+};
+const [tiempo, setTiempo] = useState("Cargando..."); // Estado inicial para que no se vea vacío
 
-    if (horas === 0) return `${minutos}m`;
-if (horas < 24) return `${horas}h ${minutos}m`;
-  };
+useEffect(() => {
+  const pacienteData = JSON.parse(localStorage.getItem("paciente") || "null");
+  const userId = pacienteData?.id || pacienteData?.uid;
+
+  if (!userId) {
+    setTiempo("No disponible");
+    return;
+  }
+
+  const docRef = doc(db, "pacientes", userId);
+
+  const unsubscribe = onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      
+      // ✅ CAMBIO 1: Usamos el nombre exacto de tu Firestore
+      const fechaFin = data.fechaFinAcceso; 
+
+      if (fechaFin) {
+        // ✅ CAMBIO 2: Convertimos el objeto {seconds, nanoseconds} a una fecha de JS
+        const fechaParaCalculo = fechaFin.toDate ? fechaFin.toDate() : new Date(fechaFin.seconds * 1000);
+
+        const updateContador = () => {
+          setTiempo(getTiempoRestante(fechaParaCalculo));
+        };
+
+        updateContador();
+        const interval = setInterval(updateContador, 60000);
+        return () => clearInterval(interval);
+      } else {
+        setTiempo("Sin límite");
+      }
+    } else {
+      setTiempo("No encontrado");
+    }
+  }, (error) => {
+    console.error("Error en Snapshot:", error);
+    setTiempo("Error");
+  });
+
+  return () => unsubscribe();
+}, []);
 
   
-  
-  const [tiempo, setTiempo] = useState("");
+  const paciente = JSON.parse(localStorage.getItem("paciente") || "null");
+  const nombre = paciente?.nombre || "Usuario";
 
-  useEffect(() => {
-    const fecha = "2026-04-23T00:00:00";
+  // ADMIN
+  const emailAdmin = localStorage.getItem("email");
 
-    const actualizar = () => {
-      setTiempo(getTiempoRestante(fecha));
-    };
+  // -------- NORMALIZACIÓN --------
+  let displayName = "Usuario";
+  let subText = "";
+  let iniciales = "?";
 
-    actualizar(); // inicial
+  if (rol === "admin") {
+    const base = emailAdmin?.split("@")[0] || "admin";
 
-    const interval = setInterval(actualizar, 60000);
+    displayName = base;
+    subText = emailAdmin || "";
+    iniciales = base.charAt(0).toUpperCase();
+  } else {
+    const nombreCompleto = paciente?.nombre || "Paciente";
 
-    return () => clearInterval(interval);
-  }, []);
-    const paciente = JSON.parse(localStorage.getItem("paciente") || "null");
-    const nombre = paciente?.nombre || "Usuario";
+    const partes = nombreCompleto.split(" ");
 
-// ADMIN
-const emailAdmin = localStorage.getItem("email");
-
-// -------- NORMALIZACIÓN --------
-let displayName = "Usuario";
-let subText = "";
-let iniciales = "?";
-
-if (rol === "admin") {
-  const base = emailAdmin?.split("@")[0] || "admin";
-
-  displayName = base;
-  subText = emailAdmin || "";
-  iniciales = base.charAt(0).toUpperCase();
-} else {
-  const nombreCompleto = paciente?.nombre || "Paciente";
-
-  const partes = nombreCompleto.split(" ");
-
-  iniciales = partes.map(p => p[0]).join("").toUpperCase();
-  displayName = nombreCompleto;
-  subText = paciente?.dni || "";
-}
+    iniciales = partes
+      .map((p) => p[0])
+      .join("")
+      .toUpperCase();
+    displayName = nombreCompleto;
+    subText = paciente?.dni || "";
+  }
 
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.navbar}>
-
         {/* IZQUIERDA */}
         <div className={styles.left}>
           <img src={logo} alt="Logo" />
@@ -121,33 +157,30 @@ if (rol === "admin") {
         </div>
 
         {/* DERECHA (USER) */}
-        <div  className={`boton-secondary ${styles.right}`}>
+        <div className={`boton-secondary ${styles.right}`}>
           <div className={styles.userWrapper}>
             <div className={styles.userTrigger}>
-              <div className={styles.avatar}>
-                {iniciales}
-              </div>
+              <div className={styles.avatar}>{iniciales}</div>
 
               <div className={styles.userInfo}>
                 <span className={styles.name}>{displayName}</span>
                 <span className={styles.sub}>{subText}</span>
               </div>
-              <div>{" "}</div>
+              <div> </div>
               {/* <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span> */}
-          </div>
+            </div>
 
             {/* SUBMENU PRO */}
             <div className={`${styles.subMenu} ${styles.triple}`}>
-  
-            {/* 👤 PACIENTE */}
-            {rol !== "admin" && (
-                    <>
-                      <div className={styles.topContainer}>
-                        <div className={styles.box}>
-                          <h3>Tiempo restante:</h3>
-                          <div className={styles.subText}>{tiempo}</div>
-                        </div>
-                      </div>
+              {/* 👤 PACIENTE */}
+              {rol !== "admin" && (
+                <>
+                  <div className={styles.topContainer}>
+                    <div className={styles.box}>
+                      <h3>Tiempo restante:</h3>
+                      <div className={styles.subText}>{tiempo}</div>
+                    </div>
+                  </div>
 
                   <div className={styles.box}>
                     <h3>Tus archivos</h3>
@@ -158,28 +191,24 @@ if (rol === "admin") {
 
                   <div className={styles.box}>
                     <h3>Email de contacto</h3>
-                    <div className={styles.subText}>
-                      ejemplo@ejemplo.com
-                    </div>
+                    <div className={styles.subText}>ejemplo@ejemplo.com</div>
                   </div>
                 </>
               )}
 
               {/* 🔐 COMÚN A TODOS */}
               <div className={styles.box}>
-
-              <BotonPersonalizado
-                variant="secondary"
-                onClick={handleLogout}
-                disabled={false}
-              >
-                Cerrar sesión
-              </BotonPersonalizado>
+                <BotonPersonalizado
+                  variant="secondary"
+                  onClick={handleLogout}
+                  disabled={false}
+                >
+                  Cerrar sesión
+                </BotonPersonalizado>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
       </nav>
     </aside>
   );

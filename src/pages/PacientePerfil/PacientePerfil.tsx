@@ -518,19 +518,22 @@ export default function PacientePerfil() {
                     <td>
                       <button
                         onClick={async () => {
-  if (!confirm("¿Eliminar este resultado de evaluación?")) return;
+                          if (
+                            !confirm("¿Eliminar este resultado de evaluación?")
+                          )
+                            return;
 
-  try {
-    await deleteDoc(doc(db, "resultados", r.id));
+                          try {
+                            await deleteDoc(doc(db, "resultados", r.id));
 
-    setResultados((prev) =>
-      prev.filter((item) => item.id !== r.id)
-    );
-  } catch (e) {
-    console.error("Error borrando:", e);
-    alert("No se pudo borrar");
-  }
-}}
+                            setResultados((prev) =>
+                              prev.filter((item) => item.id !== r.id),
+                            );
+                          } catch (e) {
+                            console.error("Error borrando:", e);
+                            alert("No se pudo borrar");
+                          }
+                        }}
                       >
                         <img src={borrar} alt="Borrar record" />
                       </button>

@@ -5,6 +5,20 @@ export const LAMINAS_TEST = {
   duracionMinutos: 15,
   tipo: "laminas",
 
+    preguntas: [
+    "Test de Zulliger - Filmina 1",
+    "Test de Zulliger - Filmina 2",
+    "Test de Zulliger - Filmina 3",
+    "Test de Bender - Imagen 1",
+    "Test de Bender - Imagen 2",
+    "Test de Bender - Imagen 3",
+    "Test de Bender - Imagen 4",
+    "Test de Bender - Imagen 5",
+    "Test de Bender - Imagen 6",
+    "Test de Bender - Imagen 7",
+    "Test de Bender - Imagen 8",
+  ],
+
   // ---------------------------
   // 🧠 Interpretación base
   // ---------------------------

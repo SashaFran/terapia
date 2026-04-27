@@ -5,35 +5,31 @@ import BotonPersonalizado from "../../Boton/Boton";
 import styles from "./TestBender.module.css";
 
 type Props = {
-  onFinish: (resultado: any) => void;
+  onChange: (respuestasParciales: any) => void;
 };
 
-export default function TestBender({ onFinish }: Props) {
+export default function TestBender({ onChange }: Props) {
+
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(BENDER_TEST.imagenes.length).fill("")
   );
 
   const startTimeRef = useRef<number>(Date.now());
 
-  const handleChange = (index: number, texto: string) => {
-    const copy = [...respuestas];
-    copy[index] = texto;
-    setRespuestas(copy);
-  };
+const handleChange = (index: number, texto: string) => {
+  const copy = [...respuestas];
+  copy[index] = texto;
+  setRespuestas(copy);
 
-  const finalizar = () => {
-    const tiempoTotalMs = Date.now() - startTimeRef.current;
-
-    onFinish({
-      respuestas,
-      metodo: "BENDER",
-      tiempoTotalMs,
-    });
-  };
+  onChange(copy); // 🔥 ACTUALIZA EN TIEMPO REAL
+};
+const finalizar = () => {
+  onChange(respuestas); // 👈 SOLO ARRAY
+};
 
   return (
     <div className={styles.container}>
-      <h2>{BENDER_TEST.nombre}</h2>
+      <h3>{BENDER_TEST.nombre}</h3>
 
       {BENDER_TEST.imagenes.map((img, i) => (
         <div key={i} className={styles.containerImg}>

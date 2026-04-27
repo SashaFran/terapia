@@ -5,35 +5,29 @@ import BotonPersonalizado from "../../Boton/Boton";
 import styles from "./TestZulliger.module.css";
 
 type Props = {
-  onFinish: (resultado: any) => void;
+  onChange: (respuestasParciales: any) => void;
 };
 
-export default function TestZulliger({ onFinish }: Props) {
+export default function TestZulliger({ onChange }: Props) {
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(ZULLIGER_TEST.imagenes.length).fill("")
   );
 
   const startTimeRef = useRef<number>(Date.now());
 
-  const handleChange = (index: number, texto: string) => {
-    const copy = [...respuestas];
-    copy[index] = texto;
-    setRespuestas(copy);
-  };
+const handleChange = (index: number, texto: string) => {
+  const copy = [...respuestas];
+  copy[index] = texto;
+  setRespuestas(copy);
 
-  const finalizar = () => {
-    const tiempoTotalMs = Date.now() - startTimeRef.current;
-
-    onFinish({
-      respuestas,
-      metodo: "ZULLIGER",
-      tiempoTotalMs,
-    });
-  };
-
+  onChange(copy); // 🔥 ACTUALIZA EN TIEMPO REAL
+};
+const finalizar = () => {
+  onChange(respuestas); // 👈 SOLO ARRAY
+};
   return (
     <div className={styles.container}>
-      <h2>{ZULLIGER_TEST.nombre}</h2>
+      <h3>{ZULLIGER_TEST.nombre}</h3>
 
       {ZULLIGER_TEST.imagenes.map((img, i) => (
         <div key={i} className={styles.containerImg}>
