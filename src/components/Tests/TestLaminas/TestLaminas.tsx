@@ -66,6 +66,20 @@ const finalizar = async () => {
   if (!engine.started) {
     return (
       <Modal abierto onCerrar={() => {}} titulo="Evaluación">
+        <div style={{ marginBottom: "1rem" }}>
+          <li className="">
+            A continuación, se presentarán una serie de láminas. 
+            Mire atentamente cada imagen (pueden ser manipuladas con el mouse) y escriba en cada una qué ve, qué se imagina que podría ser o qué le parece que representa. 
+            <br />No hay respuestas correctas ni incorrectas; simplemente dígame todo lo que perciba. 
+           <strong> Puede tomarse el tiempo que necesite</strong>.
+          </li>
+          <li className="padding">
+            Tiene <strong>30 minutos</strong> para completar el test y se realizarán capturas a traves de la camara para verificar su identidad.
+            <br />
+            <strong>Importante:</strong> Es necesario que acepte o no podra ser evaluado.
+          </li>
+          
+        </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
 
         <BotonPersonalizado

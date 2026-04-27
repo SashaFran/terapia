@@ -87,6 +87,8 @@ export default function TestRunner() {
     navigate("/app/tests");
   };
 
+  if (!pacienteId) return <p>Paciente no encontrado</p>;
+
   if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
   if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
   if (testId === "laminas") return <TestLaminas onFinish={handleFinish} userId={pacienteId} />;

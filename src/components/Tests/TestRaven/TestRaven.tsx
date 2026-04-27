@@ -85,17 +85,17 @@ export default function TestRaven({ onFinish, userId }: Props) {
         titulo="Instrucciones para la Evaluación con Láminas"
       >
         <div style={{ marginBottom: "1rem" }}>
-          <li>
-            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
-            y realiza capturas de identidad aleatorias.
-          </li>
-          <li>
-            <strong>Importante:</strong> Esto no afecta su puntuación final.
-          </li>
-          <li style={{ marginTop: "1rem" }}>
+          <li className="">
             Se presentarán matrices <strong>incompletas</strong>. Indique el
             número de la opción <strong>correcta</strong>.
           </li>
+          <li className="margin">
+            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
+            y realiza capturas de identidad aleatorias.
+            <br />
+            <strong>Importante:</strong> Esto no afecta su puntuación final.
+          </li>
+          
         </div>
 
         <ConsentimientoCamara changeStatus={setCanStart} />
@@ -123,7 +123,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
   // RENDER
   // ----------------------
   return (
-    <div className={styles.container}>
+    <div className={`container scrollbar`}>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <h2>Test de Raven</h2>
         <div className={timerClass}>

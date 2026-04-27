@@ -83,13 +83,17 @@ export default function TestK10({ onFinish, userId }: Props) {
         onCerrar={() => {}}
         titulo="Instrucciones para la Evaluación (K-10)"
       >
-        <div className="nav">
           <div style={{ marginBottom: "15px" }}>
-            <li>Esta evaluación monitoriza el tiempo (solo estadístico).</li>
-            <li>El tiempo NO afecta el resultado.</li>
-            <li>Respondé con sinceridad.</li>
+            <li className="">Las siguientes preguntas tratan sobre cómo se ha sentido usted durante los últimos 30 días (o las últimas 4 semanas). 
+              <br />Por favor, para cada pregunta, marque la opción que <strong>mejor describa</strong> la frecuencia con la que tuvo ese sentimiento. 
+              <br />No hay respuestas correctas o incorrectas; si no está seguro de alguna, elija la que más se acerque a su situación.</li>
+            <li className="margin">
+            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
+            y realiza capturas de identidad aleatorias.
+            <br />
+            <strong>Importante:</strong> Esto no afecta su puntuación final.
+          </li>
           </div>
-        </div>
 
         <ConsentimientoCamara changeStatus={setCanStart} />
 
@@ -113,7 +117,7 @@ export default function TestK10({ onFinish, userId }: Props) {
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
+    <div className={`container scrollbar`}>
       <div className={styles.nav}>
         <h2>{K10_TEST.nombre}</h2>
         <div className={timerClass}>

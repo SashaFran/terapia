@@ -34,3 +34,8 @@
   flex-direction: row;
   justify-content: space-between;
 }
+.testCardItems label{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

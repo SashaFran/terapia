@@ -63,7 +63,7 @@ export default function BFQPage() {
     navigate(`/paciente/${pacienteId}`);
   };
 
-  if (loading) return <p>Cargando test…</p>;
+  if (loading || !pacienteId) return <p>Cargando test…</p>;
 
   return (
     <div className="page">
