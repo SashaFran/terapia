@@ -146,8 +146,8 @@ export default function LoginPaciente() {
   };
 
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginBox}>
+    <div className="loginContainer">
+      <div className="loginBox">
         <h2>Ingreso Paciente</h2>
 
         <div className={styles.form}>

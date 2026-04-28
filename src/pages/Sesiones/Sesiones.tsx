@@ -143,8 +143,9 @@ export default function Sesiones() {
           </div>
         </div>
 
-        <div className={`scrollbar tablaPacientes`}>
-          <table className={styles.tabla}>
+        <div className='scrollbar'>
+          <div className='tablaPacientes'>
+          <table>
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -182,6 +183,7 @@ export default function Sesiones() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
       <ObservacionesModal

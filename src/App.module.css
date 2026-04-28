@@ -2,10 +2,11 @@
   box-sizing: border-box;
 }
 .layout {
-  min-height: 100vh;
+  /* min-height: 100vh; */
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 .mainArea {
@@ -20,7 +21,7 @@
   height: 100%;
   overflow-y: auto;
   padding: 0.5rem  1.5rem 1.5rem 1.5rem;
-  width: 100%;
+
 }
 
 

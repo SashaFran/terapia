@@ -90,7 +90,8 @@ export default function TestsPaciente() {
         </div>
 
         {/* TABLA */}
-        <main className={`scrollbar tablaPacientes`}>
+        <main className="scrollbar">
+          <div className="tablaPacientes">
           <table>
             <thead>
               <tr>
@@ -127,6 +128,7 @@ export default function TestsPaciente() {
               ))}
             </tbody>
           </table>
+          </div>
         </main>
       </div>
     </div>

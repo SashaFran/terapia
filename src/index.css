@@ -106,17 +106,13 @@ h4 {
 .tablaPacientes {
   flex: 1;
   min-height: 0;
-
   overflow-y: auto;
   overflow-x: hidden;
-
   background: white;
   border-radius: var(--radius);
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
-
-  scrollbar-width: thin;
-  scrollbar-color: #f2e9e2 #f1f1f1;
+  height: 100%;
 }
 
 .tablaPacientes table {
@@ -272,12 +268,13 @@ select:focus {
 }
 
 .scrollbar {
-  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: #f2e9e2 #f1f1f1;
   scrollbar-width: thin;
   display: block;
+  width: var(--width-complete);
+  flex: 1;
 }
 .cardPaciente {
 margin: 0 1rem;
@@ -323,7 +320,6 @@ margin: 0 1rem;
   );
     position: sticky;
   top: 0;
-  z-index: 2;
 }
 
 .tablaPacientes thead th {
@@ -365,6 +361,22 @@ height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.loginContainer{
+   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+}
+.loginBox{
+    background: white;
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    width: 80%;
 }
 @media (prefers-color-scheme: light) {
   :root {

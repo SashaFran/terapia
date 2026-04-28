@@ -427,7 +427,8 @@ export default function PacientePerfil() {
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar tablaPacientes`}>
+          <div className="scrollbar">
+            <div className="tablaPacientes">
             <table>
               <thead>
                 <tr>
@@ -490,6 +491,7 @@ export default function PacientePerfil() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
@@ -506,7 +508,8 @@ export default function PacientePerfil() {
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar tablaPacientes`}>
+          <div className="scrollbar">
+            <div className="tablaPacientes">
             <table>
               <thead>
                 <tr>
@@ -559,6 +562,7 @@ export default function PacientePerfil() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>

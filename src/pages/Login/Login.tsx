@@ -12,35 +12,35 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth(); // 👈 CLAVE
 
-const handleLogin = async () => {
-  console.log("CLICK EN LOGIN");
+  const handleLogin = async () => {
+    console.log("CLICK EN LOGIN");
 
-  if (!email || !password) {
-    setError("Completá email y contraseña");
-    return;
-  }
+    if (!email || !password) {
+      setError("Completá email y contraseña");
+      return;
+    }
 
-  try {
-    await login(email, password);
+    try {
+      await login(email, password);
 
-    // 🔥 LIMPIAR SESIÓN PACIENTE
-    localStorage.removeItem("paciente");
+      // 🔥 LIMPIAR SESIÓN PACIENTE
+      localStorage.removeItem("paciente");
 
-    // 🔥 SETEAR ROL ADMIN
-    localStorage.setItem("rol", "admin");
+      // 🔥 SETEAR ROL ADMIN
+      localStorage.setItem("rol", "admin");
 
-    console.log("LOGIN OK");
+      console.log("LOGIN OK");
 
-    navigate("/admin/dashboard");
-  } catch (err) {
-    console.error(err);
-    setError("Credenciales incorrectas");
-  }
-};
+      navigate("/admin/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError("Credenciales incorrectas");
+    }
+  };
 
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginBox}>
+    <div className="loginContainer">
+      <div className="loginBox">
         <h2>Ingreso al sistema</h2>
         <div className={styles.form}>
           <input
@@ -59,23 +59,22 @@ const handleLogin = async () => {
 
           {error && <p className="error">{error}</p>}
 
-<div className="nav">
-<BotonPersonalizado
-            variant="primary"
-            onClick={handleLogin}
-            disabled={!email || !password}
-          >
-            Ingresar
-          </BotonPersonalizado>
-<BotonPersonalizado
+          <div className="nav">
+            <BotonPersonalizado
+              variant="primary"
+              onClick={handleLogin}
+              disabled={!email || !password}
+            >
+              Ingresar
+            </BotonPersonalizado>
+            <BotonPersonalizado
               variant="secondary"
               onClick={() => navigate("/login")}
               disabled={false}
             >
               Ingresar como paciente
             </BotonPersonalizado>
-</div>
-          
+          </div>
         </div>
       </div>
     </div>

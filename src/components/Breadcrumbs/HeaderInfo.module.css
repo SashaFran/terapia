@@ -6,7 +6,7 @@ display: flex;
   margin: 0.5rem;
 }
 .containerRow{
-    width: fit-content;
+    width: var(--width-complete);
 }
 
 .topRow {
