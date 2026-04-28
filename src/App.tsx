@@ -33,7 +33,7 @@ import styles from "./App.module.css";
 export default function App() {
   
   return (
-    <BrowserRouter basename="/terapia">
+    <BrowserRouter basename="/">
       <AuthProvider>
         <Routes>
 
