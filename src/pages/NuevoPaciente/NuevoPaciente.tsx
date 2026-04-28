@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { db, auth } from "../../firebase/firebase";
 import styles from "./NuevoPaciente.module.css";
@@ -71,20 +71,20 @@ export default function NuevoPaciente() {
 
       const uid = userCredential.user.uid;
 
-      // 🧠 GUARDAR PACIENTE
-     await addDoc(collection(db, "pacientes"), {
-      uid,
-      nombre: formData.nombre,
-      dni: dniLimpio,
-      password: password, // 👈 ACÁ ESTÁ LA CLAVE
-      contacto: formData.contacto,
-      activo: true,
-      fechaInicioAcceso: Timestamp.fromDate(ahora),
-      fechaFinAcceso: Timestamp.fromDate(
-        new Date(ahora.getTime() + 24 * 60 * 60 * 1000)
-      ),
-      createdAt: Timestamp.now(),
-    });
+      // 🧠 GUARDAR PACIENTE (ID = UID para mantener consistencia en toda la app)
+      await setDoc(doc(db, "pacientes", uid), {
+        uid,
+        nombre: formData.nombre,
+        dni: dniLimpio,
+        password: password, // 👈 ACÁ ESTÁ LA CLAVE
+        contacto: formData.contacto,
+        activo: true,
+        fechaInicioAcceso: Timestamp.fromDate(ahora),
+        fechaFinAcceso: Timestamp.fromDate(
+          new Date(ahora.getTime() + 24 * 60 * 60 * 1000)
+        ),
+        createdAt: Timestamp.now(),
+      });
 
       // 🧠 ASIGNACIONES
       await Promise.all(

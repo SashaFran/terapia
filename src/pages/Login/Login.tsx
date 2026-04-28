@@ -31,7 +31,7 @@ const handleLogin = async () => {
 
     console.log("LOGIN OK");
 
-    navigate("/admin/dashboard");
+    navigate("/admin/dashboard", { replace: true });
   } catch (err) {
     console.error(err);
     setError("Credenciales incorrectas");

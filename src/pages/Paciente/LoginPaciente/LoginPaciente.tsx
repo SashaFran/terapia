@@ -138,7 +138,7 @@ export default function LoginPaciente() {
 
       setPacienteSession(pacienteLogueado, docPaciente.id);
 
-      navigate("/app/dashboard");
+      navigate("/app/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
       setError("Error al intentar ingresar");

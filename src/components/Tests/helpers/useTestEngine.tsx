@@ -136,12 +136,8 @@ export function useTestEngine({
 
     console.log("📦 FINAL DATA:", finalData); // 👈 debug hermoso
 
-    try {
-      await onFinish(finalData);
-    } finally {
-      setLoading(false);
-      submittingRef.current = false;
-    }
+    setLoading(false);
+    onFinish(finalData);
   };
 
   const update = (partial: any) => {

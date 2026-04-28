@@ -1,15 +1,5 @@
-import { useEffect, useRef } from "react";
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-  Timestamp,
-  getDoc,
-} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, Timestamp } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import TestK10 from "../../components/Tests/TestK10/TestK10";
 import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
@@ -17,16 +7,14 @@ import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  clearPacienteSession,
-  clearTestEnCurso,
-  getPacienteSession,
-  setTestEnCurso,
-} from "../../utils/pacienteSession";
+import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal";
 
 export default function TestRunner() {
   const navigate = useNavigate();
   const { testId } = useParams();
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
+  const [bloqueandoSalida, setBloqueandoSalida] = useState(true);
+  const [loadingConfirm, setLoadingConfirm] = useState(false);
 
   const pacienteId = localStorage.getItem("pacienteId"); // 🔥 CLAVE
   const testCompletadoRef = useRef(false);
@@ -65,6 +53,58 @@ export default function TestRunner() {
       })();
     };
   }, [pacienteId, testId]);
+
+  useEffect(() => {
+    if (!bloqueandoSalida) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handlePopState = () => {
+      setConfirmarSalida(true);
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [bloqueandoSalida]);
+
+  const confirmarAbandonoTest = async () => {
+    if (!pacienteId) return;
+
+    setLoadingConfirm(true);
+    try {
+      await updateDoc(doc(db, "pacientes", pacienteId), { activo: false });
+
+      const pacienteRaw = localStorage.getItem("paciente");
+      if (pacienteRaw) {
+        const paciente = JSON.parse(pacienteRaw);
+        localStorage.setItem(
+          "paciente",
+          JSON.stringify({ ...paciente, activo: false }),
+        );
+      }
+
+      localStorage.removeItem("rol");
+      localStorage.removeItem("pacienteId");
+      setBloqueandoSalida(false);
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error al inactivar paciente al abandonar test:", error);
+      alert("No se pudo salir del test. Intente nuevamente.");
+    } finally {
+      setLoadingConfirm(false);
+      setConfirmarSalida(false);
+    }
+  };
 
   const handleFinish = async (resultado: any) => {
     if (!pacienteId || !testId) {
@@ -135,51 +175,60 @@ export default function TestRunner() {
       updateDoc(doc(db, "asignaciones", d.id), {
         estado: "completado",
         fechaCompletado: Timestamp.fromDate(ahora),
-      })
+      }),
     );
 
     await Promise.all(updates);
+    const todasAsignacionesSnap = await getDocs(
+      query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
+    );
 
-    const [asignacionesActualizadas, pacienteSnap] = await Promise.all([
-      getDocs(
-        query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
-      ),
-      getDoc(doc(db, "pacientes", pacienteId)),
-    ]);
-
-    const asignaciones = asignacionesActualizadas.docs.map((d) => d.data());
-    const totalAsignaciones = asignaciones.length;
-    const completadas = asignaciones.filter(
+    const asignaciones = todasAsignacionesSnap.docs.map((d) => d.data());
+    const total = asignaciones.length;
+    const completados = asignaciones.filter(
       (a: any) => a.estado === "completado",
     ).length;
-    const pacienteData = pacienteSnap.data();
-    const dniCargado = !!pacienteData?.archivodni;
-    const flujoTerminado = totalAsignaciones > 0 && completadas === totalAsignaciones;
 
-    if (flujoTerminado && dniCargado && pacienteData?.activo !== false) {
-      await updateDoc(doc(db, "pacientes", pacienteId), { activo: false });
+    if (total > 0 && total === completados) {
+      await updateDoc(doc(db, "pacientes", pacienteId), {
+        activo: false,
+      });
 
-      const parsed = getPacienteSession();
-      if (parsed) {
+      const pacienteRaw = localStorage.getItem("paciente");
+      if (pacienteRaw) {
+        const paciente = JSON.parse(pacienteRaw);
         localStorage.setItem(
           "paciente",
-          JSON.stringify({
-            ...parsed,
-            activo: false,
-          }),
+          JSON.stringify({ ...paciente, activo: false }),
         );
       }
     }
 
+    setBloqueandoSalida(false);
     navigate("/app/tests");
   };
 
   if (!pacienteId) return <p>Paciente no encontrado</p>;
 
-  if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "laminas") return <TestLaminas onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "raven") return <TestRaven onFinish={handleFinish} userId={pacienteId} />;
+  return (
+    <>
+      {testId === "k10" && <TestK10 onFinish={handleFinish} userId={pacienteId} />}
+      {testId === "bfq" && <TestBFQ onFinish={handleFinish} userId={pacienteId} />}
+      {testId === "laminas" && <TestLaminas onFinish={handleFinish} userId={pacienteId} />}
+      {testId === "raven" && <TestRaven onFinish={handleFinish} userId={pacienteId} />}
+      {!["k10", "bfq", "laminas", "raven"].includes(testId || "") && (
+        <p>Test no encontrado</p>
+      )}
 
-  return <p>Test no encontrado</p>;
+      <ConfirmModal
+        abierto={confirmarSalida}
+        onCerrar={() => setConfirmarSalida(false)}
+        titulo="No se puede salir del test"
+        mensaje="Si abandona ahora, su acceso quedará inactivo."
+        warning="Solo continúe si desea terminar la evaluación y bloquear su cuenta."
+        onConfirm={confirmarAbandonoTest}
+        loading={loadingConfirm}
+      />
+    </>
+  );
 }
