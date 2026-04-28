@@ -65,12 +65,16 @@ a {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: block;
   min-height: 100vh;
   font-family: var(--font-family-body);
-  overflow: hidden;
+  overflow: auto;
   background-color: #f7fbff;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 h1,
 h2,

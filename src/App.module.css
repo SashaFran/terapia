@@ -10,7 +10,7 @@
 
 .mainArea {
   flex: 1;
-  height: 100vh;
+  min-height: 0;
   overflow: hidden;
   /* background-color: rgba(242, 233, 226, 0.2); */
 }
