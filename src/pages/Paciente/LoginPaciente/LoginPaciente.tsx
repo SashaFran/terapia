@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../../../firebase/firebase";
 import {
   collection,
@@ -11,12 +11,22 @@ import {
 import { useNavigate } from "react-router-dom";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 import styles from "./LoginPaciente.module.css";
+import {
+  isPacienteAuthenticated,
+  setPacienteSession,
+} from "../../../utils/pacienteSession";
 
 export default function LoginPaciente() {
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isPacienteAuthenticated()) {
+      navigate("/app/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
@@ -102,11 +112,11 @@ export default function LoginPaciente() {
       });
 
       // 🚫 5. BLOQUEO REAL (solo lo importante)
-      if (accesoVencido || estaInactivo) {
+      if (accesoVencido || estaInactivo || flujoTerminado) {
         setError("Tu acceso ha expirado.");
 
-        // 🔥 solo si venció por fecha
-        if (accesoVencido && pacienteData.activo !== false) {
+        // 🔥 desactivamos en los casos donde aplica
+        if ((accesoVencido || flujoTerminado) && pacienteData.activo !== false) {
           try {
             await updateDoc(doc(db, "pacientes", docPaciente.id), {
               activo: false,
@@ -126,9 +136,7 @@ export default function LoginPaciente() {
         flujoTerminado, // 👈 útil para UI después
       };
 
-      localStorage.setItem("paciente", JSON.stringify(pacienteLogueado));
-      localStorage.setItem("pacienteId", docPaciente.id);
-      localStorage.setItem("rol", "paciente");
+      setPacienteSession(pacienteLogueado, docPaciente.id);
 
       navigate("/app/dashboard");
     } catch (err) {
