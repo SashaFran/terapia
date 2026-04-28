@@ -16,6 +16,7 @@ const RESPUESTAS_CORRECTAS = [1, 7, 8, 5, 5, 7, 6, 8, 1, 1, 6, 3];
 
 export default function TestRaven({ onFinish, userId }: Props) {
   const [canStart, setCanStart] = useState(false);
+  const totalPreguntas = RAVEN_TEST.imagenes.length;
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(RAVEN_TEST.imagenes.length).fill(""),
   );
@@ -79,23 +80,43 @@ export default function TestRaven({ onFinish, userId }: Props) {
   // ----------------------
   if (!engine.started) {
     return (
-      <Modal
-        abierto={true}
-        onCerrar={() => {}}
-        titulo="Instrucciones para la Evaluación con Láminas"
-      >
-        <div style={{ marginBottom: "1rem" }}>
-          <li className="">
-            Se presentarán matrices <strong>incompletas</strong>. Indique el
-            número de la opción <strong>correcta</strong>.
-          </li>
-          <li className="margin">
-            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
-            y realiza capturas de identidad aleatorias.
+      <Modal abierto={true} onCerrar={() => {}} titulo="">
+        <div>
+          <strong>Bienvenido/a.</strong>{" "}
+          <p>
+            {" "}
+            Antes de comenzar, por favor lea atentamente las siguientes
+            indicaciones para asegurar un resultado preciso:
+          </p>
+          <ol>
+            <li>
+              <strong>El objetivo:</strong>
+              <li>
+                En cada pantalla verá una imagen principal (matriz) a la cual le
+                falta una parte. Debajo de ella, encontrará varias opciones de
+                respuesta. Su tarea es identificar cuál de esas piezas completa
+                lógicamente el patrón de la imagen principal, tanto en su forma
+                como en su dibujo interno.
+              </li>
+            </li>
+            <li>
+              <strong>Cómo responder:</strong>
+              <li>
+                Mire atentamente la imagen y analice cómo cambian las figuras
+                tanto de forma horizontal como vertical. Haga clic sobre la
+                opción que considere correcta para avanzar a la siguiente
+                lámina. Solo hay una respuesta correcta para cada ejercicio.
+              </li>
+            </li>
+          </ol>
+          <li className="padding">
+            Tiene <strong>30 minutos</strong> para completar el test y se
+            realizarán capturas a traves de la camara para verificar su
+            identidad.
             <br />
-            <strong>Importante:</strong> Esto no afecta su puntuación final.
+            <strong>Importante:</strong> Es necesario que acepte o no podra ser
+            evaluado.
           </li>
-          
         </div>
 
         <ConsentimientoCamara changeStatus={setCanStart} />
@@ -123,37 +144,75 @@ export default function TestRaven({ onFinish, userId }: Props) {
   // RENDER
   // ----------------------
   return (
-    <div className={`container scrollbar`}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h2>Test de Raven</h2>
-        <div className={timerClass}>
-          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+    <div className={`scrollbar ${styles.container}`}>
+      <div className="layout">
+        <div className="panelVertical">
+          <h2>Evaluación de Raven</h2>
+          <div className={`card padding ${styles.cardPaciente}`}>
+            
+            <aside className={styles.sidebar}>
+              <h3>Tiempo disponible:</h3>
+
+              <div className={relojStyle.timer}>
+                {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+              </div>
+
+              <h3>Preguntas:</h3>
+
+              <div className={relojStyle.progressContainer}>
+                {Array.from({ length: totalPreguntas }).map((_, i) => {
+                  const r = respuestas[i];
+                  const respondida = !!r && r !== "Sin respuesta";
+
+                  return (
+                    <button
+                      key={i}
+                      disabled={respondida}
+                      className={`${relojStyle.progressItem} ${
+                        respondida ? relojStyle.completa : relojStyle.pendiente
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+          </div>
         </div>
+        {engine.CameraComponent && <engine.CameraComponent />}
+        <main className={styles.container}>
+          
+          <div className="container">
+            {RAVEN_TEST.imagenes.map((img: string, i: number) => (
+              <div key={i} className={`card padding ${styles.testCard}`}>
+                <img
+                  src={img}
+                  alt={`Matriz ${i + 1}`}
+                  className={styles.imagen}
+                />
+
+                <input
+                  type="text"
+                  value={respuestas[i]}
+                  onChange={(e) => handleChange(i, e.target.value)}
+                  placeholder="Respuesta"
+                  className={styles.input}
+                />
+              </div>
+            ))}
+          </div>
+
+          <BotonPersonalizado
+            className={styles.boton}
+            onClick={finalizar}
+            disabled={respuestas.some((r) => r === "")}
+            variant="primary"
+          >
+            Finalizar test
+          </BotonPersonalizado>
+        </main>
       </div>
-      {engine.CameraComponent && <engine.CameraComponent />}
-
-      {RAVEN_TEST.imagenes.map((img: string, i: number) => (
-        <div key={i} className={styles.fila}>
-          <img src={img} alt={`Matriz ${i + 1}`} className={styles.imagen} />
-
-          <input
-            type="text"
-            value={respuestas[i]}
-            onChange={(e) => handleChange(i, e.target.value)}
-            placeholder="Respuesta"
-            className={styles.input}
-          />
-        </div>
-      ))}
-
-      <BotonPersonalizado
-        className={styles.boton}
-        onClick={finalizar}
-        disabled={respuestas.some((r) => r === "")}
-        variant="primary"
-      >
-        Finalizar test
-      </BotonPersonalizado>
     </div>
   );
 }

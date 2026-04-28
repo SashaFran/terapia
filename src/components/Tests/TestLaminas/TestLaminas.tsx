@@ -8,6 +8,7 @@ import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import { useTestEngine } from "../helpers/useTestEngine";
 import { LAMINAS_TEST } from "../../../data/tests/LAMINAS_TEST";
+import { textAlign } from "@mui/system";
 
 type Props = {
   onFinish: (resultado: any) => void;
@@ -65,20 +66,37 @@ const finalizar = async () => {
 
   if (!engine.started) {
     return (
-      <Modal abierto onCerrar={() => {}} titulo="Evaluación">
-        <div style={{ marginBottom: "1rem" }}>
-          <li className="">
-            A continuación, se presentarán una serie de láminas. 
-            Mire atentamente cada imagen (pueden ser manipuladas con el mouse) y escriba en cada una qué ve, qué se imagina que podría ser o qué le parece que representa. 
-            <br />No hay respuestas correctas ni incorrectas; simplemente dígame todo lo que perciba. 
-           <strong> Puede tomarse el tiempo que necesite</strong>.
-          </li>
+      <Modal abierto onCerrar={() => {}} titulo="">
+     <div>
+          <strong>Bienvenido/a.</strong>{" "}
+          <p>
+            {" "}
+            Antes de comenzar, por favor lea atentamente las siguientes
+            indicaciones para asegurar un resultado preciso:
+          </p>
+          <ol>
+            <li>
+              <strong>El objetivo:</strong>
+              <li>
+                Se le presentará una serie de láminas con manchas de tinta o imágenes. Su tarea es observar cada una y escribir (o decir) qué ve en ellas, qué se imagina que podrían ser o qué le parecen.
+              </li>
+            </li>
+            <li>
+              <strong>Cómo responder:</strong>
+              <li>
+                Mire atentamente la imagen y analice las figuras (puede manipularlas con ayuda del ratón). Sea lo más descriptivo posible.
+Puede ver una o varias cosas en una misma lámina. No hay respuestas correctas o incorrectas, lo importante es su percepción e interpretación personal de cada imagen.
+              </li>
+            </li>
+          </ol>
           <li className="padding">
-            Tiene <strong>30 minutos</strong> para completar el test y se realizarán capturas a traves de la camara para verificar su identidad.
+            Tiene <strong>30 minutos</strong> para completar el test y se
+            realizarán capturas a traves de la camara para verificar su
+            identidad.
             <br />
-            <strong>Importante:</strong> Es necesario que acepte o no podra ser evaluado.
+            <strong>Importante:</strong> Es necesario que acepte o no podra ser
+            evaluado.
           </li>
-          
         </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
 
@@ -97,6 +115,7 @@ const finalizar = async () => {
     <div className={`scrollbar ${styles.container}`}>
       <div className="layout">
         <div className="panelVertical">
+          <h2 style={{ textAlign: "center" }}>Evaluación con Láminas</h2>
           <div className={`card padding ${styles.cardPaciente}`}>
             <aside className={styles.sidebar}>
               <h3>Tiempo disponible:</h3>
@@ -132,7 +151,7 @@ const finalizar = async () => {
 
         <div className="width-complete">
           <main className={`card padding ${styles.container}`}>
-            <h2>Evaluación con Láminas</h2>
+            
 
             <div className="container">
               <TestZulliger onChange={(r) => setZulliger(r)} />
