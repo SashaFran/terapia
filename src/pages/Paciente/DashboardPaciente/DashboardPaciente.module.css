@@ -1,6 +1,7 @@
 .container {
-  color:  var(--font-color);
+  color: var(--font-color);
 }
+
 .tablaPacientes {
   width: var(--width-complete);
   background: white;
@@ -12,9 +13,11 @@
   display: flex;
   flex-direction: column;
 }
+
 .nav {
-gap: 1rem;
+  gap: 1rem;
 }
+
 .centerAlign {
   text-align: center;
 }
@@ -24,29 +27,55 @@ gap: 1rem;
   gap: 2rem;
   margin: 0.5rem 0;
 }
+
 .cardTitle {
   color: var(--gris-med);
   font-weight: 500;
   margin: 0 0 0.5rem 0;
 }
+
 .cardResult {
   font-size: 24px;
   font-weight: 700;
   color: var(--gris-dark);
   margin: 0;
 }
+
 tbody button {
   color: #1b263b;
   border: none;
   background-color: transparent;
   padding: 0.6em 0;
 }
-.buttonContainer{
-    display: flex;
-    justify-content: space-evenly;
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 1rem;
 }
-.sidebar p{
-  display: 0.2rem;
+
+.sidebar p {
   font-size: var(--font-size-small);
   margin: 1rem 0;
+}
+
+@media (max-width: 900px) {
+  .buttonContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .cardTitle {
+    font-size: 1rem;
+  }
+
+  .cardResult {
+    font-size: 20px;
+  }
+
+  .buttonContainer {
+    gap: 0.75rem;
+  }
 }

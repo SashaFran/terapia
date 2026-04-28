@@ -1,10 +1,4 @@
-/* SIDEBAR */
-.sidebar p{
-  display: 0.2rem;
-  font-size: var(--font-size-small);
-  margin: 1rem 0;
-}
-.container{
+.container {
   color: var(--font-color);
   display: flex;
   flex-direction: column;
@@ -13,10 +7,34 @@
   width: var(--width-complete);
   min-height: 0;
 }
-.cardPaciente{
+
+.cardPaciente {
   margin: 0 1rem;
   padding: 1.5rem;
 }
-.cardPaciente h2{
+
+.cardPaciente h2 {
   margin: 0;
+}
+
+.sidebar p {
+  font-size: var(--font-size-small);
+  margin: 1rem 0;
+}
+
+@media (max-width: 900px) {
+  .cardPaciente {
+    margin: 0;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    gap: 0.75rem;
+  }
+
+  .cardPaciente {
+    padding: 0.75rem;
+  }
 }
