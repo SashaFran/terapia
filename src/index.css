@@ -65,12 +65,16 @@ a {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: block;
   min-height: 100vh;
   font-family: var(--font-family-body);
-  overflow: hidden;
+  overflow: auto;
   background-color: #f7fbff;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 h1,
 h2,
@@ -279,6 +283,88 @@ select:focus {
 margin: 0 1rem;
   padding: 1.5rem;
   justify-content: space-between;
+}
+.tablaPacientes {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
+
+  scrollbar-width: thin;
+  scrollbar-color: #f2e9e2 #f1f1f1;
+}
+
+/* 🧠 TABLA BASE */
+.tablaPacientes table {
+  width: var(--width-complete);
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* ❗ columnas chicas (acciones) */
+.container table th:nth-child(5),
+.container table td:nth-child(4) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* 🎯 HEADER */
+.tablaPacientes thead {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 176, 0, 1) 0%,
+    rgba(255, 60, 42, 1) 100%
+  );
+    position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.tablaPacientes thead th {
+  color: white;
+  font-weight: 600;
+  padding: 12px;
+  text-align: center;
+}
+.tablaPacientes thead th, .tablaPacientes tbody tr{
+height: 48px;
+}
+
+.tablaPacientes th,
+.tablaPacientes td {
+  padding: 0 10px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* TEXTO */
+.tablaPacientes td {
+  color: #333;
+}
+
+/* 🎨 ZEBRA */
+.tablaPacientes tbody tr:nth-child(even) {
+  background: #faf5f6;
+}
+
+/* ✨ HOVER */
+.tablaPacientes tbody tr:hover {
+  background: #ffe0bd;
+  transition: 0.2s ease;
+}
+
+/* 🔘 BOTONES */
+.tablaPacientes td > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 @media (prefers-color-scheme: light) {
   :root {

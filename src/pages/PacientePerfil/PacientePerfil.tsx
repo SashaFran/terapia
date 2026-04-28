@@ -427,7 +427,7 @@ export default function PacientePerfil() {
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar ${styles.tablaPacientes}`}>
+          <div className={`scrollbar tablaPacientes`}>
             <table>
               <thead>
                 <tr>
@@ -506,7 +506,7 @@ export default function PacientePerfil() {
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar ${styles.tablaPacientes}`}>
+          <div className={`scrollbar tablaPacientes`}>
             <table>
               <thead>
                 <tr>

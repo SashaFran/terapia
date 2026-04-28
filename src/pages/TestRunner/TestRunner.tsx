@@ -17,6 +17,42 @@ export default function TestRunner() {
   const [loadingConfirm, setLoadingConfirm] = useState(false);
 
   const pacienteId = localStorage.getItem("pacienteId"); // 🔥 CLAVE
+  const testCompletadoRef = useRef(false);
+  const bloqueoAplicadoRef = useRef(false);
+
+  useEffect(() => {
+    if (!pacienteId || !testId) return;
+
+    setTestEnCurso({ pacienteId, testId });
+
+    const bloquearSalida = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", bloquearSalida);
+
+    return () => {
+      window.removeEventListener("beforeunload", bloquearSalida);
+
+      if (testCompletadoRef.current || bloqueoAplicadoRef.current || !pacienteId)
+        return;
+
+      bloqueoAplicadoRef.current = true;
+
+      void (async () => {
+        try {
+          await updateDoc(doc(db, "pacientes", pacienteId), {
+            activo: false,
+          });
+        } catch (error) {
+          console.error("No se pudo bloquear al paciente al salir del test", error);
+        } finally {
+          clearPacienteSession();
+        }
+      })();
+    };
+  }, [pacienteId, testId]);
 
   useEffect(() => {
     if (!bloqueandoSalida) return;
@@ -121,6 +157,9 @@ export default function TestRunner() {
     }
 
     // 💾 GUARDAR
+    testCompletadoRef.current = true;
+    clearTestEnCurso();
+
     await addDoc(collection(db, "resultados"), data);
 
     // 🔥 ACTUALIZAR ASIGNACIÓN

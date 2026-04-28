@@ -26,6 +26,7 @@ export function useTestEngine({
 
   const dataRef = useRef<any>({});
   const startTimeRef = useRef<number>(0);
+  const submittingRef = useRef(false);
 
   // 🧠 CAMARA CENTRALIZADA
   const camera = useCameraCapture({
@@ -100,6 +101,8 @@ export function useTestEngine({
 
   // 🧠 SUBMIT
   const submit = async (payload: any, forcedOut = false) => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
 
     const endTime = Date.now();

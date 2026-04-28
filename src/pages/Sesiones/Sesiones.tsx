@@ -28,10 +28,14 @@ interface Paciente {
 
 export default function Sesiones() {
   const [resultados, setResultados] = useState<Resultado[]>([]);
-  const [pacientesMap, setPacientesMap] = useState<Record<string, Paciente>>({});
+  const [pacientesMap, setPacientesMap] = useState<Record<string, Paciente>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<Resultado | null>(null);
+  const [selectedSession, setSelectedSession] = useState<Resultado | null>(
+    null,
+  );
 
   const navigate = useNavigate();
 
@@ -57,8 +61,8 @@ export default function Sesiones() {
   const handleSuccessfulSave = (id: string, nuevasObservaciones: string) => {
     setResultados((prev) =>
       prev.map((r) =>
-        r.id === id ? { ...r, observacionesIniciales: nuevasObservaciones } : r
-      )
+        r.id === id ? { ...r, observacionesIniciales: nuevasObservaciones } : r,
+      ),
     );
   };
 
@@ -78,7 +82,7 @@ export default function Sesiones() {
         map[d.id] = {
           id: d.id,
           nombre: data.nombre,
-          archivodni: data.archivodni || data.archivoDNI 
+          archivodni: data.archivodni || data.archivoDNI,
         };
       });
 
@@ -90,84 +94,95 @@ export default function Sesiones() {
   }, []);
 
   // Función corregida para descargar el PDF con fotos
-// Función auxiliar para convertir URL a Base64
-const urlToBase64 = async (url: string): Promise<string> => {
-  // El '?t=' + Date.now() fuerza al navegador a pedir la imagen de nuevo, saltando bloqueos de caché
-  const response = await fetch(url + '&t=' + Date.now(), {
-    mode: 'cors'
-  });
-  const blob = await response.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
-};
-
-
-
+  // Función auxiliar para convertir URL a Base64
+  const urlToBase64 = async (url: string): Promise<string> => {
+    // El '?t=' + Date.now() fuerza al navegador a pedir la imagen de nuevo, saltando bloqueos de caché
+    const response = await fetch(url + "&t=" + Date.now(), {
+      mode: "cors",
+    });
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  };
 
   const totalTests = resultados.length;
-  const ultimaFecha = resultados
-    .map((r) => r.fecha)
-    .filter(Boolean)
-    .sort((a, b) => (b.seconds || 0) - (a.seconds || 0))[0] || null;
+  const ultimaFecha =
+    resultados
+      .map((r) => r.fecha)
+      .filter(Boolean)
+      .sort((a, b) => (b.seconds || 0) - (a.seconds || 0))[0] || null;
 
-  if (loading) return <div className="global-container"><h2>Cargando...</h2></div>;
+  if (loading)
+    return (
+      <div className="global-container">
+        <h2>Cargando sesiones... </h2>
+      </div>
+    );
 
   return (
     <div className={styles.container}>
       <div className={styles.containerCards}>
-            <div className={'panelVertical'}>
-                <BotonPersonalizado variant="primary" onClick={() => navigate("/app/nueva-sesion")} disabled={false}>
-                Nueva sesión
-              </BotonPersonalizado>
-              <div className="card paddingHorizontal">
-                <h3>Tests realizados</h3>
-                <p>{totalTests}</p>
-              </div>
-              <div className="card paddingHorizontal">
-                <h3>Último test</h3>
-                <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
-              </div>
+        <div className={"panelVertical"}>
+          <BotonPersonalizado
+            variant="primary"
+            onClick={() => navigate("/app/nueva-sesion")}
+            disabled={false}
+          >
+            Nueva sesión
+          </BotonPersonalizado>
+          <div className="card paddingHorizontal">
+            <h3>Tests realizados</h3>
+            <p>{totalTests}</p>
           </div>
+          <div className="card paddingHorizontal">
+            <h3>Último test</h3>
+            <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
+          </div>
+        </div>
 
-            <div  className={`scrollbar ${styles.tablaPacientes}`}>
-              <table className={styles.tabla}>
-                <thead>
-                  <tr>
-  <th>Fecha</th>
-  <th>Test</th>
-  <th>Paciente</th>
-  <th>Comentarios</th>
-  <th>Descargar</th>
-</tr>
-                </thead>
-                <tbody>
-                  {resultados.map((r) => (
-                    <tr key={r.id}>
-                      <td>{formatearFecha(r.fecha)}</td>
-                      <td>{r.testId?.toUpperCase()}</td>
-                      <td>
-                        {pacientesMap[r.pacienteId || ""]?.nombre || "—"}
-                      </td>
-                      <td>
-                        <button onClick={() => handleOpenModal(r)}>
-                          {r.observacionesIniciales ? <img src={editar} alt="Editar" /> : <img src={agregar} alt="Agregar" />}
-                        </button>
-                      </td>
-                      <td className={styles.descargar}>
-                        <button
-                          onClick={() => descargarInforme(r, pacientesMap[r.pacienteId || ""])}
-                        >
-                          <img src={guardadoIcono} alt="Descargar PDF" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <div className={`scrollbar tablaPacientes`}>
+          <table className={styles.tabla}>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Test</th>
+                <th>Paciente</th>
+                <th>Comentarios</th>
+                <th>Descargar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resultados.map((r) => (
+                <tr key={r.id}>
+                  <td>{formatearFecha(r.fecha)}</td>
+                  <td>{r.testId?.toUpperCase()}</td>
+                  <td>{pacientesMap[r.pacienteId || ""]?.nombre || "—"}</td>
+                  <td>
+                    <button onClick={() => handleOpenModal(r)}>
+                      {r.observacionesIniciales ? (
+                        <img src={editar} alt="Editar" />
+                      ) : (
+                        <img src={agregar} alt="Agregar" />
+                      )}
+                    </button>
+                  </td>
+                  <td className={styles.descargar}>
+                    <button
+                      onClick={() =>
+                        descargarInforme(r, pacientesMap[r.pacienteId || ""])
+                      }
+                    >
+                      <img src={guardadoIcono} alt="Descargar PDF" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <ObservacionesModal
         abierto={isModalOpen}

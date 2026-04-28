@@ -40,7 +40,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
     timeLimitMs: 20 * 60 * 1000,
     onFinish: async (data) => {
       await onFinish(data);
-      navigate("/dashboard", { replace: true });
+      navigate("/app/tests", { replace: true });
     },
   });
 
@@ -106,14 +106,12 @@ export default function TestBFQ({ onFinish, userId }: Props) {
       >
         <div style={{ marginBottom: "15px" }}>
           <li>
-            Esta evaluación mide diferentes dimensiones de la personalidad.
+           A continuación encontrará una serie de frases sobre formas de pensar, sentir o actuar. Mire atentamente cada una y marque la opción que mejor describa su forma de ser.
           </li>
-          <li>
-            Responda con sinceridad. No hay respuestas correctas o incorrectas.
-          </li>
-          <li>
-            Durante el test, se realizarán capturas aleatorias para validar su
-            identidad.
+          <li className="padding">
+            Tiene <strong>30 minutos</strong> para completar el test y se realizarán capturas a traves de la camara para verificar su identidad.
+            <br />
+            <strong>Importante:</strong> Es necesario que acepte o no podra ser evaluado.
           </li>
         </div>
         <ConsentimientoCamara changeStatus={setCanStart} />
@@ -138,7 +136,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
+    <div className={`container scrollbar`}>
       <div className={`nav`}>
         <h2>{BFQ_TEST.nombre}</h2>
         <div className={timerClass}>

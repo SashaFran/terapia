@@ -140,7 +140,7 @@ export default function Dashboard() {
             <p className={styles.numero}>{metricas.nuevosMes}</p>
           </div>
         </div>
-        <main className={`scrollbar ${styles.tablaPacientes}`}>
+        <main className={`scrollbar tablaPacientes`}>
           <table>
             <thead>
               <tr>

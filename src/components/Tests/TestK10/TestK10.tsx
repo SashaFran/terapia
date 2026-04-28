@@ -24,7 +24,8 @@ export default function TestK10({ onFinish, userId }: Props) {
 
   const pacienteStorage = localStorage.getItem("paciente");
   const paciente = pacienteStorage ? JSON.parse(pacienteStorage) : null;
-  const resolvedUserId = userId ?? paciente?.id ?? localStorage.getItem("pacienteId");
+  const resolvedUserId =
+    userId ?? paciente?.id ?? localStorage.getItem("pacienteId");
 
   const engine = useTestEngine({
     userId: resolvedUserId,
@@ -78,22 +79,44 @@ export default function TestK10({ onFinish, userId }: Props) {
 
   if (!engine.started) {
     return (
-      <Modal
-        abierto={true}
-        onCerrar={() => {}}
-        titulo="Instrucciones para la Evaluación (K-10)"
-      >
-          <div style={{ marginBottom: "15px" }}>
-            <li className="">Las siguientes preguntas tratan sobre cómo se ha sentido usted durante los últimos 30 días (o las últimas 4 semanas). 
-              <br />Por favor, para cada pregunta, marque la opción que <strong>mejor describa</strong> la frecuencia con la que tuvo ese sentimiento. 
-              <br />No hay respuestas correctas o incorrectas; si no está seguro de alguna, elija la que más se acerque a su situación.</li>
-            <li className="margin">
-            Esta evaluación <strong>monitoriza el tiempo</strong> de completado
-            y realiza capturas de identidad aleatorias.
-            <br />
-            <strong>Importante:</strong> Esto no afecta su puntuación final.
-          </li>
-          </div>
+      <Modal abierto={true} onCerrar={() => {}} titulo="">
+        <div>
+          <strong>Bienvenido/a.</strong>{" "}
+          <p>
+            {" "}
+            Antes de comenzar, por favor lea atentamente las siguientes
+            indicaciones para asegurar un resultado preciso:
+          </p>
+          <ol>
+            <li>
+              <strong>El objetivo:</strong>
+              <li>
+                Este cuestionario consta de 10 preguntas sobre cómo se ha
+                sentido en los últimos 30 días.
+              </li>
+            </li>
+            <li>
+              <strong>Cómo responder:</strong>
+              <li>
+                Para cada frase, seleccione la opción que mejor describa la
+                frecuencia de ese sentimiento (desde "Nunca" hasta "Siempre").
+                <li>
+                  No piense demasiado sus respuestas; la primera impresión suele
+                  ser la más honesta. Responda según su estado real en el último
+                  mes, no cómo se siente habitualmente.
+                </li>
+              </li>
+            </li>
+            <li className="padding">
+              Tiene <strong>30 minutos</strong> para completar el test y se
+              realizarán capturas a traves de la camara para verificar su
+              identidad.
+              <br />
+              <strong>Importante:</strong> Es necesario que acepte o no podra
+              ser evaluado.
+            </li>
+          </ol>
+        </div>
 
         <ConsentimientoCamara changeStatus={setCanStart} />
 
