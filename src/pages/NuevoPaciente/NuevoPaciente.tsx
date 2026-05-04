@@ -14,13 +14,14 @@ const TESTS_DISPONIBLES = [
   { id: "raven", nombre: "Raven Abreviado" },
 ];
 
-export default function NuevoPaciente() {
+export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
     contacto: "",
+    fechaIngreso: "",
   });
 
   const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
@@ -35,7 +36,7 @@ export default function NuevoPaciente() {
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
         ? prev.filter((t) => t !== testId)
-        : [...prev, testId]
+        : [...prev, testId],
     );
   };
 
@@ -57,34 +58,48 @@ export default function NuevoPaciente() {
         setLoading(false);
         return;
       }
+      if (!formData.fechaIngreso) {
+        alert("Seleccioná una fecha de ingreso");
+        setLoading(false);
+        return;
+      }
+
+      const fechaInicio = new Date(formData.fechaIngreso);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      if (fechaInicio < hoy) {
+        alert("La fecha no puede ser anterior a hoy");
+        setLoading(false);
+        return;
+      }
 
       const email = `${dniLimpio}@paciente.com`;
       const password = dniLimpio.slice(-6);
-      const ahora = new Date();
 
       // 🔐 CREAR USUARIO AUTH
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
 
       const uid = userCredential.user.uid;
 
       // 🧠 GUARDAR PACIENTE
-     await addDoc(collection(db, "pacientes"), {
-      uid,
-      nombre: formData.nombre,
-      dni: dniLimpio,
-      password: password, // 👈 ACÁ ESTÁ LA CLAVE
-      contacto: formData.contacto,
-      activo: true,
-      fechaInicioAcceso: Timestamp.fromDate(ahora),
-      fechaFinAcceso: Timestamp.fromDate(
-        new Date(ahora.getTime() + 24 * 60 * 60 * 1000)
-      ),
-      createdAt: Timestamp.now(),
-    });
+      await addDoc(collection(db, "pacientes"), {
+        uid,
+        nombre: formData.nombre,
+        dni: dniLimpio,
+        password: password, // 👈 ACÁ ESTÁ LA CLAVE
+        contacto: formData.contacto,
+        activo: true,
+        fechaInicioAcceso: Timestamp.fromDate(fechaInicio),
+        fechaFinAcceso: Timestamp.fromDate(
+  new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
+),
+        createdAt: Timestamp.now(),
+      });
 
       // 🧠 ASIGNACIONES
       await Promise.all(
@@ -93,18 +108,18 @@ export default function NuevoPaciente() {
             pacienteId: uid,
             testId,
             estado: "pendiente",
-            fechaAsignacion: Timestamp.fromDate(ahora),
+            fechaAsignacion: Timestamp.fromDate(fechaInicio),
             fechaCompletado: null,
-          })
-        )
+          }),
+        ),
       );
 
       // 🚪 IMPORTANTE: volver a estado limpio
       await signOut(auth);
 
-      alert(`✅ Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
-      navigate("/admin/pacientes");
-
+      alert(`Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
+      onPacienteCreado(); // recarga lista
+      onClose(); // cierra modal
     } catch (error: any) {
       console.error(error);
 
@@ -119,15 +134,15 @@ export default function NuevoPaciente() {
   };
 
   return (
-    <div className={`global-container ${styles.container}`}>
+    <div>
       {/* HEADER */}
-      <div className={styles.nav}>
+      <div className="nav">
         <h2>Registrar nuevo paciente</h2>
 
         <BotonPersonalizado
           variant="danger"
           onClick={() => {
-            if (confirm("¿Cancelar?")) navigate("/admin/pacientes");
+            if (confirm("¿Cancelar?")) onClose();
           }}
           disabled={false}
         >
@@ -138,40 +153,65 @@ export default function NuevoPaciente() {
       {/* FORM */}
       <form className={styles.form} onSubmit={guardarPaciente}>
         <div className={styles.inputGroup}>
-          <h2>Datos de Acceso</h2>
+          <div className={`container`}>
+            <div className={styles.container}>
+              <label htmlFor="nombre" className="paddingHorizontal">
+                Nombre completo:{" "}
+              </label>
+              <input
+                type="text"
+                name="nombre"
+                placeholder="Nombre completo"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className={styles.container}>
+              <label htmlFor="dni" className="paddingHorizontal">
+                DNI:{" "}
+              </label>
+              <input
+                type="text"
+                name="dni"
+                placeholder="DNI"
+                value={formData.dni}
+                onChange={handleChange}
+                required
+              />
 
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre completo"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
+              {formData.dni.length >= 6 && (
+                <small>
+                  🔑 Contraseña: <strong>{formData.dni.slice(-6)}</strong>
+                </small>
+              )}
+            </div>
 
-          <input
-            type="text"
-            name="dni"
-            placeholder="DNI"
-            value={formData.dni}
-            onChange={handleChange}
-            required
-          />
-
-          {formData.dni.length >= 6 && (
-            <small>
-              🔑 Contraseña: <strong>{formData.dni.slice(-6)}</strong>
-            </small>
-          )}
-
-          <input
-            type="text"
-            name="contacto"
-            placeholder="Contacto"
-            value={formData.contacto}
-            onChange={handleChange}
-          />
-        </div>
+            <div className={styles.container}>
+              <label htmlFor="contacto" className="paddingHorizontal">
+                Contacto (email/número telefonico):{" "}
+              </label>
+              <input
+                type="text"
+                name="contacto"
+                placeholder="Contacto"
+                value={formData.contacto}
+                onChange={handleChange}
+              />
+            </div>
+            <div className={styles.container}>
+              <label htmlFor="fechaIngreso" className="paddingHorizontal">
+                Fecha de acceso:{" "}
+              </label>
+              <input
+                type="date"
+                name="fechaIngreso"
+                value={formData.fechaIngreso}
+                onChange={handleChange}
+                required
+              />
+            </div>
+        </div></div>
 
         <div className={styles.inputGroup}>
           <h2>Asignación de Tests</h2>

@@ -3,7 +3,13 @@ import styles from "./Dashboard.module.css";
 import { db } from "../../firebase/firebase";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 export default function Dashboard() {
@@ -34,25 +40,25 @@ export default function Dashboard() {
         const pacientesSnap = await getDocs(collection(db, "pacientes"));
         const resultadosSnap = await getDocs(collection(db, "resultados"));
 
-        const resultados = resultadosSnap.docs.map(d => d.data());
+        const resultados = resultadosSnap.docs.map((d) => d.data());
 
         setTotalPacientes(pacientesSnap.size);
 
-const convertir = (pacienteId: any): any => {
-  for (const doc of pacientesSnap.docs) {
-    if (doc.id === pacienteId) {
-      const data = doc.data();
-      return `${data.nombre}`;
-    }
-  }
-  return undefined;
-}
+        const convertir = (pacienteId: any): any => {
+          for (const doc of pacientesSnap.docs) {
+            if (doc.id === pacienteId) {
+              const data = doc.data();
+              return `${data.nombre}`;
+            }
+          }
+          return undefined;
+        };
         // -------------------------
         // 📊 TEST MÁS USADO
         // -------------------------
         const conteo: Record<string, number> = {};
 
-        resultados.forEach(r => {
+        resultados.forEach((r) => {
           const test = r.testId || "Sin nombre";
           conteo[test] = (conteo[test] || 0) + 1;
         });
@@ -62,7 +68,13 @@ const convertir = (pacienteId: any): any => {
         const niveles = Object.keys(conteo).map((test, i) => ({
           label: test,
           valor: Math.round((conteo[test] / total) * 100),
-          color: ["var(--rojo)", "var(--naranja)", "var(--opuesto)", "var(--bordo)", "var(--marron)"][i % 5]
+          color: [
+            "var(--rojo)",
+            "var(--naranja)",
+            "var(--opuesto)",
+            "var(--bordo)",
+            "var(--marron)",
+          ][i % 5],
         }));
 
         niveles.sort((a, b) => b.valor - a.valor);
@@ -75,7 +87,7 @@ const convertir = (pacienteId: any): any => {
         // -------------------------
         const meses: Record<string, number> = {};
 
-        resultados.forEach(r => {
+        resultados.forEach((r) => {
           if (!r.fecha?.toDate) return;
 
           const fecha = r.fecha.toDate();
@@ -86,13 +98,13 @@ const convertir = (pacienteId: any): any => {
 
         const mesesOrdenados = Object.keys(meses).sort();
 
-        const dataGraf = mesesOrdenados.map(key => {
+        const dataGraf = mesesOrdenados.map((key) => {
           const [year, month] = key.split("-");
           const fecha = new Date(Number(year), Number(month));
 
           return {
             name: fecha.toLocaleString("es-AR", { month: "short" }),
-            p: meses[key]
+            p: meses[key],
           };
         });
 
@@ -104,23 +116,22 @@ const convertir = (pacienteId: any): any => {
         const q = query(
           collection(db, "resultados"),
           orderBy("fecha", "desc"),
-          limit(5)
+          limit(5),
         );
 
         const snap = await getDocs(q);
 
-        const actividad = snap.docs.map(d => {
+        const actividad = snap.docs.map((d) => {
           const data = d.data();
 
           return {
             titulo: `Evaluación ${data.testId || "—"}`,
             subtitulo: convertir(data.pacienteId) || "Paciente",
-            tiempo: calcularTiempoRelativo(data.fecha)
+            tiempo: calcularTiempoRelativo(data.fecha),
           };
         });
 
         setActividades(actividad);
-
       } catch (err) {
         console.error("Error dashboard:", err);
       } finally {
@@ -136,89 +147,93 @@ const convertir = (pacienteId: any): any => {
   }
 
   return (
-    <div className={'scrollbar'}>
-    <div className={styles.dashboardLayout}>
-      <main className={styles.mainContent}>
+    <div className="container scrollbar">
+      <div className="layout">
+        <div className={"panelVertical"}>
+          <aside className="card paddingHorizontal height-complete">
+            <h3>Actividad reciente</h3>
+            <div className={styles.feedList}>
+              {actividades.map((act, i) => (
+                <div key={i} className={styles.feedItem}>
+                  <div className={styles.dot}></div>
 
-        {/* KPI */}
-        <section className={`nav && ${styles.nav}`}>
-          <div className={`card && ${styles.cardKpi}`}>
-            <h3>Total Pacientes</h3>
-            <p>{totalPacientes}</p>
-          </div>
-
-          <div className={`card && ${styles.cardKpi}`}>
-            <h3>Test más usado</h3>
-            <p className={styles.highlight}>{testMasUsado}</p>
-          </div>
-        </section>
-
-        {/* 📈 GRÁFICO */}
-        <div className={styles.chartContainer}>
-          <h3>Evolución de pacientes</h3>
-
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={dataGrafico}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gris)" vertical={false} />
-              <XAxis dataKey="name" stroke="var(--marron)"/>
-              <YAxis allowDecimals={false} stroke="var(--marron)"/>
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="p"
-                stroke='var(--bordo)'
-                strokeWidth={3}
-                dot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+                  <div className={styles.feedText}>
+                    <h4>{act.titulo}</h4>
+                    <p>
+                      {act.subtitulo}
+                    </p>
+                    <p>  
+                       {act.tiempo}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
         </div>
 
-        {/* 📊 BARRAS */}
-        <div className={`card paddingHorizontal && ${styles.statsLevelCard}`}>
-          <h3>Uso por Test</h3>
+        <main className={`width-complete ${styles.main}`}>
+          <div className="nav">
+            <div className="card paddingHorizontal">
+              <h3>Total Pacientes</h3>
+              <p>{totalPacientes}</p>
+            </div>
 
-<div className={styles.containerNiveles}>
-          {dataNiveles.map((n, i) => (
-            <div key={i} className={styles.levelRow}>
-              <div className={styles.levelInfo}>
-                <p>{n.label}</p>
-                <p>{n.valor}%</p>
-              </div>
+            <div className="card paddingHorizontal">
+              <h3>Test más usado</h3>
+              <p className={styles.highlight}>{testMasUsado}</p>
+            </div>
+          </div>
+          <div className={styles.chartContainer}>
+            <h3>Evolución de pacientes</h3>
 
-              <div className={styles.progressBarBg}>
-                <div
-                  className={styles.progressBarFill}
-                  style={{
-                    width: `${n.valor}%`,
-                    background: n.color
-                  }}
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={dataGrafico}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--gris)"
+                  vertical={false}
                 />
-              </div>
-            </div>
-            
-          ))}
+                <XAxis dataKey="name" stroke="var(--marron)" />
+                <YAxis allowDecimals={false} stroke="var(--marron)" />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="p"
+                  stroke="var(--bordo)"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </div>
-      </main>
 
-      {/* 🕒 ACTIVIDAD */}
-      <aside className={`card && ${styles.notificationsAside}`}>
-        <h3>Actividad reciente</h3>
+          {/* 📊 BARRAS */}
+          <div className="card paddingHorizontal">
+            <h3>Uso por Test</h3>
 
-        <div className={styles.feedList}>
-          {actividades.map((act, i) => (
-            <div key={i} className={styles.feedItem}>
-              <div className={styles.dot}></div>
+            <div className={`margin ${styles.containerNiveles}`}>
+              {dataNiveles.map((n, i) => (
+                <div key={i} className={styles.levelRow}>
+                  <div className={styles.levelInfo}>
+                    <p>{n.label}</p>
+                    <p>{n.valor}%</p>
+                  </div>
 
-              <div className={styles.feedText}>
-                <h4>{act.titulo}</h4>
-                <p>{act.subtitulo} · {act.tiempo}</p>
-              </div>
+                  <div className={styles.progressBarBg}>
+                    <div
+                      className={styles.progressBarFill}
+                      style={{
+                        width: `${n.valor}%`,
+                        background: n.color,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </aside>
+          </div>
+        </main>
       </div>
     </div>
   );

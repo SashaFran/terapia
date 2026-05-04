@@ -1,5 +1,5 @@
 .container {
-color: var(--font-color);
+  color: var(--font-color);
   display: flex;
   flex-direction: column;
   gap: 1rem;

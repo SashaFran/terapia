@@ -6,6 +6,8 @@ import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { obtenerEstadisticasPacientes } from "../../utils/obtencion/obtenerEstadisticasPacientes.tsx";
 import { obtenerMetricasPacientes } from "../../utils/obtencion/obtenerMetricasPacientes.tsx";
+import NuevoPaciente from "../NuevoPaciente/NuevoPaciente.tsx";
+import Modal from "../../components/Modal/Modal.tsx";
 
 interface Paciente {
   id: string;
@@ -15,6 +17,7 @@ interface Paciente {
 }
 
 export default function Dashboard() {
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,9 +27,9 @@ export default function Dashboard() {
     nuevosMes: 0,
   });
 
-  // ---------------------------------------
-  // 🧡 Función segura para formatear fechas
-  // ---------------------------------------
+  const guardarNuevoPaciente = () => {
+    setShowModal(true);
+  };
   const formatearFecha = (timestamp: any): string => {
     if (!timestamp) return "N/A";
     if (timestamp.toDate) {
@@ -49,10 +52,6 @@ export default function Dashboard() {
     notasIniciales: "",
   });
   const [showForm, setShowForm] = useState(false);
-
-  const guardarNuevoPaciente = async (e: React.FormEvent) => {
-    navigate("/admin/nuevo-paciente");
-  };
 
   // ---------------------------------------
   // Cargar pacientes al montar componente
@@ -142,38 +141,52 @@ export default function Dashboard() {
         </div>
         <main className={`scrollbar`}>
           <div className="tablaPacientes">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Fecha Ingreso</th>
-                <th>Sesiones</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {pacientes.map((paciente) => (
-                <tr key={paciente.id}>
-                  <td>{paciente.nombre}</td>
-                  <td>{paciente.fechaIngreso}</td>
-                  <td>{paciente.sesiones}</td>
-                  <td>
-                    <BotonPersonalizado
-                      variant="secondary"
-                      onClick={() => navigate(`/admin/paciente/${paciente.id}`)}
-                      disabled={false}
-                    >
-                      Ver
-                    </BotonPersonalizado>
-                  </td>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Fecha Ingreso</th>
+                  <th>Sesiones</th>
+                  <th>Acción</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {pacientes.map((paciente) => (
+                  <tr key={paciente.id}>
+                    <td>{paciente.nombre}</td>
+                    <td>{paciente.fechaIngreso}</td>
+                    <td>{paciente.sesiones}</td>
+                    <td>
+                      <BotonPersonalizado
+                        variant="secondary"
+                        onClick={() =>
+                          navigate(`/admin/paciente/${paciente.id}`)
+                        }
+                        disabled={false}
+                      >
+                        Ver
+                      </BotonPersonalizado>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </main>
       </div>
+      {showModal && (
+        <Modal abierto={true} onCerrar={() => {}} titulo="">
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <NuevoPaciente
+              onClose={() => setShowModal(false)}
+              onPacienteCreado={cargarPacientes}
+            />
+          </div>
+        </div>
+        </Modal>
+      )}
     </div>
   );
 }

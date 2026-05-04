@@ -94,6 +94,7 @@ h4 {
   justify-content: space-between;
   align-items: center;
   width: var(--width-complete);
+  gap: 1rem;
 }
 
 .layout{
@@ -190,6 +191,9 @@ h4 {
 .width-complete{
  width: var(--width-complete);
 }
+.height-complete{
+  height: var(--heigh-complete);
+}
 .panelVertical {
   display: flex;
   gap: 2rem;
@@ -259,6 +263,10 @@ select:focus {
 }
 .margin {
   margin: 1rem;
+}
+
+.margintop {
+  margin-top: 1rem;
 }
 .padding{
   padding: 1rem;
