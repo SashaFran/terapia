@@ -24,7 +24,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId,
     testId: "raven",
-    timeLimitMs: 20 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
     onFinish,
   });
 
@@ -33,23 +33,14 @@ export default function TestRaven({ onFinish, userId }: Props) {
   if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
   else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
-  // ----------------------
-  // INICIO TEST
-  // ----------------------
   const iniciarTest = () => engine.start();
 
-  // ----------------------
-  // HANDLE INPUT
-  // ----------------------
   const handleChange = (index: number, value: string) => {
     const nuevas = [...respuestas];
     nuevas[index] = value;
     setRespuestas(nuevas);
   };
 
-  // ----------------------
-  // FINALIZAR
-  // ----------------------
   const finalizar = () => {
     let errores = 0;
     respuestas.forEach((r, i) => {
@@ -75,9 +66,6 @@ export default function TestRaven({ onFinish, userId }: Props) {
     });
   };
 
-  // ----------------------
-  // MODAL INICIAL
-  // ----------------------
   if (!engine.started) {
     return (
       <Modal abierto={true} onCerrar={() => {}} titulo="">
@@ -140,9 +128,6 @@ export default function TestRaven({ onFinish, userId }: Props) {
     );
   }
 
-  // ----------------------
-  // RENDER
-  // ----------------------
   return (
     <div className={`scrollbar ${styles.container}`}>
       <div className="layout">

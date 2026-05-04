@@ -2,12 +2,21 @@
   color:  var(--font-color);
 
 }
+.loading{
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #6b1d2a;
+}
 .containerNiveles {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  height: auto;       /* Permite que crezca según el contenido */
-  min-height: 100px;  /* (Opcional) Altura mínima inicial */
+  height: auto;       
+  min-height: 100px;  
 }
 
 .containerNiveles p{
@@ -64,7 +73,7 @@ tbody button {
 }
 .dashboardLayout {
   display: grid;
-  grid-template-columns: 1fr 300px; /* El aside mide 300px */
+  grid-template-columns: 1fr 300px; 
   gap: 20px;
   padding: 0 20px 0 0;
   overflow-y: auto;
@@ -76,7 +85,7 @@ tbody button {
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-/* Estilo tipo Instagram para el Feed */
+
 .notificationsAside {
   background: #f8f9fa;
   border-left: 1px solid #eee;
@@ -96,7 +105,7 @@ tbody button {
 }
 .chartsGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* El de líneas más ancho que el de torta */
+  grid-template-columns: 2fr 1fr; 
   gap: 20px;
 }
 
@@ -138,7 +147,7 @@ tbody button {
   transition: width 1s ease-in-out;
 }
 
-/* Estilo del Feed solicitado */
+
 .feedItem {
 display: flex;
   gap: 15px;

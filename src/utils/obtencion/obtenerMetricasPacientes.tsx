@@ -20,7 +20,6 @@ export const obtenerMetricasPacientes = async () => {
     const data = doc.data();
     total++;
 
-    // Convertir Timestamp a Date
     if (data.fechaInicioAcceso) {
       const fecha = data.fechaInicioAcceso.toDate();
       if (fecha >= unaSemanaAtras) nuevosSemana++;

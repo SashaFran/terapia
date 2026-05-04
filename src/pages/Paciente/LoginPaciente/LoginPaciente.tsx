@@ -35,7 +35,6 @@ export default function LoginPaciente() {
     const dniLimpio = dni.replace(/\D/g, "");
 
     try {
-      // 🔍 1. Buscar paciente
       const q = query(
         collection(db, "pacientes"),
         where("dni", "==", dniLimpio),
@@ -50,13 +49,11 @@ export default function LoginPaciente() {
       const docPaciente = snap.docs[0];
       const pacienteData = docPaciente.data();
 
-      // 🔐 2. Validar password
       if (pacienteData.password !== password) {
         setError("Contraseña incorrecta");
         return;
       }
 
-      // 📦 3. Traer asignaciones
       const qAsignaciones = query(
         collection(db, "asignaciones"),
         where("pacienteId", "==", docPaciente.id),
@@ -69,7 +66,6 @@ export default function LoginPaciente() {
         ...d.data(),
       }));
 
-      // 🧠 4. Evaluar acceso (VERSIÓN SANA)
       const ahora = new Date();
 
       const finRaw = pacienteData.fechaFinAcceso?.toDate?.();
@@ -77,7 +73,6 @@ export default function LoginPaciente() {
       let accesoVencido = false;
 
       if (finRaw) {
-        // 🔥 FORZAMOS fin de día LOCAL (no UTC)
         const fin = new Date(
           finRaw.getFullYear(),
           finRaw.getMonth(),
@@ -93,7 +88,6 @@ export default function LoginPaciente() {
 
       const estaInactivo = pacienteData.activo === false;
 
-      // ⚠️ IMPORTANTE: esto ya NO bloquea login
       const total = asignaciones.length;
       const completados = asignaciones.filter(
         (a: any) => a.estado === "completado",
@@ -103,44 +97,30 @@ export default function LoginPaciente() {
       const dniCargado = !!pacienteData.archivodni;
       const flujoTerminado = testsCompletos && dniCargado;
 
-      console.log("DEBUG LOGIN:", {
-        ahora,
-        finRaw,
-        accesoVencido,
-        estaInactivo,
-        flujoTerminado,
-      });
-
-      // 🚫 5. BLOQUEO REAL (solo lo importante)
       if (accesoVencido || estaInactivo || flujoTerminado) {
         setError("Tu acceso ha expirado.");
 
-        // 🔥 desactivamos en los casos donde aplica
         if ((accesoVencido || flujoTerminado) && pacienteData.activo !== false) {
           try {
             await updateDoc(doc(db, "pacientes", docPaciente.id), {
               activo: false,
             });
-          } catch (e) {
-            console.error("Error desactivando:", e);
-          }
+          } catch {}
         }
 
         return;
       }
 
-      // ✅ 6. Login OK (aunque haya terminado flujo)
       const pacienteLogueado = {
         id: docPaciente.id,
         ...pacienteData,
-        flujoTerminado, // 👈 útil para UI después
+        flujoTerminado,
       };
 
       setPacienteSession(pacienteLogueado, docPaciente.id);
 
       navigate("/app/dashboard");
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Error al intentar ingresar");
     }
   };

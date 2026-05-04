@@ -55,7 +55,7 @@
   --width-half: 50%;
   --width-third: 20%;
 
-  /* font-style: italic; */
+  
 }
 
 a {
@@ -210,10 +210,10 @@ button {
   width: 100px;
   height: 45px;
   transition: 0.3s;
-  width: 200px; /* O el ancho que prefieras */
-  white-space: nowrap; /* Evita que las palabras se amontonen abajo */
-  padding: 0 1rem; /* Padding pequeño a los lados para respiro */
-  display: flex; /* Para centrar el texto perfectamente */
+  width: 200px; 
+  white-space: nowrap; 
+  padding: 0 1rem; 
+  display: flex; 
   justify-content: center;
   align-items: center;
 }
@@ -305,21 +305,21 @@ margin: 0 1rem;
   scrollbar-color: #f2e9e2 #f1f1f1;
 }
 
-/* 🧠 TABLA BASE */
+
 .tablaPacientes table {
   width: var(--width-complete);
   border-collapse: collapse;
   font-size: 14px;
 }
 
-/* ❗ columnas chicas (acciones) */
+
 .container table th:nth-child(5),
 .container table td:nth-child(4) {
   width: 1%;
   white-space: nowrap;
 }
 
-/* 🎯 HEADER */
+
 .tablaPacientes thead {
   background: linear-gradient(
     45deg,
@@ -348,23 +348,23 @@ height: 48px;
   border-bottom: 1px solid #f1f1f1;
 }
 
-/* TEXTO */
+
 .tablaPacientes td {
   color: #333;
 }
 
-/* 🎨 ZEBRA */
+
 .tablaPacientes tbody tr:nth-child(even) {
   background: #faf5f6;
 }
 
-/* ✨ HOVER */
+
 .tablaPacientes tbody tr:hover {
   background: #ffe0bd;
   transition: 0.2s ease;
 }
 
-/* 🔘 BOTONES */
+
 .tablaPacientes td > * {
   display: inline-flex;
   align-items: center;

@@ -21,14 +21,12 @@ type ResultadoInput = {
 
 export const guardarResultado = async (data: ResultadoInput) => {
   try {
-    // 🔥 limpiamos undefined (clave para Firestore)
     const cleanData = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== undefined)
     );
 
     const docRef = await addDoc(collection(db, "resultados"), cleanData);
 
-    console.log("Resultado guardado con ID:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error("Error guardando resultado:", error);

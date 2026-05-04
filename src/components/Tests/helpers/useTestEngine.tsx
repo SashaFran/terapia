@@ -28,19 +28,16 @@ export function useTestEngine({
   const startTimeRef = useRef<number>(0);
   const submittingRef = useRef(false);
 
-  // 🧠 CAMARA CENTRALIZADA
   const camera = useCameraCapture({
     enabled: started,
     delayMs: 5000,
   });
 
-  // 🧠 START
   const start = () => {
     setStarted(true);
     startTimeRef.current = Date.now();
   };
 
-  // 🧠 TIMER VISUAL
   useEffect(() => {
     if (!started) return;
 
@@ -54,7 +51,6 @@ export function useTestEngine({
     return () => clearInterval(interval);
   }, [started]);
 
-  // 🧠 AUTO SUBMIT
   useEffect(() => {
     if (!started) return;
 
@@ -66,7 +62,6 @@ export function useTestEngine({
     return () => clearTimeout(timer);
   }, [started]);
 
-  // 🧠 AUTO SAVE
   useEffect(() => {
     if (!started) return;
 
@@ -99,7 +94,6 @@ export function useTestEngine({
     return camera.imageUrl;
   };
 
-  // 🧠 SUBMIT
   const submit = async (payload: any, forcedOut = false) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
@@ -107,7 +101,6 @@ export function useTestEngine({
 
     const endTime = Date.now();
 
-    // 💎 ESPERA REAL DE LA FOTO
     const capturaFinal = await waitForCapture();
 
     if (!capturaFinal) {
@@ -134,7 +127,6 @@ export function useTestEngine({
       Object.entries(finalDataRaw).filter(([, value]) => value !== undefined),
     );
 
-    console.log("📦 FINAL DATA:", finalData); // 👈 debug hermoso
 
     try {
       await onFinish(finalData);
@@ -151,7 +143,6 @@ export function useTestEngine({
     };
   };
 
-  // 🧠 TIMER FORMATEADO
   const minutes = Math.floor(remainingMs / 60000);
   const seconds = Math.floor((remainingMs % 60000) / 1000);
 
@@ -167,7 +158,6 @@ export function useTestEngine({
     minutes,
     seconds,
 
-    // 💎 COMPONENTE DE CAMARA LISTO
     CameraComponent: camera.CameraComponent,
   };
 }

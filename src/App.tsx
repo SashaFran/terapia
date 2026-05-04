@@ -3,26 +3,22 @@ import Selector from "./pages/Selector/Selector";
 
 import { Outlet } from "react-router-dom";
 
-// ADMIN
 import AdminDashboard from "./pages/Dashboard/Dashboard";
 import AdminPacientes from "./pages/Pacientes/Pacientes";
 import AdminPacientePerfil from "./pages/PacientePerfil/PacientePerfil";
 import AdminSesiones from "./pages/Sesiones/Sesiones";
 import NuevoPaciente from "./pages/NuevoPaciente/NuevoPaciente";
 
-// PACIENTE
 import LoginPaciente from "./pages/Paciente/LoginPaciente/LoginPaciente";
 import PacienteDashboard from "./pages/Paciente/DashboardPaciente/DashboardPaciente";
 import PacienteTests from "./pages/Paciente/TestsPaciente/TestsPaciente";
 import SubirDNI from "./pages/Paciente/SubirDNI/SubirDNI";
 
-// AUTH
 import LoginAdmin from "./pages/Login/Login";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateAdminRoute from "./routes/PrivateAdminRoute";
 import PrivatePacienteRoute from "./routes/PrivatePacienteRoute";
 
-// COMPONENTES
 import Sidebar from "./components/Sidebar/Sidebar";
 import BreadcrumbsNav from "./components/Breadcrumbs/HeaderInfo";
 import TestRunner from "./pages/TestRunner/TestRunner";
@@ -37,16 +33,16 @@ export default function App() {
       <AuthProvider>
         <Routes>
 
-          {/* -------- PUBLICO -------- */}
+          
           <Route path="/" element={<Selector />} />
 
           <Route path="/login" element={<LoginPaciente />} />
           <Route path="/admin/login" element={<LoginAdmin />} />
 
-          {/* -------- PACIENTE -------- */}
+          
           <Route path="/app/*" element={<PrivatePacienteRoute />}>
   
-              {/* Layout */}
+              
               <Route
                 element={
                   <div className={styles.layout}>
@@ -62,18 +58,18 @@ export default function App() {
                   </div>
                 }
               >
-                {/* Rutas internas */}
+                
                 <Route path="dashboard" element={<PacienteDashboard />} />
                 <Route path="dni" element={<SubirDNI />} />
                 <Route path="tests" element={<PacienteTests />} />
                 <Route path="test/:testId" element={<TestRunner />} />
 
-                {/* fallback */}
+                
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Route>
             </Route>
 
-          {/* -------- ADMIN -------- */}
+          
           <Route
             path="/admin/*"
             element={
@@ -82,7 +78,7 @@ export default function App() {
                   <Sidebar />
                   <BreadcrumbsNav />
                   <div className={styles.mainArea}>
-                    {/* <main className={`scrollbar ${styles.mainContent}`}> */}
+                    
                       <main className={`${styles.mainContent}`}>
                       <Routes>
                         <Route path="dashboard" element={<AdminDashboard />} />

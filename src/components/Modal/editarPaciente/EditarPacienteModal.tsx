@@ -6,7 +6,6 @@ import noEntry from "../../../assets/Icons/no-entry(2).svg";
 import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 
-// Tests disponibles
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K-10" },
   { id: "bfq", nombre: "Escala BFQ" },
@@ -33,16 +32,11 @@ export default function EditarPacienteModal({
   const [fechaFin, setFechaFin] = useState("");
   const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
 
-  // ---------------------------
-  // Sync inicial
-  // ---------------------------
-  // 🔥 Convertimos el Timestamp de Firebase a un Date de JS, y luego a String para el input
   useEffect(() => {
     if (abierto && paciente) {
       setActivo(paciente.activo);
       setTestsSeleccionados(asignacionesActuales);
 
-      // Si la fecha es null, ponemos un string vacío para el input
       if (paciente.fechaFinAcceso) {
         const date = paciente.fechaFinAcceso.toDate
           ? paciente.fechaFinAcceso.toDate()
@@ -57,9 +51,6 @@ export default function EditarPacienteModal({
     }
   }, [abierto, paciente, asignacionesActuales]);
 
-  // ---------------------------
-  // Toggle test
-  // ---------------------------
   const toggleTest = (testId: string) => {
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
@@ -68,32 +59,33 @@ export default function EditarPacienteModal({
     );
   };
 
-  // ---------------------------
-  // Guardar
-  // ---------------------------
 
   const manejarGuardar = async () => {
-    // 1. Verificación de seguridad
     if (!paciente?.id) {
       console.error("No se encontró el ID del paciente para actualizar");
       return;
     }
 
     try {
-      // 2. Convertir el string del input "YYYY-MM-DD" a objeto Date
-      // Usamos el reemplazo de guiones por barras para evitar el error de zona horaria que resta un día
       const dateObj = new Date(fechaFin.replace(/-/g, "\/"));
+      const inicio = paciente?.fechaInicioAcceso?.toDate
+        ? paciente.fechaInicioAcceso.toDate()
+        : new Date(paciente?.fechaInicioAcceso);
+      if (inicio instanceof Date && !Number.isNaN(inicio.getTime())) {
+        const maxFin = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+        if (dateObj.getTime() > maxFin.getTime()) {
+          alert("La fecha de fin no puede superar las 24 horas desde la fecha de inicio.");
+          return;
+        }
+      }
 
-      // 3. Crear la referencia correcta
       const pacienteRef = doc(db, "pacientes", paciente.id);
 
       await updateDoc(pacienteRef, {
         activo: activo,
         fechaFinAcceso: dateObj, // Firebase lo guardará como Timestamp
       });
-      // 🔥 SINCRONIZAR TESTS
 
-// 1. Traer asignaciones actuales desde Firebase
 const asignacionesSnap = await getDocs(
   query(collection(db, "asignaciones"), where("pacienteId", "==", paciente.id))
 );
@@ -103,17 +95,14 @@ const actuales = asignacionesSnap.docs.map(doc => ({
   testId: doc.data().testId
 }));
 
-// 2. Detectar cuáles agregar
 const nuevos = testsSeleccionados.filter(
   test => !actuales.some(a => a.testId === test)
 );
 
-// 3. Detectar cuáles eliminar
 const eliminados = actuales.filter(
   a => !testsSeleccionados.includes(a.testId)
 );
 
-// 4. Crear nuevos
 const crear = nuevos.map(testId =>
   addDoc(collection(db, "asignaciones"), {
     pacienteId: paciente.id,
@@ -123,12 +112,10 @@ const crear = nuevos.map(testId =>
   })
 );
 
-// 5. Borrar eliminados
 const borrar = eliminados.map(a =>
   deleteDoc(doc(db, "asignaciones", a.id))
 );
 
-// 6. Ejecutar todo
 await Promise.all([...crear, ...borrar]);
       onGuardar({
         activo,
@@ -151,7 +138,7 @@ await Promise.all([...crear, ...borrar]);
     >
       <div className={styles.inputContainer}>
         <div className="container">
-          {/* ESTADO */}
+          {}
           <h3>Estado del Acceso</h3>
           <div className={`nav ${styles.estadoContainer}`}>
             <div className={styles.inputGroup}>
@@ -165,19 +152,31 @@ await Promise.all([...crear, ...borrar]);
               </select>
             </div>
 
-            {/* FECHA */}
+            {}
             <div className={styles.inputGroup}>
               <label>Fecha límite de acceso</label>
               <input
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
+                min={
+                  paciente?.fechaInicioAcceso
+                    ? new Date(
+                        (paciente.fechaInicioAcceso.toDate
+                          ? paciente.fechaInicioAcceso.toDate()
+                          : new Date(paciente.fechaInicioAcceso)
+                        ).getTime(),
+                      )
+                        .toISOString()
+                        .slice(0, 10)
+                    : undefined
+                }
               />
             </div>
           </div>
 
 <h3>Tests asignados</h3>
-          {/* TESTS */}
+          {}
           <div className={styles.inputGroup}>
             
             <div className={styles.testsGrid}>
@@ -195,7 +194,7 @@ await Promise.all([...crear, ...borrar]);
           </div>
         </div>
 
-        {/* BOTONES */}
+        {}
         <div className={styles.modalButtons}>
           <BotonPersonalizado
             variant="primary"
