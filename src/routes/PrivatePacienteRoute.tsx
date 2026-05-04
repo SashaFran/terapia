@@ -9,4 +9,3 @@ export default function PrivatePacienteRoute({ children }: any) {
 
   return <Outlet />;
 }
-

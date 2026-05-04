@@ -8,13 +8,21 @@ export default function SubirDNI() {
   const [file, setFile] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [dniUrl, setDniUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const pacienteData = localStorage.getItem("paciente");
-    if (!pacienteData) return;
+    if (!pacienteData) {
+      setLoading(false);
+      return;
+    }
     const paciente = JSON.parse(pacienteData);
     setDniUrl(paciente.archivodni || null);
+    setLoading(false);
   }, []);
+  if (loading) {
+    return <div className={styles.loading}>Cargando pantalla...</div>;
+  }
 
   const handleUpload = async () => {
     const CLOUD_NAME = "dni13rket";
@@ -27,19 +35,14 @@ export default function SubirDNI() {
     setSubiendo(true);
 
     try {
-      // 1. DISPARAR BORRADO (Sin 'await' crítico)
-      // Lo lanzamos y si falla, que falle solo, no nos detiene.
       if (paciente.dni_public_id) {
         fetch("http://localhost:3001/api/delete-cloudinary", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ public_id: paciente.dni_public_id }),
-        }).catch((err) =>
-          console.log("El borrado falló silenciosamente, normal en localhost."),
-        );
+        }).catch(() => undefined);
       }
 
-      // 2. SUBIR NUEVA IMAGEN (Lógica de Cloudinary API directa)
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "joinsolution_bucket");
@@ -52,7 +55,6 @@ export default function SubirDNI() {
       const data = await resCloud.json();
       if (data.error) throw new Error(data.error.message);
 
-      // 3. ACTUALIZAR FIREBASE Y LOCALSTORAGE
       const nuevoEstado = {
         ...paciente,
         archivodni: data.secure_url,
@@ -77,7 +79,7 @@ export default function SubirDNI() {
   return (
     <div className="container">
       <div className="layout">
-        {/* PANEL */}
+        {}
         <div className="panelVertical">
           <div className={`card panelVertical ${styles.cardPaciente}`}>
             <h2>Tu Documentación</h2>
@@ -94,7 +96,7 @@ export default function SubirDNI() {
           </div>
         </div>
 
-        {/* SUBIDA */}
+        {}
         <div
           className={`container card padding justify-content-space-around ${styles.containerDNI}`}
         >

@@ -13,7 +13,7 @@ color: var(--font-color);
   position: relative;
 }
 table{
-/*   height: 100%; OJO CUIDADO*/
+
   table-layout: auto;
   width: var(--width-complete);   
 }
@@ -22,7 +22,7 @@ table{
   width: 1%;
   white-space: nowrap;
 }
-/* CONTENEDOR */
+
 .tablaPacientes {
   background: white;
   border-radius: var(--radius);
@@ -30,12 +30,12 @@ table{
   box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
   width: var(--width-complete);
 }
-/* TABLA */
+
 .tablaPacientes table {
   width: var(--width-complete);
   border-collapse: collapse;
   font-size: 14px;
-  height: auto; /* IMPORTANTE: para que no se estire al alto del div */
+  height: auto; 
   min-height: auto;
 }
 
@@ -59,7 +59,7 @@ table{
   height: 48px;
 }
 
-/* CELDAS */
+
 .tablaPacientes th,
 .tablaPacientes td {
   padding: 10px;
@@ -72,7 +72,7 @@ table{
   border-bottom: 1px solid #eef1f6;
 }
 
-/* ALTURA FILAS */
+
 .tablaPacientes tbody tr {
   height: 50px;
 }
@@ -85,14 +85,14 @@ table{
   gap: 2rem;
   height: 100%;
 }
-/* BOTONES */
+
 .tablaPacientes td > * {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* NAV */
+
 .nav {
   display: flex;
   justify-content: space-between;
@@ -114,16 +114,16 @@ display: flex;
   height: 100%;
 }
 
-/* CONTENEDOR */
 
-/* TABLA */
+
+
 .tablaPacientes table {
   width: var(--width-complete);
   border-collapse: collapse;
   font-size: 14px;
 }
 
-/* HEADER */
+
 .tablaPacientes thead {
   background: var(--naranja2);
 }
@@ -135,11 +135,11 @@ display: flex;
   text-align: center;
   position: sticky;
   top: 0;
-/*   z-index: 2; */
+
 }
 
 
-/* CELDAS */
+
 .tablaPacientes td {
   padding: 12px;
   text-align: center;
@@ -147,24 +147,24 @@ display: flex;
   color: #333;
 }
 
-/* GRID SUAVE */
+
 .tablaPacientes th,
 .tablaPacientes td {
   border-bottom: 1px solid #f1f1f1;
 }
 
-/* ZEBRA (efecto Excel suave) */
+
 .tablaPacientes tbody tr:nth-child(even) {
-  background: #faf5f6; /* pastel rosado ultra suave */
+  background: #faf5f6; 
 }
 
-/* HOVER */
+
 .tablaPacientes tbody tr:hover {
   background: #FFE0BD;
   transition: 0.2s ease;
 }
 
-/* BOTONES DENTRO */
+
 .tablaPacientes td > * {
   display: inline-flex;
   align-items: center;

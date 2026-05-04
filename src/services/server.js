@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 dotenv.config();
 const app = express();
 
-// CORS configurado para aceptar TODO desde tu React
 app.use(cors({
   origin: true, 
   credentials: true,
@@ -23,12 +22,9 @@ cloudinary.config({
 
 app.post("/api/delete-cloudinary", async (req, res) => {
   const { public_id } = req.body;
-  console.log("🗑️ Solicitud para borrar:", public_id);
 
   try {
-    // Intentamos borrar (invalidate limpia la caché de la URL)
     const result = await cloudinary.uploader.destroy(public_id, { invalidate: true });
-    console.log("✅ Resultado:", result);
     res.json(result);
   } catch (error) {
     console.error("❌ Error:", error);
@@ -43,7 +39,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Si el origen está en la lista o es una petición interna, permitimos
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -53,8 +48,5 @@ app.use(cors({
   credentials: true
 }));
 app.post('/api/delete-resultado', (req, res) => {
-    // ... tu lógica de borrado
     res.json({ message: "Eliminado con éxito" });
 });
-
-app.listen(3001, () => console.log("Servidor en puerto 3001"));

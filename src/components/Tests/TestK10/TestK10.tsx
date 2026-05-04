@@ -30,7 +30,7 @@ export default function TestK10({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId: resolvedUserId,
     testId: "k10",
-    timeLimitMs: 15 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
     onFinish: async (data) => {
       if (onFinish) await onFinish(data);
       navigate("/app/dashboard", { replace: true });

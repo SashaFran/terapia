@@ -20,9 +20,6 @@ export const RAVEN_TEST = {
     img7, img8, img9, img10, img11, img12
   ],
 
-  // ---------------------------
-  // 🧠 Interpretación clínica
-  // ---------------------------
   interpretarResultado: (errores: number) => {
     if (errores === 0) return "Superior";
     if (errores <= 2) return "Normal Superior";
@@ -30,9 +27,6 @@ export const RAVEN_TEST = {
     return "Inferior";
   },
 
-  // ---------------------------
-  // 🧠 Resumen clínico automático
-  // ---------------------------
   generarResumenClinico: ({
     pacienteNombre,
     fecha,
@@ -71,9 +65,6 @@ Nivel: ${nivel}
 Detalle de respuestas:
 `;
 
-    // ---------------------------
-    // 🧾 RESPUESTAS
-    // ---------------------------
     respuestas?.forEach((r: any, i: number) => {
       const texto =
         typeof r === "string"
@@ -83,9 +74,6 @@ Detalle de respuestas:
       contenido += `Matriz ${i + 1}: ${texto}\n`;
     });
 
-    // ---------------------------
-    // 🧠 Interpretación clínica
-    // ---------------------------
     let interpretacion = "";
 
     if (nivel === "Superior") {

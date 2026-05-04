@@ -11,14 +11,11 @@ export const descargarInforme = async (resultado: any, paciente: any) => {
 
   try {
     const rutaDNI = paciente?.archivodni;
-    console.log("DNI URL:", urlDNI);
-console.log("Captura URL:", urlCaptura);
 
     if (rutaDNI && !rutaDNI.startsWith("blob:")) {
       urlDNI = await getDownloadURL(ref(storage, rutaDNI));
     }
   } catch (e) {
-    console.log("DNI no encontrado");
   }
 
   try {
@@ -28,7 +25,6 @@ console.log("Captura URL:", urlCaptura);
   urlCaptura = await getDownloadURL(ref(storage, resultado.archivoCaptura));
 }
   } catch (e) {
-    console.log("Captura no encontrada");
   }
 
 await generarPdfResultado({
