@@ -93,10 +93,7 @@ export default function Sesiones() {
     cargarDatos();
   }, []);
 
-  // Función corregida para descargar el PDF con fotos
-  // Función auxiliar para convertir URL a Base64
   const urlToBase64 = async (url: string): Promise<string> => {
-    // El '?t=' + Date.now() fuerza al navegador a pedir la imagen de nuevo, saltando bloqueos de caché
     const response = await fetch(url + "&t=" + Date.now(), {
       mode: "cors",
     });

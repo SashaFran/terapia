@@ -2,7 +2,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 const getBase64FromUrl = async (url: string) => {
-  // 🔥 pequeño delay para asegurar disponibilidad en Cloudinary
   await new Promise(r => setTimeout(r, 500));
 
   const res = await fetch(url, { mode: "cors" });
@@ -20,7 +19,6 @@ const getBase64FromUrl = async (url: string) => {
   });
 };
 
-// Función crítica para asegurar que la imagen esté lista para jsPDF
 const cargarImagen = (src: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -42,14 +40,12 @@ export async function generarPdfResultado({
   const doc = new jsPDF();
   const margin = 14;
 
-  // Encabezado
   doc.setFontSize(16);
   doc.text("Informe de Evaluación Psicológica", margin, 20);
   doc.setFontSize(11);
   doc.text(`Paciente: ${pacienteNombre}`, margin, 30);
   doc.text(`Test: ${resultado.testId?.toUpperCase()}`, margin, 36);
 
-  // Sección de Identidad con carga asíncrona
   doc.setFontSize(12);
   doc.text("Verificación de Identidad", margin, 55);
 
@@ -68,7 +64,6 @@ if (fotoDNI) {
   }
 }
 
-// PROCESAR CAPTURA (Independiente del DNI)
 if (fotoCaptura) {
   try {
     const base64Captura = await getBase64FromUrl(fotoCaptura);
@@ -91,7 +86,6 @@ if (fotoCaptura) {
   const currentY = 105;
   doc.setFontSize(12);
   doc.text("Verificación de Identidad", margin, 55);
-  // Resultados
   doc.setFontSize(12);
   doc.text("Resultado", margin, currentY);
   doc.setFontSize(11);

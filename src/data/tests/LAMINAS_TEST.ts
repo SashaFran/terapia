@@ -19,16 +19,10 @@ export const LAMINAS_TEST = {
     "Test de Bender - Imagen 8",
   ],
 
-  // ---------------------------
-  // 🧠 Interpretación base
-  // ---------------------------
   interpretarResultado: () => {
     return "Evaluación proyectiva cualitativa";
   },
 
-  // ---------------------------
-  // 🧠 Resumen clínico automático
-  // ---------------------------
   generarResumenClinico: ({
     pacienteNombre,
     fecha,
@@ -45,9 +39,6 @@ export const LAMINAS_TEST = {
       return "No se registraron respuestas durante la evaluación.";
     }
 
-    // ---------------------------
-    // 🧾 Header
-    // ---------------------------
     let contenido = `
 INFORME CLÍNICO PSICOLÓGICO
 Evaluación Proyectiva con Láminas
@@ -62,9 +53,6 @@ Técnicas proyectivas gráficas (Zulliger y Test de Bender)
 Resultados obtenidos:
 `;
 
-    // ---------------------------
-    // 🧠 ZULLIGER
-    // ---------------------------
     contenido += `\n🧠 ZULLIGER\n`;
 
     if (respuestas.zulliger?.length) {
@@ -80,9 +68,6 @@ Resultados obtenidos:
       contenido += "Sin respuestas registradas.\n";
     }
 
-    // ---------------------------
-    // 🧠 BENDER
-    // ---------------------------
     contenido += `\n🧠 BENDER\n`;
 
     if (respuestas.bender?.length) {
@@ -98,9 +83,6 @@ Resultados obtenidos:
       contenido += "Sin respuestas registradas.\n";
     }
 
-    // ---------------------------
-    // 🧠 Interpretación clínica
-    // ---------------------------
     contenido += `
 
 Interpretación clínica:

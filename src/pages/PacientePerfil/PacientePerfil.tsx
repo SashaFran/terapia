@@ -13,7 +13,6 @@ import {
   where,
 } from "firebase/firestore";
 
-// Componentes y Estilos
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
 import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal.tsx";
@@ -25,14 +24,12 @@ import editar from "../../assets/Icons/pen.svg";
 import borrar from "../../assets/Icons/trash.svg";
 import configuracion from "../../assets/Icons/wrench-circle.svg";
 
-// Utilidades de descarga
 import { descargarInforme } from "../../utils/descargarInforme";
 import { generarPdfResultado } from "../../utils/generarPdfResultado";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 
-// -------- INTERFACES --------
 interface Resultado {
   id: string;
   fecha?: any;
@@ -65,7 +62,6 @@ export default function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // -------- ESTADOS --------
   const [patient, setPatient] = useState<Paciente | null>(null);
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
@@ -83,7 +79,6 @@ export default function PacientePerfil() {
   const abrirConfirm = (config: any) => {
     setConfirmData(config);
   };
-  // -------- EFECTOS (Carga de Datos) --------
   useEffect(() => {
     if (!id) return;
     localStorage.setItem("pacienteId", id);
@@ -96,7 +91,6 @@ export default function PacientePerfil() {
           ...pacienteSnap.data(),
         } as unknown as Paciente);
       }
-      // Cargar Resultados
       const resSnap = await getDocs(
         query(collection(db, "resultados"), where("pacienteId", "==", id)),
       );
@@ -104,7 +98,6 @@ export default function PacientePerfil() {
         resSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Resultado[],
       );
 
-      // Cargar Asignaciones
       const asignSnap = await getDocs(
         query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
       );
@@ -130,7 +123,6 @@ export default function PacientePerfil() {
         : new Date(patient.fechaFinAcceso);
     }
 
-    // 🔥 Si está expirado PERO sigue activo en DB → lo corregimos
     if (fin && ahora > fin && patient.activo === true) {
       const actualizarEstado = async () => {
         try {
@@ -138,7 +130,6 @@ export default function PacientePerfil() {
             activo: false,
           });
 
-          // 🧠 actualizamos estado local también
           setPatient((prev) => (prev ? { ...prev, activo: false } : prev));
         } catch (error) {
           console.error("Error auto-expirando paciente:", error);
@@ -160,7 +151,6 @@ export default function PacientePerfil() {
     setTableData(data);
   }, [resultados]);
 
-  // -------- HELPERS --------
   const formatearFecha = (timestamp: any) => {
     if (!timestamp) return "N/A";
     if (timestamp.toDate) return timestamp.toDate().toLocaleDateString("es-AR");
@@ -172,7 +162,6 @@ export default function PacientePerfil() {
 
     const ahora = new Date();
 
-    // 1. Manejo seguro de fecha nula o Timestamp
     let fin: Date | null = null;
     if (patient.fechaFinAcceso) {
       fin = patient.fechaFinAcceso.toDate
@@ -180,7 +169,6 @@ export default function PacientePerfil() {
         : new Date(patient.fechaFinAcceso);
     }
 
-    // 2. Validaciones en orden
     if (asignaciones.some((a) => a.estado === "abandono")) return "⚠️ Abandono";
     if (fin && ahora > fin) return "⛔ Expirado";
     if (patient.activo === false) return "⛔ Inactivo";
@@ -193,7 +181,6 @@ export default function PacientePerfil() {
     return asignaciones.length === completados ? "✔️ Completado" : "🟢 Activo";
   };
 
-  // -------- ACCIONES DE DESCARGA --------
   const descargarIndividual = async (r: any) => {
     await generarPdfResultado({
       pacienteNombre: patient?.nombre,
@@ -245,7 +232,6 @@ export default function PacientePerfil() {
     );
   };
 
-  // -------- MANEJO DE MODALES --------
   const handleOpenModal = (r: Resultado) => {
     setSelectedResultado(r);
     setIsModalOpen(true);
@@ -271,17 +257,14 @@ export default function PacientePerfil() {
 
   if (!patient) return <h2>Cargando...</h2>;
 
-  // -------- ACCIÓN CONFIGURACIÓN --------
   const handleGuardarConfig = async (datosActualizados: any) => {
     if (!id) return;
 
-    // 🔥 1. Actualizar paciente
     await updateDoc(doc(db, "pacientes", id), {
       activo: datosActualizados.activo,
       fechaFinAcceso: datosActualizados.fechaFinAcceso,
     });
 
-    // 🔥 2. Sync de tests (ACÁ está la magia)
     const asignSnap = await getDocs(
       query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
     );
@@ -299,7 +282,6 @@ export default function PacientePerfil() {
       (a) => !datosActualizados.testsSeleccionados.includes(a.testId),
     );
 
-    // Crear nuevos
     await Promise.all(
       nuevos.map((testId: string) =>
         addDoc(collection(db, "asignaciones"), {
@@ -311,12 +293,10 @@ export default function PacientePerfil() {
       ),
     );
 
-    // Borrar eliminados
     await Promise.all(
       eliminados.map((a) => deleteDoc(doc(db, "asignaciones", a.id))),
     );
 
-    // 🔥 3. Recargar asignaciones (IMPORTANTE)
     const nuevoSnap = await getDocs(
       query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
     );
@@ -328,7 +308,6 @@ export default function PacientePerfil() {
       })) as Asignacion[],
     );
   };
-  // -------- UI (RENDER) --------
   return (
     <div className={styles.layout}>
       <div className={"panelVertical"}>
@@ -395,11 +374,7 @@ export default function PacientePerfil() {
                       ),
                     ]);
 
-                    await fetch("http://localhost:3001/api/delete-paciente", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ pacienteId: id }),
-                    });
+                    await deleteDoc(doc(db, "pacientes", id));
                     navigate("/admin/pacientes");
                   } finally {
                     setLoadingConfirm(false);
@@ -496,7 +471,7 @@ export default function PacientePerfil() {
           </div>
         </div>
 
-        {/* TABLA 2: Evaluaciones */}
+        {}
         <div className={styles.bloqueTabla}>
           <div className={styles.nav}>
             <h3>Evaluaciones</h3>
@@ -568,7 +543,7 @@ export default function PacientePerfil() {
         </div>
       </div>
 
-      {/* MODALES */}
+      {}
       {isConfigOpen && (
         <EditarPacienteModal
           abierto={isConfigOpen}

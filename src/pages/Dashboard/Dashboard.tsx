@@ -53,9 +53,6 @@ export default function Dashboard() {
           }
           return undefined;
         };
-        // -------------------------
-        // 📊 TEST MÁS USADO
-        // -------------------------
         const conteo: Record<string, number> = {};
 
         resultados.forEach((r) => {
@@ -82,9 +79,6 @@ export default function Dashboard() {
         setDataNiveles(niveles);
         if (niveles.length) setTestMasUsado(niveles[0].label);
 
-        // -------------------------
-        // 📈 GRÁFICO REAL POR MES
-        // -------------------------
         const meses: Record<string, number> = {};
 
         resultados.forEach((r) => {
@@ -110,9 +104,6 @@ export default function Dashboard() {
 
         setDataGrafico(dataGraf);
 
-        // -------------------------
-        // 🕒 ACTIVIDAD RECIENTE
-        // -------------------------
         const q = query(
           collection(db, "resultados"),
           orderBy("fecha", "desc"),
@@ -143,7 +134,7 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return <div className={styles.loading}>Cargando Dashboard...</div>;
+    return <div className={styles.loading}>Cargando pantalla...</div>;
   }
 
   return (
@@ -208,7 +199,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* 📊 BARRAS */}
+          {}
           <div className="card paddingHorizontal">
             <h3>Uso por Test</h3>
 

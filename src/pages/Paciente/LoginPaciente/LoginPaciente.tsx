@@ -35,7 +35,6 @@ export default function LoginPaciente() {
     const dniLimpio = dni.replace(/\D/g, "");
 
     try {
-      // 🔍 1. Buscar paciente
       const q = query(
         collection(db, "pacientes"),
         where("dni", "==", dniLimpio),
@@ -50,13 +49,11 @@ export default function LoginPaciente() {
       const docPaciente = snap.docs[0];
       const pacienteData = docPaciente.data();
 
-      // 🔐 2. Validar password
       if (pacienteData.password !== password) {
         setError("Contraseña incorrecta");
         return;
       }
 
-      // 📦 3. Traer asignaciones
       const qAsignaciones = query(
         collection(db, "asignaciones"),
         where("pacienteId", "==", docPaciente.id),
@@ -69,7 +66,6 @@ export default function LoginPaciente() {
         ...d.data(),
       }));
 
-      // 🧠 4. Evaluar acceso (VERSIÓN SANA)
       const ahora = new Date();
 
       const finRaw = pacienteData.fechaFinAcceso?.toDate?.();
@@ -77,7 +73,6 @@ export default function LoginPaciente() {
       let accesoVencido = false;
 
       if (finRaw) {
-        // 🔥 FORZAMOS fin de día LOCAL (no UTC)
         const fin = new Date(
           finRaw.getFullYear(),
           finRaw.getMonth(),

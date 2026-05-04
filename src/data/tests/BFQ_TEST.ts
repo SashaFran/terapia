@@ -19,7 +19,6 @@ export const BFQ_TEST = {
     { label: "Completamente verdadero para mí", valor: 5 },
   ],
   
-  // Mapeo oficial (índice 0 = Pregunta 1 del PDF). w: 1 (Directa), w: -1 (Inversa)
   mapeo: {
     energia: [
       {i:0, w:1}, {i:12, w:1}, {i:21, w:1}, {i:24, w:1}, {i:38, w:1}, {i:52, w:1}, {i:58, w:1}, {i:72, w:1}, {i:87, w:1}, {i:93, w:1}, {i:101, w:1}, {i:113, w:1},
@@ -183,9 +182,6 @@ preguntas: [
   "No creo que sea útil perder tiempo repasando varias veces el trabajo hecho."
 ],
 
-  // ---------------------------
-  // 🔢 Interpretación clínica
-  // ---------------------------
   interpretarResultado: (respuestas: number[]) => {
     const calcular = (dimension: {i: number, w: number}[]) => {
       return dimension.reduce((acc, curr) => {

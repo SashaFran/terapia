@@ -74,11 +74,9 @@ useEffect(() => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       
-      // ✅ CAMBIO 1: Usamos el nombre exacto de tu Firestore
       const fechaFin = data.fechaFinAcceso; 
 
       if (fechaFin) {
-        // ✅ CAMBIO 2: Convertimos el objeto {seconds, nanoseconds} a una fecha de JS
         const fechaParaCalculo = fechaFin.toDate ? fechaFin.toDate() : new Date(fechaFin.seconds * 1000);
 
         const updateContador = () => {
@@ -106,10 +104,8 @@ useEffect(() => {
   const paciente = JSON.parse(localStorage.getItem("paciente") || "null");
   const nombre = paciente?.nombre || "Usuario";
 
-  // ADMIN
   const emailAdmin = localStorage.getItem("email");
 
-  // -------- NORMALIZACIÓN --------
   let displayName = "Usuario";
   let subText = "";
   let iniciales = "?";
@@ -136,12 +132,12 @@ useEffect(() => {
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.navbar}>
-        {/* IZQUIERDA */}
+        {}
         <div className={styles.left}>
           <img src={logo} alt="Logo" />
         </div>
 
-        {/* CENTRO */}
+        {}
         <div className={styles.center}>
           {links.map((link) => (
             <Link
@@ -156,7 +152,7 @@ useEffect(() => {
           ))}
         </div>
 
-        {/* DERECHA (USER) */}
+        {}
         <div className={`boton-secondary ${styles.right}`}>
           <div className={styles.userWrapper}>
             <div className={styles.userTrigger}>
@@ -167,12 +163,12 @@ useEffect(() => {
                 <span className={styles.sub}>{subText}</span>
               </div>
               <div> </div>
-              {/* <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span> */}
+              {}
             </div>
 
-            {/* SUBMENU PRO */}
+            {}
             <div className={`${styles.subMenu} ${styles.triple}`}>
-              {/* 👤 PACIENTE */}
+              {}
               {rol !== "admin" && (
                 <>
                   <div className={styles.topContainer}>
@@ -196,7 +192,7 @@ useEffect(() => {
                 </>
               )}
 
-              {/* 🔐 COMÚN A TODOS */}
+              {}
               <div className={styles.box}>
                 <BotonPersonalizado
                   variant="secondary"

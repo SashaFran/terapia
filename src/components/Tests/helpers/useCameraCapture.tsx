@@ -72,7 +72,6 @@ export function useCameraCapture({
 
           const data = await resCloud.json();
 
-          console.log("📸 CAPTURA OK:", data);
 
           setImageUrl(data.secure_url);
           setPublicId(data.public_id);

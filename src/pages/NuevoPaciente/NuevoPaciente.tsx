@@ -6,7 +6,6 @@ import { db, auth } from "../../firebase/firebase";
 import styles from "./NuevoPaciente.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 
-// 🧠 Tests disponibles
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K10" },
   { id: "bfq", nombre: "Personalidad BFQ" },
@@ -79,7 +78,6 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
       const email = `${dniLimpio}@paciente.com`;
       const password = dniLimpio.slice(-6);
 
-      // 🔐 CREAR USUARIO AUTH
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -88,7 +86,6 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
 
       const uid = userCredential.user.uid;
 
-      // 🧠 GUARDAR PACIENTE
       await addDoc(collection(db, "pacientes"), {
         uid,
         nombre: formData.nombre,
@@ -103,7 +100,6 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         createdAt: Timestamp.now(),
       });
 
-      // 🧠 ASIGNACIONES
       await Promise.all(
         testsSeleccionados.map((testId) =>
           addDoc(collection(db, "asignaciones"), {
@@ -116,7 +112,6 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         ),
       );
 
-      // 🚪 IMPORTANTE: volver a estado limpio
       await signOut(auth);
 
       alert(`Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
@@ -137,7 +132,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
 
   return (
     <div>
-      {/* HEADER */}
+      {}
       <div className="nav">
         <h2>Registrar nuevo paciente</h2>
 
@@ -152,7 +147,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         </BotonPersonalizado>
       </div>
 
-      {/* FORM */}
+      {}
       <form className={styles.form} onSubmit={guardarPaciente}>
         <div className={styles.inputGroup}>
           <div className={`container`}>

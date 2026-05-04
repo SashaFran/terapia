@@ -118,13 +118,11 @@ export default function TestRunner() {
       captura_public_id: resultado.captura_public_id || null,
     };
 
-    // K10
     if (testId === "k10") {
       data.score = resultado.score;
       data.nivel = resultado.nivel;
     }
 
-    // BFQ
     if (testId === "bfq") {
       const scoreTotal = Object.values(resultado.dimensiones || {})
         .reduce((acc: number, val: any) => acc + (val || 0), 0);
@@ -134,13 +132,11 @@ export default function TestRunner() {
       data.dimensiones = resultado.dimensiones;
     }
 
-    // Raven
     if (testId === "raven") {
       data.nivel = resultado.nivel;
       data.errores = resultado.errores;
     }
 
-    // Láminas
     if (testId === "laminas") {
       data.nivel = "Interpretación Láminas";
       data.resumenClinico = generarResumenLaminas({
@@ -150,13 +146,11 @@ export default function TestRunner() {
       });
     }
 
-    // 💾 GUARDAR
     testCompletadoRef.current = true;
     clearTestEnCurso();
 
     await addDoc(collection(db, "resultados"), data);
 
-    // 🔥 ACTUALIZAR ASIGNACIÓN
     const q = query(
       collection(db, "asignaciones"),
       where("pacienteId", "==", pacienteId),

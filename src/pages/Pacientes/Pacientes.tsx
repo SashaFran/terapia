@@ -53,9 +53,6 @@ export default function Dashboard() {
   });
   const [showForm, setShowForm] = useState(false);
 
-  // ---------------------------------------
-  // Cargar pacientes al montar componente
-  // ---------------------------------------
   useEffect(() => {
     cargarPacientes();
   }, []);
@@ -68,7 +65,6 @@ export default function Dashboard() {
         querySnapshot.docs.map(async (docPaciente) => {
           const docData = docPaciente.data();
 
-          // 🔥 CONTAMOS RESULTADOS DE ESTE PACIENTE
           const q = query(
             collection(db, "resultados"),
             where("pacienteId", "==", docPaciente.id),
@@ -101,9 +97,6 @@ export default function Dashboard() {
     obtenerEstadisticasPacientes().then(setStats);
   }, []);
 
-  // ---------------------------------------
-  // Render
-  // ---------------------------------------
 
   if (loading) {
     return (

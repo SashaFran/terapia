@@ -46,7 +46,7 @@ export default function TestPage() {
 
       {etapa === "test" && (
   <>
-    {/* Test Kessler K10 */}
+    {}
     {testId === "k10" && (
       <TestK10
         userId={pacienteId}
@@ -55,7 +55,7 @@ export default function TestPage() {
       />
     )}
 
-    {/* Test Big Five (BFQ) */}
+    {}
     {testId === "bfq" && (
       <TestBFQ
         userId={pacienteId}

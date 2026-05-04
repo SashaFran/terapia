@@ -17,7 +17,6 @@ export default function TestsPaciente() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🧠 CALCULAR PROGRESO
   const calcularProgreso = (tests: Test[]) => {
     const total = tests.length;
     const realizados = tests.filter((t) => t.estado === "completado").length;
@@ -31,7 +30,6 @@ export default function TestsPaciente() {
   const { realizados, total } = calcularProgreso(tests);
   const dniCargado = !!paciente?.archivodni;
 
-  // 🧠 CARGAR PACIENTE + TESTS
   useEffect(() => {
     const fetchData = async () => {
       const data = localStorage.getItem("paciente");
@@ -60,7 +58,6 @@ export default function TestsPaciente() {
     fetchData();
   }, []);
 
-  // ⏳ LOADING REAL
   if (loading) {
     return <div className={styles.loading}>Cargando pantalla...</div>;
   }
@@ -68,7 +65,7 @@ export default function TestsPaciente() {
   return (
     <div className={`container`}>
       <div className={`layout`}>
-        {/* PROGRESO */}
+        {}
         <div className={"panelVertical"}>
           <div className={`card panelVertical ${styles.cardPaciente}`}>
                 <h2>Tests asignados</h2>
@@ -86,7 +83,7 @@ export default function TestsPaciente() {
             
         </div>
 
-        {/* TABLA */}
+        {}
         <main className="scrollbar">
           <div className="tablaPacientes">
           <table>
