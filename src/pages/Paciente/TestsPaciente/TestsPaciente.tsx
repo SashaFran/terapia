@@ -62,11 +62,7 @@ export default function TestsPaciente() {
 
   // ⏳ LOADING REAL
   if (loading) {
-    return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando…</h2>
-      </div>
-    );
+    return <div className={styles.loading}>Cargando pantalla...</div>;
   }
 
   return (

@@ -8,13 +8,21 @@ export default function SubirDNI() {
   const [file, setFile] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [dniUrl, setDniUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const pacienteData = localStorage.getItem("paciente");
-    if (!pacienteData) return;
+    if (!pacienteData) {
+      setLoading(false);
+      return;
+    }
     const paciente = JSON.parse(pacienteData);
     setDniUrl(paciente.archivodni || null);
+    setLoading(false);
   }, []);
+  if (loading) {
+    return <div className={styles.loading}>Cargando pantalla...</div>;
+  }
 
   const handleUpload = async () => {
     const CLOUD_NAME = "dni13rket";
@@ -34,9 +42,7 @@ export default function SubirDNI() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ public_id: paciente.dni_public_id }),
-        }).catch((err) =>
-          console.log("El borrado falló silenciosamente, normal en localhost."),
-        );
+        }).catch(() => undefined);
       }
 
       // 2. SUBIR NUEVA IMAGEN (Lógica de Cloudinary API directa)

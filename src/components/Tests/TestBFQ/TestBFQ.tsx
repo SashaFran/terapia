@@ -37,7 +37,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId,
     testId: "bfq",
-    timeLimitMs: 20 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
     onFinish: async (data) => {
       await onFinish(data);
       navigate("/app/tests", { replace: true });

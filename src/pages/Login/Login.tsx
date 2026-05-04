@@ -3,40 +3,56 @@ import { useNavigate } from "react-router-dom";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./Login.module.css";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../firebase/firebase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth(); // 👈 CLAVE
+  const { login } = useAuth();
 
   const handleLogin = async () => {
-    console.log("CLICK EN LOGIN");
-
     if (!email || !password) {
       setError("Completá email y contraseña");
       return;
     }
 
     try {
+      setLoading(true);
       await login(email, password);
-
-      // 🔥 LIMPIAR SESIÓN PACIENTE
       localStorage.removeItem("paciente");
-
-      // 🔥 SETEAR ROL ADMIN
       localStorage.setItem("rol", "admin");
-
-      console.log("LOGIN OK");
-
       navigate("/admin/dashboard");
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Credenciales incorrectas");
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Ingresá tu email para restablecer la contraseña.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      alert("Te enviamos un correo con un enlace para restablecer tu contraseña.");
+    } catch {
+      setError("No se pudo enviar el correo de restablecimiento.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className={styles.loading}>Cargando pantalla...</div>;
+  }
 
   return (
     <div className="loginContainer">
@@ -73,6 +89,15 @@ export default function Login() {
               disabled={false}
             >
               Ingresar como paciente
+            </BotonPersonalizado>
+          </div>
+          <div className="nav">
+            <BotonPersonalizado
+              variant="secondary"
+              onClick={handleResetPassword}
+              disabled={!email}
+            >
+              Restablecer contraseña
             </BotonPersonalizado>
           </div>
         </div>

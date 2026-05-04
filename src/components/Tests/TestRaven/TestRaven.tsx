@@ -24,7 +24,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId,
     testId: "raven",
-    timeLimitMs: 20 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
     onFinish,
   });
 
