@@ -31,6 +31,7 @@ export default function TestRunner() {
   const pacienteId = localStorage.getItem("pacienteId"); // 🔥 CLAVE
   const testCompletadoRef = useRef(false);
   const bloqueoAplicadoRef = useRef(false);
+  const confirmarSalidaRef = useRef(false);
 
   useEffect(() => {
     if (!pacienteId || !testId) return;
@@ -41,11 +42,26 @@ export default function TestRunner() {
       event.preventDefault();
       event.returnValue = "";
     };
+    const bloquearRetroceso = () => {
+      if (testCompletadoRef.current || confirmarSalidaRef.current) return;
+      const confirmar = window.confirm(
+        "¿Seguro que desea salir? Recuerde que al cerrar no podrá volver a ingresar y deberá comunicarse con Administración para solicitar un nuevo acceso.",
+      );
+      if (!confirmar) {
+        window.history.pushState(null, "", window.location.href);
+        return;
+      }
+      confirmarSalidaRef.current = true;
+      navigate("/app/tests");
+    };
 
     window.addEventListener("beforeunload", bloquearSalida);
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", bloquearRetroceso);
 
     return () => {
       window.removeEventListener("beforeunload", bloquearSalida);
+      window.removeEventListener("popstate", bloquearRetroceso);
 
       if (testCompletadoRef.current || bloqueoAplicadoRef.current || !pacienteId)
         return;
@@ -57,6 +73,18 @@ export default function TestRunner() {
           await updateDoc(doc(db, "pacientes", pacienteId), {
             activo: false,
           });
+          const asignacionesPendientes = await getDocs(
+            query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
+          );
+          await Promise.all(
+            asignacionesPendientes.docs.map((asig) => {
+              const estado = asig.data().estado;
+              if (estado === "completado") return Promise.resolve();
+              return updateDoc(doc(db, "asignaciones", asig.id), {
+                estado: "abandono",
+              });
+            }),
+          );
         } catch (error) {
           console.error("No se pudo bloquear al paciente al salir del test", error);
         } finally {
@@ -69,6 +97,12 @@ export default function TestRunner() {
   const handleFinish = async (resultado: any) => {
     if (!pacienteId || !testId) {
       alert("Faltan datos del paciente");
+      return;
+    }
+    const pacienteSnapPre = await getDoc(doc(db, "pacientes", pacienteId));
+    if (!pacienteSnapPre.exists() || !pacienteSnapPre.data()?.archivodni) {
+      alert("Necesitás subir el DNI antes de realizar tests.");
+      navigate("/app/subir-dni");
       return;
     }
 

@@ -64,12 +64,14 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         return;
       }
 
-      const fechaInicio = new Date(formData.fechaIngreso);
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+      const fechaInicio = new Date(`${formData.fechaIngreso}T00:00:00`);
+      const hoyArgentina = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }),
+      );
+      hoyArgentina.setHours(0, 0, 0, 0);
 
-      if (fechaInicio < hoy) {
-        alert("La fecha no puede ser anterior a hoy");
+      if (fechaInicio < hoyArgentina) {
+        alert("La fecha no puede ser anterior a hoy (hora de Argentina)");
         setLoading(false);
         return;
       }

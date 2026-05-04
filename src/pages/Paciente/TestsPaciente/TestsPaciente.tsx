@@ -29,6 +29,7 @@ export default function TestsPaciente() {
     return new Date(fecha.seconds * 1000).toLocaleDateString("es-AR");
   };
   const { realizados, total } = calcularProgreso(tests);
+  const dniCargado = !!paciente?.archivodni;
 
   // 🧠 CARGAR PACIENTE + TESTS
   useEffect(() => {
@@ -61,11 +62,7 @@ export default function TestsPaciente() {
 
   // ⏳ LOADING REAL
   if (loading) {
-    return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando…</h2>
-      </div>
-    );
+    return <div className={styles.loading}>Cargando pantalla...</div>;
   }
 
   return (
@@ -114,10 +111,21 @@ export default function TestsPaciente() {
                         >
                         Hecho
                       </BotonPersonalizado>
+                    ) : t.estado === "abandono" ? (
+                      <BotonPersonalizado variant="danger" disabled={true}>
+                        Abandonado
+                      </BotonPersonalizado>
                     ) : (
                       <BotonPersonalizado
                         variant="primary"
-                        onClick={() => navigate(`/app/test/${t.testId}`)}
+                        onClick={() => {
+                          if (!dniCargado) {
+                            alert("Antes de iniciar tests, tenés que subir tu DNI.");
+                            navigate("/app/subir-dni");
+                            return;
+                          }
+                          navigate(`/app/test/${t.testId}`);
+                        }}
                         disabled={false}
                       >
                         Comenzar

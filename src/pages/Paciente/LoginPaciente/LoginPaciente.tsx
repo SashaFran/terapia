@@ -93,7 +93,6 @@ export default function LoginPaciente() {
 
       const estaInactivo = pacienteData.activo === false;
 
-      // ⚠️ IMPORTANTE: esto ya NO bloquea login
       const total = asignaciones.length;
       const completados = asignaciones.filter(
         (a: any) => a.estado === "completado",
@@ -103,44 +102,30 @@ export default function LoginPaciente() {
       const dniCargado = !!pacienteData.archivodni;
       const flujoTerminado = testsCompletos && dniCargado;
 
-      console.log("DEBUG LOGIN:", {
-        ahora,
-        finRaw,
-        accesoVencido,
-        estaInactivo,
-        flujoTerminado,
-      });
-
-      // 🚫 5. BLOQUEO REAL (solo lo importante)
       if (accesoVencido || estaInactivo || flujoTerminado) {
         setError("Tu acceso ha expirado.");
 
-        // 🔥 desactivamos en los casos donde aplica
         if ((accesoVencido || flujoTerminado) && pacienteData.activo !== false) {
           try {
             await updateDoc(doc(db, "pacientes", docPaciente.id), {
               activo: false,
             });
-          } catch (e) {
-            console.error("Error desactivando:", e);
-          }
+          } catch {}
         }
 
         return;
       }
 
-      // ✅ 6. Login OK (aunque haya terminado flujo)
       const pacienteLogueado = {
         id: docPaciente.id,
         ...pacienteData,
-        flujoTerminado, // 👈 útil para UI después
+        flujoTerminado,
       };
 
       setPacienteSession(pacienteLogueado, docPaciente.id);
 
       navigate("/app/dashboard");
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Error al intentar ingresar");
     }
   };

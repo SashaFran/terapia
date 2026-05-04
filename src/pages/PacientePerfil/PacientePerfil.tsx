@@ -56,7 +56,7 @@ interface Paciente {
 interface Asignacion {
   id: string;
   testId: string;
-  estado: "pendiente" | "completado";
+  estado: "pendiente" | "completado" | "abandono";
   fechaAsignacion?: any;
   fechaCompletado?: any;
 }
@@ -181,6 +181,7 @@ export default function PacientePerfil() {
     }
 
     // 2. Validaciones en orden
+    if (asignaciones.some((a) => a.estado === "abandono")) return "⚠️ Abandono";
     if (fin && ahora > fin) return "⛔ Expirado";
     if (patient.activo === false) return "⛔ Inactivo";
 

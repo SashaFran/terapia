@@ -83,6 +83,16 @@ export default function EditarPacienteModal({
       // 2. Convertir el string del input "YYYY-MM-DD" a objeto Date
       // Usamos el reemplazo de guiones por barras para evitar el error de zona horaria que resta un día
       const dateObj = new Date(fechaFin.replace(/-/g, "\/"));
+      const inicio = paciente?.fechaInicioAcceso?.toDate
+        ? paciente.fechaInicioAcceso.toDate()
+        : new Date(paciente?.fechaInicioAcceso);
+      if (inicio instanceof Date && !Number.isNaN(inicio.getTime())) {
+        const maxFin = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+        if (dateObj.getTime() > maxFin.getTime()) {
+          alert("La fecha de fin no puede superar las 24 horas desde la fecha de inicio.");
+          return;
+        }
+      }
 
       // 3. Crear la referencia correcta
       const pacienteRef = doc(db, "pacientes", paciente.id);
@@ -172,6 +182,18 @@ await Promise.all([...crear, ...borrar]);
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
+                min={
+                  paciente?.fechaInicioAcceso
+                    ? new Date(
+                        (paciente.fechaInicioAcceso.toDate
+                          ? paciente.fechaInicioAcceso.toDate()
+                          : new Date(paciente.fechaInicioAcceso)
+                        ).getTime(),
+                      )
+                        .toISOString()
+                        .slice(0, 10)
+                    : undefined
+                }
               />
             </div>
           </div>
