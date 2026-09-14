@@ -24,11 +24,17 @@ const TESTS = [
       "Evalúa cinco dimensiones de la personalidad.",
   },
    {
-    id: "laminas",
-    nombre: "Escala de Láminas Zulliger y Bender",
+     id: "zulliger",
+     nombre: "Láminas Zulliger",
     descripcion:
-      "Evaluación proyectiva con láminas visuales.",
+       "Evaluación proyectiva con láminas Zulliger.",
   },
+   {
+     id: "bender",
+     nombre: "Test de Bender",
+     descripcion:
+       "Evaluación gestáltica visomotora (Bender).",
+   },
   {
     id: "raven",
     nombre: "Test de Raven Abreviado",

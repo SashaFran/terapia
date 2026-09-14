@@ -9,7 +9,8 @@ import BotonPersonalizado from "../../components/Boton/Boton";
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K10" },
   { id: "bfq", nombre: "Personalidad BFQ" },
-  { id: "laminas", nombre: "Láminas Zulliger/Bender" },
+  { id: "zulliger", nombre: "Láminas Zulliger" },
+  { id: "bender", nombre: "Test de Bender" },
   { id: "raven", nombre: "Raven Abreviado" },
 ];
 
