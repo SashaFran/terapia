@@ -15,6 +15,8 @@ import TestK10 from "../../components/Tests/TestK10/TestK10";
 import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
 import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
+import TestZulliger from "../../components/Tests/TestZulliger/TestZulliger";
+import TestBender from "../../components/Tests/TestBender/TestBender";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -137,7 +139,7 @@ export default function TestRunner() {
       data.errores = resultado.errores;
     }
 
-    if (testId === "laminas") {
+    if (testId === "zulliger" || testId === "bender") {
       data.nivel = "Interpretación Láminas";
       data.resumenClinico = generarResumenLaminas({
         pacienteNombre: "Paciente",
@@ -206,7 +208,8 @@ export default function TestRunner() {
 
   if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
   if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "laminas") return <TestLaminas onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "zulliger") return <TestZulliger onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "bender") return <TestBender onFinish={handleFinish} userId={pacienteId} />;
   if (testId === "raven") return <TestRaven onFinish={handleFinish} userId={pacienteId} />;
 
   return <p>Test no encontrado</p>;
