@@ -91,35 +91,35 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         uid,
         nombre: formData.nombre,
         dni: dniLimpio,
-        password: password, // 👈 ACÁ ESTÁ LA CLAVE
+        password: password,
         contacto: formData.contacto,
         activo: true,
         fechaInicioAcceso: Timestamp.fromDate(fechaInicio),
         fechaFinAcceso: Timestamp.fromDate(
-  new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
-),
+          new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
+        ),
         createdAt: Timestamp.now(),
       });
 
-      const pacienteId = pacienteDoc.id; // 👈 Usar el ID del documento
+      const pacienteId = pacienteDoc.id;
+      console.log("📋 Paciente creado con ID:", pacienteId);
 
       await Promise.all(
-        testsSeleccionados.map((testId) =>
-          addDoc(collection(db, "asignaciones"), {
-            pacienteId, // 👈 AHORA ES EL ID DEL DOCUMENTO
+        testsSeleccionados.map((testId) => {
+          console.log("📌 Asignando test:", testId, "a pacienteId:", pacienteId);
+          return addDoc(collection(db, "asignaciones"), {
+            pacienteId,
             testId,
             estado: "pendiente",
             fechaAsignacion: Timestamp.fromDate(fechaInicio),
             fechaCompletado: null,
-          }),
-        ),
+          });
+        }),
       );
 
-      await signOut(auth);
-
       alert(`Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
-      onPacienteCreado(); // recarga lista
-      onClose(); // cierra modal
+      onPacienteCreado();
+      onClose();
     } catch (error: any) {
       console.error(error);
 
