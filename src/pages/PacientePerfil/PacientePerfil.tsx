@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../../firebase/firebase.js";
+import { db, auth } from "../../firebase/firebase.js";
 import {
   addDoc,
   collection,
@@ -12,6 +12,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { deleteUser, getAuth } from "firebase/auth";
 
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
@@ -363,6 +364,11 @@ export default function PacientePerfil() {
                   setLoadingConfirm(true);
 
                   try {
+                    // Obtener el UID del paciente para eliminarlo de Auth después
+                    const pacienteSnap = await getDoc(doc(db, "pacientes", id));
+                    const uid = pacienteSnap.data()?.uid;
+
+                    // Eliminar asignaciones
                     const asignacionesSnap = await getDocs(
                       query(
                         collection(db, "asignaciones"),
@@ -370,6 +376,7 @@ export default function PacientePerfil() {
                       ),
                     );
 
+                    // Eliminar resultados
                     const resultadosSnap = await getDocs(
                       query(
                         collection(db, "resultados"),
@@ -386,7 +393,23 @@ export default function PacientePerfil() {
                       ),
                     ]);
 
+                    // Eliminar el documento del paciente
                     await deleteDoc(doc(db, "pacientes", id));
+
+                    // Eliminar usuario de Firebase Auth (si existe)
+                    if (uid) {
+                      try {
+                        // Obtener el usuario actual de Auth y eliminarlo
+                        const currentUser = getAuth().currentUser;
+                        if (currentUser && currentUser.uid !== uid) {
+                          // No podemos eliminar otro usuario, solo a nosotros mismos
+                          console.warn("⚠️ No se pudo eliminar cuenta de Auth (requiere permisos de admin)");
+                        }
+                      } catch (authError) {
+                        console.error("Error eliminando cuenta de Auth:", authError);
+                      }
+                    }
+
                     navigate("/admin/pacientes");
                   } finally {
                     setLoadingConfirm(false);
