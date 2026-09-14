@@ -328,7 +328,7 @@ export default function PacientePerfil() {
               {formatearFecha(patient.fechaFinAcceso)}
             </p>
           </aside>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8}}>
+          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', gap: 8}}>
             <BotonPersonalizado
               variant="info"
               onClick={() => setDniModalOpen(true)}
