@@ -79,45 +79,60 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
       const email = `${dniLimpio}@paciente.com`;
       const password = dniLimpio.slice(-6);
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      let uid: string;
 
-      const uid = userCredential.user.uid;
+      // Intentar crear usuario en Auth
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        uid = userCredential.user.uid;
+        console.log("✅ Usuario de Auth creado:", uid);
+      } catch (authError: any) {
+        if (authError.code === "auth/email-already-in-use") {
+          alert("⚠️ Ese email ya existe en Auth. Intenta con otro DNI.");
+          setLoading(false);
+          return;
+        }
+        throw authError;
+      }
 
-      await addDoc(collection(db, "pacientes"), {
+      const pacienteDoc = await addDoc(collection(db, "pacientes"), {
         uid,
         nombre: formData.nombre,
         dni: dniLimpio,
-        password: password, // 👈 ACÁ ESTÁ LA CLAVE
+        password: password,
         contacto: formData.contacto,
         activo: true,
         fechaInicioAcceso: Timestamp.fromDate(fechaInicio),
         fechaFinAcceso: Timestamp.fromDate(
-  new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
-),
+          new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
+        ),
         createdAt: Timestamp.now(),
       });
 
-      await Promise.all(
-        testsSeleccionados.map((testId) =>
-          addDoc(collection(db, "asignaciones"), {
-            pacienteId: uid,
-            testId,
-            estado: "pendiente",
-            fechaAsignacion: Timestamp.fromDate(fechaInicio),
-            fechaCompletado: null,
-          }),
-        ),
-      );
+      const pacienteId = pacienteDoc.id;
+      console.log("📋 Paciente creado con ID:", pacienteId);
 
-      await signOut(auth);
+      const promesasAsignaciones = testsSeleccionados.map((testId) => {
+        console.log("📌 Asignando test:", testId, "a pacienteId:", pacienteId);
+        return addDoc(collection(db, "asignaciones"), {
+          pacienteId,
+          testId,
+          estado: "pendiente",
+          fechaAsignacion: Timestamp.fromDate(fechaInicio),
+          fechaCompletado: null,
+        });
+      });
+
+      await Promise.all(promesasAsignaciones);
+      console.log("✅ Todos los tests asignados");
 
       alert(`Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
-      onPacienteCreado(); // recarga lista
-      onClose(); // cierra modal
+      onPacienteCreado();
+      onClose();
     } catch (error: any) {
       console.error(error);
 
