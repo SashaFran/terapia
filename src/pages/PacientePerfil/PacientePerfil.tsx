@@ -314,17 +314,7 @@ export default function PacientePerfil() {
     <div className={styles.layout}>
       <div className={"panelVertical"}>
         <div className={`card panelVertical ${styles.cardPaciente}`}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            {" "}
-            <h2>{patient.nombre}</h2>
-            <BotonPersonalizado
-              variant="info"
-              onClick={() => setDniModalOpen(true)}
-              disabled={false}
-            >
-              <img src={guardadoIcono} alt="DNI" style={{width:20, marginRight:8}} /> DNI
-            </BotonPersonalizado>
-          </div>
+          <h2>{patient.nombre}</h2>
           <aside className={styles.sidebar}>
             <p>
               <strong>DNI:</strong> {patient.dni}
@@ -337,6 +327,15 @@ export default function PacientePerfil() {
               {formatearFecha(patient.fechaInicioAcceso)} →{" "}
               {formatearFecha(patient.fechaFinAcceso)}
             </p>
+          </aside>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8}}>
+            <BotonPersonalizado
+              variant="info"
+              onClick={() => setDniModalOpen(true)}
+              disabled={false}
+            >
+              <img src={guardadoIcono} alt="DNI" style={{width:20, marginRight:8}} /> DNI
+            </BotonPersonalizado>
             <BotonPersonalizado
               variant="primary"
               onClick={() => setIsConfigOpen(true)}
@@ -344,7 +343,7 @@ export default function PacientePerfil() {
             >
               Modificar acceso
             </BotonPersonalizado>
-          </aside>
+          </div>
           <BotonPersonalizado
             variant="danger"
             onClick={() =>
@@ -581,15 +580,17 @@ export default function PacientePerfil() {
 
       {dniModalOpen && (
         <Modal abierto={dniModalOpen} onCerrar={() => setDniModalOpen(false)} titulo="Estado del DNI">
-          <div style={{textAlign: 'center'}}>
-            <p><strong>DNI cargado:</strong> {patient.archivodni ? "✔ Sí" : "✖ No"}</p>
-            {patient.archivodni && (
-              <img src={patient.archivodni} alt="Foto DNI" style={{maxWidth: '100%', marginTop: 8}} />
-            )}
-            <div style={{marginTop: 12}}>
-              <BotonPersonalizado variant="primary" onClick={() => { setDniModalOpen(false); navigate('/app/tests'); }}>Ir a Tests</BotonPersonalizado>
-              <BotonPersonalizado variant="secondary" onClick={() => setDniModalOpen(false)} style={{marginLeft: 8}}>Cerrar</BotonPersonalizado>
+          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', gap: 12}}>
+            <div>
+              <p><strong>DNI cargado:</strong> {patient.archivodni ? "✔ Sí" : "✖ No"}</p>
+              {patient.archivodni && (
+                <img src={patient.archivodni} alt="Foto DNI" style={{maxWidth: '12%', marginTop: 8}} />
+              )}
             </div>
+          </div>
+          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginTop: 16}}>
+            <BotonPersonalizado variant="primary" onClick={() => { setDniModalOpen(false); navigate('/app/tests'); }}>Ir a Tests</BotonPersonalizado>
+            <BotonPersonalizado variant="secondary" onClick={() => setDniModalOpen(false)}>Cerrar</BotonPersonalizado>
           </div>
         </Modal>
       )}
