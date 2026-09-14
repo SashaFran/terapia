@@ -36,10 +36,21 @@ export default function TestRaven({ onFinish, userId }: Props) {
   const iniciarTest = () => engine.start();
 
   const handleChange = (index: number, value: string) => {
-    const nuevas = [...respuestas];
-    nuevas[index] = value;
-    setRespuestas(nuevas);
-  };
+      const val = value.toString();
+      if (val === "") {
+        const nuevas = [...respuestas];
+        nuevas[index] = "";
+        setRespuestas(nuevas);
+        return;
+      }
+      if (!/^\d+$/.test(val)) return; // solo dígitos
+      let n = Number(val);
+      if (n > 8) n = 8;
+      if (n < 1) n = 1;
+      const nuevas = [...respuestas];
+      nuevas[index] = String(n);
+      setRespuestas(nuevas);
+    };
 
   const finalizar = () => {
     let errores = 0;
@@ -178,7 +189,9 @@ export default function TestRaven({ onFinish, userId }: Props) {
                 />
 
                 <input
-                  type="text"
+                  type="number"
+                  min={1}
+                  max={8}
                   value={respuestas[i]}
                   onChange={(e) => handleChange(i, e.target.value)}
                   placeholder="Respuesta"

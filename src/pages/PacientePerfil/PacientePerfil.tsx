@@ -17,6 +17,7 @@ import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
 import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal.tsx";
 import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal.tsx";
+import Modal from "../../components/Modal/Modal";
 
 import styles from "./PacientePerfil.module.css";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
@@ -72,6 +73,7 @@ export default function PacientePerfil() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [dniModalOpen, setDniModalOpen] = useState(false);
 
   const [confirmData, setConfirmData] = useState<any>(null);
   const [loadingConfirm, setLoadingConfirm] = useState(false);
@@ -312,24 +314,29 @@ export default function PacientePerfil() {
     <div className={styles.layout}>
       <div className={"panelVertical"}>
         <div className={`card panelVertical ${styles.cardPaciente}`}>
-          <div>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             {" "}
-            <div>
-              <h2>{patient.nombre}</h2>
-              <aside className={styles.sidebar}>
-                <p>
-                  <strong>DNI:</strong> {patient.dni}
-                </p>
-                <p>
-                  <strong>Estado:</strong> {getEstadoPaciente()}
-                </p>
-                <p>
-                  <strong>Acceso:</strong>{" "}
-                  {formatearFecha(patient.fechaInicioAcceso)} →{" "}
-                  {formatearFecha(patient.fechaFinAcceso)}
-                </p>
-              </aside>
-            </div>
+            <h2>{patient.nombre}</h2>
+            <BotonPersonalizado
+              variant="info"
+              onClick={() => setDniModalOpen(true)}
+              disabled={false}
+            >
+              <img src={guardadoIcono} alt="DNI" style={{width:20, marginRight:8}} /> DNI
+            </BotonPersonalizado>
+          </div>
+          <aside className={styles.sidebar}>
+            <p>
+              <strong>DNI:</strong> {patient.dni}
+            </p>
+            <p>
+              <strong>Estado:</strong> {getEstadoPaciente()}
+            </p>
+            <p>
+              <strong>Acceso:</strong>{" "}
+              {formatearFecha(patient.fechaInicioAcceso)} →{" "}
+              {formatearFecha(patient.fechaFinAcceso)}
+            </p>
             <BotonPersonalizado
               variant="primary"
               onClick={() => setIsConfigOpen(true)}
@@ -337,7 +344,7 @@ export default function PacientePerfil() {
             >
               Modificar acceso
             </BotonPersonalizado>
-          </div>
+          </aside>
           <BotonPersonalizado
             variant="danger"
             onClick={() =>
@@ -571,6 +578,21 @@ export default function PacientePerfil() {
         sesion={selectedResultado}
         onGuardarExitoso={handleSuccessfulSave}
       />
+
+      {dniModalOpen && (
+        <Modal abierto={dniModalOpen} onCerrar={() => setDniModalOpen(false)} titulo="Estado del DNI">
+          <div style={{textAlign: 'center'}}>
+            <p><strong>DNI cargado:</strong> {patient.archivodni ? "✔ Sí" : "✖ No"}</p>
+            {patient.archivodni && (
+              <img src={patient.archivodni} alt="Foto DNI" style={{maxWidth: '100%', marginTop: 8}} />
+            )}
+            <div style={{marginTop: 12}}>
+              <BotonPersonalizado variant="primary" onClick={() => { setDniModalOpen(false); navigate('/app/tests'); }}>Ir a Tests</BotonPersonalizado>
+              <BotonPersonalizado variant="secondary" onClick={() => setDniModalOpen(false)} style={{marginLeft: 8}}>Cerrar</BotonPersonalizado>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

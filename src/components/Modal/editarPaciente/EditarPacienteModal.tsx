@@ -9,7 +9,8 @@ import { db } from "../../../firebase/firebase";
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K-10" },
   { id: "bfq", nombre: "Escala BFQ" },
-  { id: "laminas", nombre: "Láminas Zulliger" },
+  { id: "zulliger", nombre: "Láminas Zulliger" },
+  { id: "bender", nombre: "Test de Bender" },
   { id: "raven", nombre: "Test de Raven" },
 ];
 
@@ -50,6 +51,24 @@ export default function EditarPacienteModal({
       }
     }
   }, [abierto, paciente, asignacionesActuales]);
+
+  // Si el paciente estaba inactivo y el usuario lo activa aquí, establecer fechaFin a 24 horas desde ahora
+  useEffect(() => {
+    if (!abierto || !paciente) return;
+    try {
+      const previoActivo = paciente.activo;
+      if (!previoActivo && activo) {
+        const ahora = new Date();
+        const fin = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+        const year = fin.getFullYear();
+        const month = String(fin.getMonth() + 1).padStart(2, "0");
+        const day = String(fin.getDate()).padStart(2, "0");
+        setFechaFin(`${year}-${month}-${day}`);
+      }
+    } catch (e) {
+      // noop
+    }
+  }, [activo, abierto, paciente]);
 
   const toggleTest = (testId: string) => {
     setTestsSeleccionados((prev) =>

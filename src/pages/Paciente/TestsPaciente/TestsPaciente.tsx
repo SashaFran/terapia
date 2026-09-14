@@ -4,6 +4,8 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import styles from "./TestsPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebase/firebase";
 
 interface Test {
   id: string;
@@ -82,7 +84,18 @@ export default function TestsPaciente() {
               </div>
             
         </div>
-
+        
+        {total > 0 && realizados === total && (
+          <div className={`card`} style={{padding:16, marginBottom:12}}>
+            <h3>¡Completaste todos los tests asignados!</h3>
+            <p>Para salir de la sesión, por favor cierra sesión. Esto cerrará la sesión en este equipo.</p>
+            <div style={{display: 'flex', gap: 8}}>
+              <BotonPersonalizado variant="danger" onClick={async () => { await signOut(auth); navigate('/'); }}>
+                Cerrar sesión
+              </BotonPersonalizado>
+            </div>
+          </div>
+        )}
         {}
         <main className="scrollbar">
           <div className="tablaPacientes">

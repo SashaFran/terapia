@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import styles from "./SubirDNI.module.css";
@@ -9,6 +10,9 @@ export default function SubirDNI() {
   const [subiendo, setSubiendo] = useState(false);
   const [dniUrl, setDniUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const pacienteData = localStorage.getItem("paciente");
@@ -69,7 +73,9 @@ export default function SubirDNI() {
       localStorage.setItem("paciente", JSON.stringify(nuevoEstado));
       setDniUrl(data.secure_url);
       setFile(null);
-      alert("¡DNI cargado con éxito! ✨");
+      // mostrar botones útiles al paciente para continuar
+      setUploadSuccess(true);
+      setUploadMessage("¡DNI cargado con éxito! ✨");
     } catch (e: any) {
       alert(`Error al subir: ${e.message}`);
     } finally {
@@ -103,8 +109,10 @@ export default function SubirDNI() {
           <h2>Validación de Identidad</h2>
 
           <p>
-            Para garantizar la validez de los resultados, necesitamos confirmar
-            la identidad de la persona que realiza las evaluaciones.
+            Primero: subí tu DNI. Antes de continuar, asegurate de tener una imagen
+            de tu documento en la computadora que estás utilizando para poder
+            subirla a continuación. Esto nos permite validar la identidad y
+            garantizar la validez de los resultados.
           </p>
 
           <div className="layout">
@@ -137,9 +145,19 @@ export default function SubirDNI() {
             >
               {subiendo ? "Subiendo..." : "Subir DNI"}
             </BotonPersonalizado>
-          </div><small className={styles.disclaimer}>
-            Tus datos serán tratados de forma confidencial.
-          </small>
+          </div>
+           {uploadSuccess && (
+           <div className={styles.uploadSuccess}>
+             <p>{uploadMessage}</p>
+             <div style={{display:'flex', gap: '8px', marginTop: '8px'}}>
+               <BotonPersonalizado variant="primary" onClick={() => navigate('/app/tests')}>Ir a Tests</BotonPersonalizado>
+               <BotonPersonalizado variant="secondary" onClick={() => navigate('/app/dashboard')}>Volver al inicio</BotonPersonalizado>
+             </div>
+           </div>
+           )}
+           <small className={styles.disclaimer}>
+           Tus datos serán tratados de forma confidencial.
+           </small>
         </div>
       </div>
     </div>
