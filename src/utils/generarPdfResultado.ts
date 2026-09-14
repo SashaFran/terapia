@@ -85,15 +85,27 @@ if (fotoCaptura) {
 
   const currentY = 105;
   doc.setFontSize(12);
-  doc.text("Verificación de Identidad", margin, 55);
-  doc.setFontSize(12);
   doc.text("Resultado", margin, currentY);
   doc.setFontSize(11);
   doc.text(`Nivel: ${resultado.nivel}`, margin, currentY + 10);
 
+  // Agregar tiempo si está disponible
+  if (resultado.tiempoTotalMs !== undefined) {
+    const minutos = Math.floor(resultado.tiempoTotalMs / 60000);
+    const segundos = Math.floor((resultado.tiempoTotalMs % 60000) / 1000);
+    doc.text(`Tiempo utilizado: ${minutos}m ${segundos}s`, margin, currentY + 20);
+  }
+
+  // Agregar fecha si está disponible
+  if (resultado.fecha) {
+    const fecha = resultado.fecha?.toDate ? resultado.fecha.toDate() : new Date(resultado.fecha);
+    doc.text(`Fecha: ${fecha.toLocaleDateString("es-AR")} ${fecha.toLocaleTimeString("es-AR")}`, margin, currentY + 30);
+  }
+
   if (Array.isArray(resultado.respuestas)) {
+    const tableStartY = currentY + (resultado.tiempoTotalMs !== undefined ? 40 : 20);
     autoTable(doc, {
-      startY: currentY + 20,
+      startY: tableStartY,
       head: [['Pregunta', 'Respuesta']],
       body: resultado.respuestas.map((r: any, i: number) => [
         `Pregunta ${i + 1}`, 
