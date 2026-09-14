@@ -87,7 +87,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
 
       const uid = userCredential.user.uid;
 
-      await addDoc(collection(db, "pacientes"), {
+      const pacienteDoc = await addDoc(collection(db, "pacientes"), {
         uid,
         nombre: formData.nombre,
         dni: dniLimpio,
@@ -101,10 +101,12 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         createdAt: Timestamp.now(),
       });
 
+      const pacienteId = pacienteDoc.id; // 👈 Usar el ID del documento
+
       await Promise.all(
         testsSeleccionados.map((testId) =>
           addDoc(collection(db, "asignaciones"), {
-            pacienteId: uid,
+            pacienteId, // 👈 AHORA ES EL ID DEL DOCUMENTO
             testId,
             estado: "pendiente",
             fechaAsignacion: Timestamp.fromDate(fechaInicio),
