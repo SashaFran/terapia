@@ -82,44 +82,44 @@ export default function PacientePerfil() {
   const abrirConfirm = (config: any) => {
     setConfirmData(config);
   };
-   useEffect(() => {
-     if (!id) return;
-     localStorage.setItem("pacienteId", id);
+  useEffect(() => {
+    if (!id) return;
+    localStorage.setItem("pacienteId", id);
 
-     const loadData = async () => {
-       const pacienteSnap = await getDoc(doc(db, "pacientes", id));
-       if (pacienteSnap.exists()) {
-         setPatient({
-           id: pacienteSnap.id,
-           ...pacienteSnap.data(),
-         } as unknown as Paciente);
-       }
-       const resSnap = await getDocs(
-         query(collection(db, "resultados"), where("pacienteId", "==", id)),
-       );
-       setResultados(
-         resSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Resultado[],
-       );
+    const loadData = async () => {
+      const pacienteSnap = await getDoc(doc(db, "pacientes", id));
+      if (pacienteSnap.exists()) {
+        setPatient({
+          id: pacienteSnap.id,
+          ...pacienteSnap.data(),
+        } as unknown as Paciente);
+      }
+      const resSnap = await getDocs(
+        query(collection(db, "resultados"), where("pacienteId", "==", id)),
+      );
+      setResultados(
+        resSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Resultado[],
+      );
 
-       console.log("🔍 Buscando asignaciones con pacienteId:", id);
-       const asignSnap = await getDocs(
-         query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
-       );
-       console.log("📊 Asignaciones encontradas:", asignSnap.docs.length);
-       asignSnap.docs.forEach(d => {
-         console.log("  - Asignación:", d.data());
-       });
-       
-       setAsignaciones(
-         asignSnap.docs.map((d) => ({
-           id: d.id,
-           ...(d.data() as Omit<Asignacion, "id">),
-         })) as Asignacion[],
-       );
-     };
+      console.log("🔍 Buscando asignaciones con pacienteId:", id);
+      const asignSnap = await getDocs(
+        query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
+      );
+      console.log("📊 Asignaciones encontradas:", asignSnap.docs.length);
+      asignSnap.docs.forEach((d) => {
+        console.log("  - Asignación:", d.data());
+      });
 
-     loadData();
-   }, [id]);
+      setAsignaciones(
+        asignSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Asignacion, "id">),
+        })) as Asignacion[],
+      );
+    };
+
+    loadData();
+  }, [id]);
   useEffect(() => {
     if (!patient?.id) return;
 
@@ -337,11 +337,11 @@ export default function PacientePerfil() {
           </aside>
           <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', gap: 8}}>
             <BotonPersonalizado
-              variant="info"
+              variant="secondary"
               onClick={() => setDniModalOpen(true)}
               disabled={false}
             >
-              <img src={guardadoIcono} alt="DNI" style={{width:20, marginRight:8}} /> DNI
+              DNI
             </BotonPersonalizado>
             <BotonPersonalizado
               variant="primary"
@@ -403,10 +403,15 @@ export default function PacientePerfil() {
                         const currentUser = getAuth().currentUser;
                         if (currentUser && currentUser.uid !== uid) {
                           // No podemos eliminar otro usuario, solo a nosotros mismos
-                          console.warn("⚠️ No se pudo eliminar cuenta de Auth (requiere permisos de admin)");
+                          console.warn(
+                            "⚠️ No se pudo eliminar cuenta de Auth (requiere permisos de admin)",
+                          );
                         }
                       } catch (authError) {
-                        console.error("Error eliminando cuenta de Auth:", authError);
+                        console.error(
+                          "Error eliminando cuenta de Auth:",
+                          authError,
+                        );
                       }
                     }
 
@@ -440,68 +445,70 @@ export default function PacientePerfil() {
 
           <div className="scrollbar">
             <div className="tablaPacientes">
-            <table>
-              <thead>
-                <tr>
-                  <th>Test</th>
-                  <th>Estado</th>
-                  <th>Asignado</th>
-                  <th>Completado</th>
-                  <th>Borrar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {asignaciones.map((a) => (
-                  <tr key={a.id}>
-                    <td>{a.testId?.toUpperCase()}</td>
-                    <td>{a.estado}</td>
-                    <td>{formatearFecha(a.fechaAsignacion)}</td>
-                    <td>{formatearFecha(a.fechaCompletado)}</td>
-                    <td>
-                      <button
-                        onClick={() =>
-                          abrirConfirm({
-                            titulo: "Eliminar asignación",
-                            mensaje: `¿Eliminar ${a.testId}?`,
-                            onConfirm: async () => {
-                              setLoadingConfirm(true);
-                              try {
-                                const resultadosDelTest = await getDocs(
-                                  query(
-                                    collection(db, "resultados"),
-                                    where("pacienteId", "==", id),
-                                    where("testId", "==", a.testId),
-                                  ),
-                                );
-
-                                await deleteDoc(doc(db, "asignaciones", a.id));
-                                await Promise.all(
-                                  resultadosDelTest.docs.map((d) =>
-                                    deleteDoc(doc(db, "resultados", d.id)),
-                                  ),
-                                );
-
-                                setAsignaciones((prev) =>
-                                  prev.filter((x) => x.id !== a.id),
-                                );
-                                setResultados((prev) =>
-                                  prev.filter((r) => r.testId !== a.testId),
-                                );
-                              } finally {
-                                setLoadingConfirm(false);
-                                setConfirmData(null);
-                              }
-                            },
-                          })
-                        }
-                      >
-                        <img src={borrar} alt="Borrar record" />
-                      </button>
-                    </td>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Estado</th>
+                    <th>Asignado</th>
+                    <th>Completado</th>
+                    <th>Borrar</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {asignaciones.map((a) => (
+                    <tr key={a.id}>
+                      <td>{a.testId?.toUpperCase()}</td>
+                      <td>{a.estado}</td>
+                      <td>{formatearFecha(a.fechaAsignacion)}</td>
+                      <td>{formatearFecha(a.fechaCompletado)}</td>
+                      <td>
+                        <button
+                          onClick={() =>
+                            abrirConfirm({
+                              titulo: "Eliminar asignación",
+                              mensaje: `¿Eliminar ${a.testId}?`,
+                              onConfirm: async () => {
+                                setLoadingConfirm(true);
+                                try {
+                                  const resultadosDelTest = await getDocs(
+                                    query(
+                                      collection(db, "resultados"),
+                                      where("pacienteId", "==", id),
+                                      where("testId", "==", a.testId),
+                                    ),
+                                  );
+
+                                  await deleteDoc(
+                                    doc(db, "asignaciones", a.id),
+                                  );
+                                  await Promise.all(
+                                    resultadosDelTest.docs.map((d) =>
+                                      deleteDoc(doc(db, "resultados", d.id)),
+                                    ),
+                                  );
+
+                                  setAsignaciones((prev) =>
+                                    prev.filter((x) => x.id !== a.id),
+                                  );
+                                  setResultados((prev) =>
+                                    prev.filter((r) => r.testId !== a.testId),
+                                  );
+                                } finally {
+                                  setLoadingConfirm(false);
+                                  setConfirmData(null);
+                                }
+                              },
+                            })
+                          }
+                        >
+                          <img src={borrar} alt="Borrar record" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -521,58 +528,60 @@ export default function PacientePerfil() {
 
           <div className="scrollbar">
             <div className="tablaPacientes">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Test</th>
-                  <th>Comentario</th>
-                  <th>PDF</th>
-                  <th>Borrar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableData.map((r) => (
-                  <tr key={r.id}>
-                    <td>{formatearFecha(r.fecha)}</td>
-                    <td>{r.testId}</td>
-                    <td>
-                      <button onClick={() => handleOpenModal(r)}>
-                        <img src={editar} alt="" />
-                      </button>
-                    </td>
-                    <td>
-                      <button onClick={() => descargarIndividual(r)}>
-                        <img src={guardadoIcono} alt="Descargar PDF" />
-                      </button>
-                    </td>
-                    <td>
-                      <button
-                        onClick={async () => {
-                          if (
-                            !confirm("¿Eliminar este resultado de evaluación?")
-                          )
-                            return;
-
-                          try {
-                            await deleteDoc(doc(db, "resultados", r.id));
-
-                            setResultados((prev) =>
-                              prev.filter((item) => item.id !== r.id),
-                            );
-                          } catch (e) {
-                            console.error("Error borrando:", e);
-                            alert("No se pudo borrar");
-                          }
-                        }}
-                      >
-                        <img src={borrar} alt="Borrar record" />
-                      </button>
-                    </td>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Test</th>
+                    <th>Comentario</th>
+                    <th>PDF</th>
+                    <th>Borrar</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tableData.map((r) => (
+                    <tr key={r.id}>
+                      <td>{formatearFecha(r.fecha)}</td>
+                      <td>{r.testId}</td>
+                      <td>
+                        <button onClick={() => handleOpenModal(r)}>
+                          <img src={editar} alt="" />
+                        </button>
+                      </td>
+                      <td>
+                        <button onClick={() => descargarIndividual(r)}>
+                          <img src={guardadoIcono} alt="Descargar PDF" />
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          onClick={async () => {
+                            if (
+                              !confirm(
+                                "¿Eliminar este resultado de evaluación?",
+                              )
+                            )
+                              return;
+
+                            try {
+                              await deleteDoc(doc(db, "resultados", r.id));
+
+                              setResultados((prev) =>
+                                prev.filter((item) => item.id !== r.id),
+                              );
+                            } catch (e) {
+                              console.error("Error borrando:", e);
+                              alert("No se pudo borrar");
+                            }
+                          }}
+                        >
+                          <img src={borrar} alt="Borrar record" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -608,18 +617,60 @@ export default function PacientePerfil() {
       />
 
       {dniModalOpen && (
-        <Modal abierto={dniModalOpen} onCerrar={() => setDniModalOpen(false)} titulo="Estado del DNI">
-          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', gap: 12}}>
+        <Modal
+          abierto={dniModalOpen}
+          onCerrar={() => setDniModalOpen(false)}
+          titulo="Estado del DNI"
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
             <div>
-              <p><strong>DNI cargado:</strong> {patient.archivodni ? "✔ Sí" : "✖ No"}</p>
+              <p>
+                <strong>DNI cargado:</strong>{" "}
+                {patient.archivodni ? "✔ Sí" : "✖ No"}
+              </p>
               {patient.archivodni && (
-                <img src={patient.archivodni} alt="Foto DNI" style={{maxWidth: '12%', marginTop: 8}} />
+                <img
+                  src={patient.archivodni}
+                  alt="Foto DNI"
+                  style={{ maxWidth: "12%", marginTop: 8 }}
+                />
               )}
             </div>
           </div>
-          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginTop: 16}}>
-            <BotonPersonalizado variant="primary" onClick={() => { setDniModalOpen(false); navigate('/app/tests'); }}>Ir a Tests</BotonPersonalizado>
-            <BotonPersonalizado variant="secondary" onClick={() => setDniModalOpen(false)}>Cerrar</BotonPersonalizado>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 8,
+              marginTop: 16,
+            }}
+          >
+            <BotonPersonalizado
+              variant="primary"
+              disabled={false}
+              onClick={() => {
+                setDniModalOpen(false);
+                navigate("/app/tests");
+              }}
+            >
+              Ir a Tests
+            </BotonPersonalizado>
+            <BotonPersonalizado
+              variant="secondary"
+              onClick={() => setDniModalOpen(false)}
+              disabled={false}
+            >
+              Cerrar
+            </BotonPersonalizado>
           </div>
         </Modal>
       )}
