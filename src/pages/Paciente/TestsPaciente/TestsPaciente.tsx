@@ -128,6 +128,7 @@ export default function TestsPaciente() {
                     ) : (
                       <BotonPersonalizado
                         variant="primary"
+                        tooltip={dniCargado ? "Ver las instrucciones e iniciar esta evaluación." : "Primero debe cargar su DNI para realizar la evaluación."}
                         onClick={() => {
                           if (!dniCargado) {
                             alert("Antes de iniciar tests, tenés que subir tu DNI.");

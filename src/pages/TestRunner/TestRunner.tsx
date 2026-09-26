@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
   collection,
-  addDoc,
   query,
   where,
   getDocs,
@@ -9,11 +8,11 @@ import {
   doc,
   Timestamp,
   getDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import TestK10 from "../../components/Tests/TestK10/TestK10";
 import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
-import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
 import TestZulliger from "../../components/Tests/TestZulliger/TestZulliger";
 import TestBender from "../../components/Tests/TestBender/TestBender";
@@ -34,6 +33,7 @@ export default function TestRunner() {
   const testCompletadoRef = useRef(false);
   const bloqueoAplicadoRef = useRef(false);
   const confirmarSalidaRef = useRef(false);
+  const resultadoRef = useRef(doc(collection(db, "resultados")));
 
   useEffect(() => {
     if (!pacienteId || !testId) return;
@@ -118,6 +118,8 @@ export default function TestRunner() {
       pacienteId, // 🔥 AHORA NUNCA VA NULL
       archivoCaptura: resultado.archivoCaptura || null,
       captura_public_id: resultado.captura_public_id || null,
+      tiempoTotalMs: resultado.tiempoTotalMs ?? null,
+      out_of_time: resultado.out_of_time === true,
     };
 
     if (testId === "k10") {
@@ -136,7 +138,7 @@ export default function TestRunner() {
 
     if (testId === "raven") {
       data.nivel = resultado.nivel;
-      data.errores = resultado.errores;
+      data.errores = resultado.errores ?? null;
     }
 
     if (testId === "zulliger" || testId === "bender") {
@@ -148,11 +150,6 @@ export default function TestRunner() {
       });
     }
 
-    testCompletadoRef.current = true;
-    clearTestEnCurso();
-
-    await addDoc(collection(db, "resultados"), data);
-
     const q = query(
       collection(db, "asignaciones"),
       where("pacienteId", "==", pacienteId),
@@ -161,14 +158,18 @@ export default function TestRunner() {
 
     const snap = await getDocs(q);
 
-    const updates = snap.docs.map((d) =>
-      updateDoc(doc(db, "asignaciones", d.id), {
+    const batch = writeBatch(db);
+    batch.set(resultadoRef.current, data);
+    snap.docs.forEach((d) =>
+      batch.update(doc(db, "asignaciones", d.id), {
         estado: "completado",
         fechaCompletado: Timestamp.fromDate(ahora),
       })
     );
 
-    await Promise.all(updates);
+    await batch.commit();
+    testCompletadoRef.current = true;
+    clearTestEnCurso();
 
     const [asignacionesActualizadas, pacienteSnap] = await Promise.all([
       getDocs(

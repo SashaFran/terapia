@@ -1,14 +1,20 @@
 .container{
-display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: 1rem;
 }
 .container input{
-  width: var(--width-half);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
+.container small { grid-column: 2; }
 .nav{
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
   justify-content: space-between;
   width: var(--width-complete);
 }
@@ -45,14 +51,20 @@ display: flex;
   margin-top: 10px;
 }
 .testsCheckboxes{
-  display: flex;
-  flex-direction: row;
-  gap: 1.5rem;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: 1rem;
 }
 .testsCheckboxes label{
   display: flex;
   align-items: center;
   gap: 0.5rem;
   
+}
+
+@media (max-width: 600px) {
+  .container { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .container small { grid-column: 1; }
+  .container label { padding-inline: 0; }
+  .nav h2 { font-size: 22px; }
 }
