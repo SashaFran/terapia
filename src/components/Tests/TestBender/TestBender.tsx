@@ -100,6 +100,7 @@ export default function TestBender({ onFinish, userId }: Props) {
 
   return (
     <div className={`container scrollbar`}>
+      {engine.feedback}
       <div className={`nav`}>
         <h2>{BENDER_TEST.nombre}</h2>
         <div className={timerClass}>
@@ -113,6 +114,7 @@ export default function TestBender({ onFinish, userId }: Props) {
           <div key={i} className={styles.containerImg}>
             <RotatableImage src={img} />
             <textarea
+              disabled={engine.inputLocked}
               placeholder="¿Qué ves en esta lámina? ¿Qué sientes o piensas al verla?"
               value={respuestas[i]}
               onChange={(e) => handleChange(i, e.target.value)}
@@ -123,7 +125,7 @@ export default function TestBender({ onFinish, userId }: Props) {
 
         <BotonPersonalizado
           onClick={finalizar}
-          disabled={enviando}
+          disabled={enviando || engine.inputLocked}
           variant="primary"
         >
           {enviando ? "Enviando..." : "Finalizar Test"}

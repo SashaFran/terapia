@@ -113,6 +113,7 @@ Puede ver una o varias cosas en una misma lámina. No hay respuestas correctas o
 
   return (
     <div className={`scrollbar ${styles.container}`}>
+      {engine.feedback}
       <div className="layout">
         <div className="panelVertical">
           <h2 style={{ textAlign: "center" }}>Evaluación con Láminas</h2>

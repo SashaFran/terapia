@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db, auth } from "../../firebase/firebase.js";
+import { db } from "../../firebase/firebase.js";
 import {
   addDoc,
   collection,
@@ -12,7 +12,8 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { deleteUser, getAuth } from "firebase/auth";
+import { eliminarPaciente, mensajeErrorPaciente } from "../../firebase/pacientes";
+import Tooltip from "@mui/material/Tooltip";
 
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
@@ -206,7 +207,8 @@ export default function PacientePerfil() {
     for (const r of tableData) {
       try {
         const blob = await generarPdfResultado({
-          pacienteNombre: "ZIP", // 👈 EL TRUCO
+          pacienteNombre: patient.nombre,
+          devolverBlob: true,
           resultado: r,
           fotoDNI: patient.archivodni,
           fotoCaptura: r.archivoCaptura,
@@ -346,6 +348,7 @@ export default function PacientePerfil() {
             <BotonPersonalizado
               variant="primary"
               onClick={() => setIsConfigOpen(true)}
+              tooltip="Cambiar la fecha de acceso y los tests asignados."
               disabled={false}
             >
               Modificar acceso
@@ -353,6 +356,7 @@ export default function PacientePerfil() {
           </div>
           <BotonPersonalizado
             variant="danger"
+            tooltip="Eliminar el perfil, su cuenta de acceso y sus evaluaciones."
             onClick={() =>
               abrirConfirm({
                 titulo: `Eliminar paciente`,
@@ -364,53 +368,10 @@ export default function PacientePerfil() {
                   setLoadingConfirm(true);
 
                   try {
-                    // Obtener el UID del paciente para eliminarlo de Auth después
-                    const pacienteSnap = await getDoc(doc(db, "pacientes", id));
-                    const uid = pacienteSnap.data()?.uid;
-
-                    // Eliminar asignaciones
-                    const asignacionesSnap = await getDocs(
-                      query(
-                        collection(db, "asignaciones"),
-                        where("pacienteId", "==", id),
-                      ),
-                    );
-
-                    // Eliminar resultados
-                    const resultadosSnap = await getDocs(
-                      query(
-                        collection(db, "resultados"),
-                        where("pacienteId", "==", id),
-                      ),
-                    );
-
-                    await Promise.all([
-                      ...asignacionesSnap.docs.map((d) =>
-                        deleteDoc(doc(db, "asignaciones", d.id)),
-                      ),
-                      ...resultadosSnap.docs.map((d) =>
-                        deleteDoc(doc(db, "resultados", d.id)),
-                      ),
-                    ]);
-
-                    // Eliminar el documento del paciente
-                    await deleteDoc(doc(db, "pacientes", id));
-
-                    // Eliminar usuario de Firebase Auth (si existe)
-                    if (uid) {
-                      try {
-                        // Obtener el usuario actual de Auth y eliminarlo
-                        const currentUser = getAuth().currentUser;
-                        if (currentUser && currentUser.uid !== uid) {
-                          // No podemos eliminar otro usuario, solo a nosotros mismos
-                          console.warn("⚠️ No se pudo eliminar cuenta de Auth (requiere permisos de admin)");
-                        }
-                      } catch (authError) {
-                        console.error("Error eliminando cuenta de Auth:", authError);
-                      }
-                    }
-
+                    await eliminarPaciente({ pacienteId: id });
                     navigate("/admin/pacientes");
+                  } catch (error) {
+                    alert(mensajeErrorPaciente(error));
                   } finally {
                     setLoadingConfirm(false);
                     setConfirmData(null);
@@ -513,6 +474,7 @@ export default function PacientePerfil() {
             <BotonPersonalizado
               variant="secondary"
               onClick={descargarZip}
+              tooltip="Descargar los informes PDF de todas las evaluaciones en un ZIP."
               disabled={false}
             >
               Descargar archivos
@@ -537,14 +499,18 @@ export default function PacientePerfil() {
                     <td>{formatearFecha(r.fecha)}</td>
                     <td>{r.testId}</td>
                     <td>
-                      <button onClick={() => handleOpenModal(r)}>
+                      <Tooltip title="Agregar o editar observaciones" arrow>
+                      <button aria-label="Editar observaciones" onClick={() => handleOpenModal(r)}>
                         <img src={editar} alt="" />
                       </button>
+                      </Tooltip>
                     </td>
                     <td>
-                      <button onClick={() => descargarIndividual(r)}>
+                      <Tooltip title="Descargar el informe de esta evaluación" arrow>
+                      <button aria-label="Descargar PDF" onClick={() => descargarIndividual(r)}>
                         <img src={guardadoIcono} alt="Descargar PDF" />
                       </button>
+                      </Tooltip>
                     </td>
                     <td>
                       <button

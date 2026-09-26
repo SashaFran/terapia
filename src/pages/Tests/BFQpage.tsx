@@ -43,6 +43,8 @@ export default function BFQPage() {
         puntaje: resultado.score,
         nivel: resultado.nivel,
         metodo: resultado.metodo,
+        tiempoTotalMs: resultado.tiempoTotalMs ?? null,
+        out_of_time: resultado.out_of_time === true,
         fecha: serverTimestamp(),
         dimensiones: resultado.dimensiones,
       }).filter(([, value]) => value !== undefined),
@@ -69,4 +71,3 @@ export default function BFQPage() {
     </div>
   );
 }
- 

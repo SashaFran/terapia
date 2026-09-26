@@ -10,6 +10,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebase.tsx";
 import BotonPersonalizado from "../Boton/Boton.tsx";
 import { useEffect, useState } from "react";
+import Tooltip from "@mui/material/Tooltip";
 
 export default function Sidebar() {
   const { pathname } = useLocation();
@@ -25,15 +26,15 @@ export default function Sidebar() {
   };
 
   const linksAdmin = [
-    { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/pacientes", label: "Pacientes" },
-    { to: "/admin/sesiones", label: "Sesiones" },
+    { to: "/admin/dashboard", label: "Dashboard", ayuda: "Consultar el resumen de actividad y evaluaciones." },
+    { to: "/admin/pacientes", label: "Pacientes", ayuda: "Registrar pacientes, asignar tests y consultar sus informes." },
+    { to: "/admin/sesiones", label: "Sesiones", ayuda: "Consultar y gestionar las sesiones de evaluación." },
   ];
 
   const linksPaciente = [
-    { to: "/app/dashboard", label: "Dashboard" },
-    { to: "/app/tests", label: "Mis Tests" },
-    { to: "/app/dni", label: "Mi Documentación" },
+    { to: "/app/dashboard", label: "Dashboard", ayuda: "Consultar el estado de su acceso y los pasos pendientes." },
+    { to: "/app/tests", label: "Mis Tests", ayuda: "Ver sus evaluaciones asignadas e iniciar las pendientes." },
+    { to: "/app/dni", label: "Mi Documentación", ayuda: "Cargar su DNI para habilitar las evaluaciones." },
   ];
 
   const links = rol === "admin" ? linksAdmin : linksPaciente;
@@ -140,6 +141,7 @@ useEffect(() => {
         {}
         <div className={styles.center}>
           {links.map((link) => (
+            <Tooltip key={link.to} title={link.ayuda} describeChild arrow enterTouchDelay={300}>
             <Link
               key={link.to}
               to={link.to}
@@ -149,6 +151,7 @@ useEffect(() => {
             >
               {link.label}
             </Link>
+            </Tooltip>
           ))}
         </div>
 
@@ -197,6 +200,7 @@ useEffect(() => {
                 <BotonPersonalizado
                   variant="secondary"
                   onClick={handleLogout}
+                  tooltip="Cerrar su sesión en este dispositivo."
                   disabled={false}
                 >
                   Cerrar sesión

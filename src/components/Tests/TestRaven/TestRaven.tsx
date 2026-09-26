@@ -25,6 +25,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
     userId,
     testId: "raven",
     timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
     onFinish,
   });
 
@@ -52,7 +53,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
       setRespuestas(nuevas);
     };
 
-  const finalizar = () => {
+  const obtenerResultado = () => {
     let errores = 0;
     respuestas.forEach((r, i) => {
       if (Number(r) !== RESPUESTAS_CORRECTAS[i]) {
@@ -65,7 +66,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
     else if (errores <= 2) nivel = "Normal Superior";
     else if (errores <= 4) nivel = "Normal Promedio";
 
-    engine.submit({
+    return {
       score: 12 - errores,
       errores,
       nivel,
@@ -74,7 +75,11 @@ export default function TestRaven({ onFinish, userId }: Props) {
         respuesta: r || "Sin respuesta",
       })),
       metodo: "Test Raven",
-    });
+    };
+  };
+
+  const finalizar = () => {
+    void engine.submit(obtenerResultado()).catch(() => {});
   };
 
   if (!engine.started) {
@@ -141,6 +146,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
 
   return (
     <div className={`scrollbar ${styles.container}`}>
+      {engine.feedback}
       <div className="layout">
         <div className="panelVertical">
           <h2>Evaluación de Raven</h2>
@@ -190,6 +196,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
 
                 <input
                   type="number"
+                  disabled={engine.inputLocked}
                   min={1}
                   max={8}
                   value={respuestas[i]}
@@ -204,7 +211,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
           <BotonPersonalizado
             className={styles.boton}
             onClick={finalizar}
-            disabled={respuestas.some((r) => r === "")}
+            disabled={engine.inputLocked || respuestas.some((r) => r === "")}
             variant="primary"
           >
             Finalizar test
