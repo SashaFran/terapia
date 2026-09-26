@@ -42,6 +42,8 @@ export default function K10Page() {
       puntaje: resultado.score,
       nivel: resultado.nivel,
       metodo: resultado.metodo,
+      tiempoTotalMs: resultado.tiempoTotalMs ?? null,
+      out_of_time: resultado.out_of_time === true,
       fecha: serverTimestamp(),
     });
 
@@ -64,4 +66,3 @@ export default function K10Page() {
     </div>
   );
 }
- 

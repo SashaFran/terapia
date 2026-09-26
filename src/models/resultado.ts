@@ -7,4 +7,6 @@ export type Resultado = {
   archivoCaptura?: string;
   observacionesIniciales?: string;
   captura_public_id?: string;
+  tiempoTotalMs?: number | null;
+  out_of_time?: boolean;
 };

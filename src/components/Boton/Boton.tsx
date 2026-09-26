@@ -1,20 +1,25 @@
-import React from 'react';
-import './BotonPersonalizado.css'; // Asegúrate de crear este archivo CSS
+import type { ButtonHTMLAttributes } from "react";
+import Tooltip from "@mui/material/Tooltip";
+import './BotonPersonalizado.css';
 
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'danger' | 'info';
+  tooltip?: string;
+};
 
-const BotonPersonalizado = ({ variant = 'primary', children, onClick, disabled = false, className = '' }: { variant: 'primary' | 'secondary' | 'danger'; children: string; onClick: React.MouseEventHandler<HTMLButtonElement>; disabled: boolean; className?: string; }) => {
-  const baseClasses = 'boton-base';
-  const variantClass = `boton-${variant}`;
-  
-  return (
-    <button
-      className={`${baseClasses} ${variantClass} ${className}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
+export default function BotonPersonalizado({
+  variant = 'primary', children, className = '', type = 'button', tooltip, ...props
+}: Props) {
+  const button = (
+    <button type={type} className={`boton-base boton-${variant} ${className}`} {...props}>
       {children}
     </button>
   );
-};
-
-export default BotonPersonalizado;
+  return tooltip ? (
+    <Tooltip title={tooltip} describeChild arrow enterTouchDelay={300}>
+      <span style={{ display: 'inline-flex', maxWidth: '100%' }} tabIndex={props.disabled ? 0 : undefined}>
+        {button}
+      </span>
+    </Tooltip>
+  ) : button;
+}

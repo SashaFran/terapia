@@ -113,6 +113,7 @@ export default function Dashboard() {
           <BotonPersonalizado
             variant="primary"
             onClick={guardarNuevoPaciente}
+            tooltip="Registrar un paciente y asignarle sus tests en el mismo paso."
             disabled={false}
           >
             Nuevo paciente

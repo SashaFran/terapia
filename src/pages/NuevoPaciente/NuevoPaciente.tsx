@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { db, auth } from "../../firebase/firebase";
+import { crearPaciente, mensajeErrorPaciente } from "../../firebase/pacientes";
 import styles from "./NuevoPaciente.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 
@@ -16,6 +14,7 @@ const TESTS_DISPONIBLES = [
 
 export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
   const navigate = useNavigate();
+  const cerrar = onClose ?? (() => navigate("/admin/pacientes"));
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -42,13 +41,14 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
 
   const guardarPaciente = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     try {
       const dniLimpio = formData.dni.trim().replace(/\D/g, "");
 
-      if (dniLimpio.length < 4) {
-        alert("El DNI debe tener al menos 4 números");
+      if (dniLimpio.length < 6 || dniLimpio.length > 12) {
+        alert("El DNI debe tener entre 6 y 12 números");
         setLoading(false);
         return;
       }
@@ -76,71 +76,18 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
         return;
       }
 
-      const email = `${dniLimpio}@paciente.com`;
-      const password = dniLimpio.slice(-6);
-
-      let uid: string;
-
-      // Intentar crear usuario en Auth
-      try {
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password,
-        );
-        uid = userCredential.user.uid;
-        console.log("✅ Usuario de Auth creado:", uid);
-      } catch (authError: any) {
-        if (authError.code === "auth/email-already-in-use") {
-          alert("⚠️ Ese email ya existe en Auth. Intenta con otro DNI.");
-          setLoading(false);
-          return;
-        }
-        throw authError;
-      }
-
-      const pacienteDoc = await addDoc(collection(db, "pacientes"), {
-        uid,
-        nombre: formData.nombre,
+      const { data } = await crearPaciente({
+        ...formData,
         dni: dniLimpio,
-        password: password,
-        contacto: formData.contacto,
-        activo: true,
-        fechaInicioAcceso: Timestamp.fromDate(fechaInicio),
-        fechaFinAcceso: Timestamp.fromDate(
-          new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000)
-        ),
-        createdAt: Timestamp.now(),
+        testsSeleccionados,
       });
-
-      const pacienteId = pacienteDoc.id;
-      console.log("📋 Paciente creado con ID:", pacienteId);
-
-      const promesasAsignaciones = testsSeleccionados.map((testId) => {
-        console.log("📌 Asignando test:", testId, "a pacienteId:", pacienteId);
-        return addDoc(collection(db, "asignaciones"), {
-          pacienteId,
-          testId,
-          estado: "pendiente",
-          fechaAsignacion: Timestamp.fromDate(fechaInicio),
-          fechaCompletado: null,
-        });
-      });
-
-      await Promise.all(promesasAsignaciones);
-      console.log("✅ Todos los tests asignados");
-
-      alert(`Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
-      onPacienteCreado();
-      onClose();
+      alert(`Paciente creado\nDNI: ${data.dni}\nClave: ${data.password}`);
+      onPacienteCreado?.();
+      cerrar();
     } catch (error: any) {
       console.error(error);
 
-      if (error.code === "auth/email-already-in-use") {
-        alert("Ese paciente ya existe 💔");
-      } else {
-        alert("Error al crear paciente 😕");
-      }
+      alert(mensajeErrorPaciente(error));
     } finally {
       setLoading(false);
     }
@@ -149,15 +96,15 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
   return (
     <div>
       {}
-      <div className="nav">
+      <div className={styles.nav}>
         <h2>Registrar nuevo paciente</h2>
 
         <BotonPersonalizado
           variant="danger"
           onClick={() => {
-            if (confirm("¿Cancelar?")) onClose();
+            if (confirm("¿Cancelar?")) cerrar();
           }}
-          disabled={false}
+          disabled={loading}
         >
           Cancelar
         </BotonPersonalizado>
@@ -174,6 +121,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
               <input
                 type="text"
                 name="nombre"
+                id="nombre"
                 placeholder="Nombre completo"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -187,15 +135,16 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
               <input
                 type="text"
                 name="dni"
+                id="dni"
                 placeholder="DNI"
                 value={formData.dni}
                 onChange={handleChange}
                 required
               />
 
-              {formData.dni.length >= 6 && (
+              {formData.dni.replace(/\D/g, "").length >= 6 && (
                 <small>
-                  🔑 Contraseña: <strong>{formData.dni.slice(-6)}</strong>
+                  🔑 Contraseña: <strong>{formData.dni.replace(/\D/g, "").slice(-6)}</strong>
                 </small>
               )}
             </div>
@@ -207,6 +156,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
               <input
                 type="text"
                 name="contacto"
+                id="contacto"
                 placeholder="Contacto"
                 value={formData.contacto}
                 onChange={handleChange}
@@ -219,6 +169,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
               <input
                 type="date"
                 name="fechaIngreso"
+                id="fechaIngreso"
                 value={formData.fechaIngreso}
                 onChange={handleChange}
                 required
@@ -243,7 +194,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
           </div>
         </div>
 
-        <BotonPersonalizado type="submit" disabled={loading}>
+        <BotonPersonalizado type="submit" disabled={loading} tooltip="Registrar al paciente con todos los tests seleccionados.">
           {loading ? "Creando..." : "Crear paciente"}
         </BotonPersonalizado>
       </form>

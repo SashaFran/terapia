@@ -61,6 +61,7 @@ export default function App() {
                 
                 <Route path="dashboard" element={<PacienteDashboard />} />
                 <Route path="dni" element={<SubirDNI />} />
+                <Route path="subir-dni" element={<Navigate to="/app/dni" replace />} />
                 <Route path="tests" element={<PacienteTests />} />
                 <Route path="test/:testId" element={<TestRunner />} />
 

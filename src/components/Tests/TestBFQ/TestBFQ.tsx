@@ -38,6 +38,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
     userId,
     testId: "bfq",
     timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
     onFinish: async (data) => {
       await onFinish(data);
       navigate("/app/tests", { replace: true });
@@ -68,11 +69,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
   const calcularDimension = (indices: number[]) =>
     indices.reduce((acc, i) => acc + (respuestas[i] || 0), 0);
 
-  const calcularResultado = async () => {
-    if (!engine.started || enviando) return;
-
-    setEnviando(true);
-
+  const obtenerResultado = () => {
     const resultado = {
       extraversion: calcularDimension(dimensionesMap.extraversion),
       amabilidad: calcularDimension(dimensionesMap.amabilidad),
@@ -80,15 +77,18 @@ export default function TestBFQ({ onFinish, userId }: Props) {
       neuroticismo: calcularDimension(dimensionesMap.neuroticismo),
       apertura: calcularDimension(dimensionesMap.apertura),
     };
+    return {
+      dimensiones: resultado, respuestas, metodo: "BFQ", nivel: "Perfil Big Five",
+      score: Object.values(resultado).reduce((acc, val) => acc + val, 0),
+    };
+  };
+
+  const calcularResultado = async () => {
+    if (!engine.started || enviando) return;
+    setEnviando(true);
 
     try {
-      await engine.submit({
-        dimensiones: resultado,
-        respuestas,
-        metodo: "BFQ",
-        nivel: "Perfil Big Five",
-        score: Object.values(resultado).reduce((acc, val) => acc + val, 0),
-      });
+      await engine.submit(obtenerResultado());
     } catch (error) {
       console.error("Error al finalizar:", error);
       setEnviando(false);
@@ -137,6 +137,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
 
   return (
     <div className={`container scrollbar`}>
+      {engine.feedback}
       <div className={`nav`}>
         <h2>{BFQ_TEST.nombre}</h2>
         <div className={timerClass}>
@@ -163,6 +164,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
                 >
                   <input
                     type="radio"
+                    disabled={engine.inputLocked}
                     name={`pregunta-${i}`}
                     checked={respuestas[i] === op.valor}
                     onChange={() => responder(i, op.valor)}
@@ -177,7 +179,7 @@ export default function TestBFQ({ onFinish, userId }: Props) {
 
         <BotonPersonalizado
           variant="primary"
-          disabled={incompleto || enviando}
+          disabled={incompleto || enviando || engine.inputLocked}
           onClick={calcularResultado}
         >
           {enviando ? "Guardando..." : "Finalizar test"}

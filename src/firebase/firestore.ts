@@ -10,6 +10,7 @@ type ResultadoInput = {
   fecha: Date;
   pacienteId: string;
   sesionId: string;
+  tiempoTotalMs?: number | null;
   dimensiones?: {
     extraversion: number;
     amabilidad: number; 
