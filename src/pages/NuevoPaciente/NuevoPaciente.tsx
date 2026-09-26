@@ -3,24 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { db, auth } from "../../firebase/firebase";
+import { crearPaciente, mensajeErrorPaciente } from "../../firebase/pacientes";
 import styles from "./NuevoPaciente.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 
-// 🧠 Tests disponibles
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K10" },
   { id: "bfq", nombre: "Personalidad BFQ" },
-  { id: "laminas", nombre: "Láminas Zulliger/Bender" },
+  { id: "zulliger", nombre: "Láminas Zulliger" },
+  { id: "bender", nombre: "Test de Bender" },
   { id: "raven", nombre: "Raven Abreviado" },
 ];
 
-export default function NuevoPaciente() {
+export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
   const navigate = useNavigate();
+  const cerrar = onClose ?? (() => navigate("/admin/pacientes"));
 
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
     contacto: "",
+    fechaIngreso: "",
   });
 
   const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
@@ -35,25 +38,31 @@ export default function NuevoPaciente() {
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
         ? prev.filter((t) => t !== testId)
-        : [...prev, testId]
+        : [...prev, testId],
     );
   };
 
   const guardarPaciente = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     try {
       const dniLimpio = formData.dni.trim().replace(/\D/g, "");
 
-      if (dniLimpio.length < 4) {
-        alert("El DNI debe tener al menos 4 números");
+      if (dniLimpio.length < 6 || dniLimpio.length > 12) {
+        alert("El DNI debe tener entre 6 y 12 números");
         setLoading(false);
         return;
       }
 
       if (testsSeleccionados.length === 0) {
         alert("Asigná al menos un test 🧠");
+        setLoading(false);
+        return;
+      }
+      if (!formData.fechaIngreso) {
+        alert("Seleccioná una fecha de ingreso");
         setLoading(false);
         return;
       }
@@ -97,81 +106,118 @@ export default function NuevoPaciente() {
             fechaCompletado: null,
           })
         )
+      const fechaInicio = new Date(`${formData.fechaIngreso}T00:00:00`);
+      const hoyArgentina = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }),
       );
+      hoyArgentina.setHours(0, 0, 0, 0);
 
-      // 🚪 IMPORTANTE: volver a estado limpio
-      await signOut(auth);
+      if (fechaInicio < hoyArgentina) {
+        alert("La fecha no puede ser anterior a hoy (hora de Argentina)");
+        setLoading(false);
+        return;
+      }
 
-      alert(`✅ Paciente creado\nDNI: ${dniLimpio}\nClave: ${password}`);
-      navigate("/admin/pacientes");
-
+      const { data } = await crearPaciente({
+        ...formData,
+        dni: dniLimpio,
+        testsSeleccionados,
+      });
+      alert(`Paciente creado\nDNI: ${data.dni}\nClave: ${data.password}`);
+      onPacienteCreado?.();
+      cerrar();
     } catch (error: any) {
       console.error(error);
 
-      if (error.code === "auth/email-already-in-use") {
-        alert("Ese paciente ya existe 💔");
-      } else {
-        alert("Error al crear paciente 😕");
-      }
+      alert(mensajeErrorPaciente(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={`global-container ${styles.container}`}>
-      {/* HEADER */}
+    <div>
+      {}
       <div className={styles.nav}>
         <h2>Registrar nuevo paciente</h2>
 
         <BotonPersonalizado
           variant="danger"
           onClick={() => {
-            if (confirm("¿Cancelar?")) navigate("/admin/pacientes");
+            if (confirm("¿Cancelar?")) cerrar();
           }}
-          disabled={false}
+          disabled={loading}
         >
           Cancelar
         </BotonPersonalizado>
       </div>
 
-      {/* FORM */}
+      {}
       <form className={styles.form} onSubmit={guardarPaciente}>
         <div className={styles.inputGroup}>
-          <h2>Datos de Acceso</h2>
+          <div className={`container`}>
+            <div className={styles.container}>
+              <label htmlFor="nombre" className="paddingHorizontal">
+                Nombre completo:{" "}
+              </label>
+              <input
+                type="text"
+                name="nombre"
+                id="nombre"
+                placeholder="Nombre completo"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className={styles.container}>
+              <label htmlFor="dni" className="paddingHorizontal">
+                DNI:{" "}
+              </label>
+              <input
+                type="text"
+                name="dni"
+                id="dni"
+                placeholder="DNI"
+                value={formData.dni}
+                onChange={handleChange}
+                required
+              />
 
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre completo"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
+              {formData.dni.replace(/\D/g, "").length >= 6 && (
+                <small>
+                  🔑 Contraseña: <strong>{formData.dni.replace(/\D/g, "").slice(-6)}</strong>
+                </small>
+              )}
+            </div>
 
-          <input
-            type="text"
-            name="dni"
-            placeholder="DNI"
-            value={formData.dni}
-            onChange={handleChange}
-            required
-          />
-
-          {formData.dni.length >= 6 && (
-            <small>
-              🔑 Contraseña: <strong>{formData.dni.slice(-6)}</strong>
-            </small>
-          )}
-
-          <input
-            type="text"
-            name="contacto"
-            placeholder="Contacto"
-            value={formData.contacto}
-            onChange={handleChange}
-          />
-        </div>
+            <div className={styles.container}>
+              <label htmlFor="contacto" className="paddingHorizontal">
+                Contacto (email/número telefonico):{" "}
+              </label>
+              <input
+                type="text"
+                name="contacto"
+                id="contacto"
+                placeholder="Contacto"
+                value={formData.contacto}
+                onChange={handleChange}
+              />
+            </div>
+            <div className={styles.container}>
+              <label htmlFor="fechaIngreso" className="paddingHorizontal">
+                Fecha de acceso:{" "}
+              </label>
+              <input
+                type="date"
+                name="fechaIngreso"
+                id="fechaIngreso"
+                value={formData.fechaIngreso}
+                onChange={handleChange}
+                required
+              />
+            </div>
+        </div></div>
 
         <div className={styles.inputGroup}>
           <h2>Asignación de Tests</h2>
@@ -190,7 +236,7 @@ export default function NuevoPaciente() {
           </div>
         </div>
 
-        <BotonPersonalizado type="submit" disabled={loading}>
+        <BotonPersonalizado type="submit" disabled={loading} tooltip="Registrar al paciente con todos los tests seleccionados.">
           {loading ? "Creando..." : "Crear paciente"}
         </BotonPersonalizado>
       </form>

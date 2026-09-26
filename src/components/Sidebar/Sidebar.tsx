@@ -10,6 +10,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebase.tsx";
 import BotonPersonalizado from "../Boton/Boton.tsx";
 import { useEffect, useState } from "react";
+import Tooltip from "@mui/material/Tooltip";
 
 export default function Sidebar() {
   const { pathname } = useLocation();
@@ -25,15 +26,15 @@ export default function Sidebar() {
   };
 
   const linksAdmin = [
-    { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/pacientes", label: "Pacientes" },
-    { to: "/admin/sesiones", label: "Sesiones" },
+    { to: "/admin/dashboard", label: "Dashboard", ayuda: "Consultar el resumen de actividad y evaluaciones." },
+    { to: "/admin/pacientes", label: "Pacientes", ayuda: "Registrar pacientes, asignar tests y consultar sus informes." },
+    { to: "/admin/sesiones", label: "Sesiones", ayuda: "Consultar y gestionar las sesiones de evaluación." },
   ];
 
   const linksPaciente = [
-    { to: "/app/dashboard", label: "Dashboard" },
-    { to: "/app/tests", label: "Mis Tests" },
-    { to: "/app/dni", label: "Mi Documentación" },
+    { to: "/app/dashboard", label: "Dashboard", ayuda: "Consultar el estado de su acceso y los pasos pendientes." },
+    { to: "/app/tests", label: "Mis Tests", ayuda: "Ver sus evaluaciones asignadas e iniciar las pendientes." },
+    { to: "/app/dni", label: "Mi Documentación", ayuda: "Cargar su DNI para habilitar las evaluaciones." },
   ];
 
   const links = rol === "admin" ? linksAdmin : linksPaciente;
@@ -74,11 +75,9 @@ useEffect(() => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       
-      // ✅ CAMBIO 1: Usamos el nombre exacto de tu Firestore
       const fechaFin = data.fechaFinAcceso; 
 
       if (fechaFin) {
-        // ✅ CAMBIO 2: Convertimos el objeto {seconds, nanoseconds} a una fecha de JS
         const fechaParaCalculo = fechaFin.toDate ? fechaFin.toDate() : new Date(fechaFin.seconds * 1000);
 
         const updateContador = () => {
@@ -106,10 +105,8 @@ useEffect(() => {
   const paciente = JSON.parse(localStorage.getItem("paciente") || "null");
   const nombre = paciente?.nombre || "Usuario";
 
-  // ADMIN
   const emailAdmin = localStorage.getItem("email");
 
-  // -------- NORMALIZACIÓN --------
   let displayName = "Usuario";
   let subText = "";
   let iniciales = "?";
@@ -136,14 +133,15 @@ useEffect(() => {
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.navbar}>
-        {/* IZQUIERDA */}
+        {}
         <div className={styles.left}>
           <img src={logo} alt="Logo" />
         </div>
 
-        {/* CENTRO */}
+        {}
         <div className={styles.center}>
           {links.map((link) => (
+            <Tooltip key={link.to} title={link.ayuda} describeChild arrow enterTouchDelay={300}>
             <Link
               key={link.to}
               to={link.to}
@@ -153,10 +151,11 @@ useEffect(() => {
             >
               {link.label}
             </Link>
+            </Tooltip>
           ))}
         </div>
 
-        {/* DERECHA (USER) */}
+        {}
         <div className={`boton-secondary ${styles.right}`}>
           <div className={styles.userWrapper}>
             <div className={styles.userTrigger}>
@@ -167,12 +166,12 @@ useEffect(() => {
                 <span className={styles.sub}>{subText}</span>
               </div>
               <div> </div>
-              {/* <span className={styles.arrow}><img src={puntos} alt="Más opciones" /></span> */}
+              {}
             </div>
 
-            {/* SUBMENU PRO */}
+            {}
             <div className={`${styles.subMenu} ${styles.triple}`}>
-              {/* 👤 PACIENTE */}
+              {}
               {rol !== "admin" && (
                 <>
                   <div className={styles.topContainer}>
@@ -196,11 +195,12 @@ useEffect(() => {
                 </>
               )}
 
-              {/* 🔐 COMÚN A TODOS */}
+              {}
               <div className={styles.box}>
                 <BotonPersonalizado
                   variant="secondary"
                   onClick={handleLogout}
+                  tooltip="Cerrar su sesión en este dispositivo."
                   disabled={false}
                 >
                   Cerrar sesión

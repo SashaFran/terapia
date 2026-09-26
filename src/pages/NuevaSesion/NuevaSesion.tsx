@@ -5,15 +5,11 @@ import BotonPersonalizado from "../../components/Boton/Boton";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
 
-// ----------------------
-// Tipos
-// ----------------------
 interface Paciente {
   id: string;
   nombre: string;
 }
 
-// Tests disponibles (por ahora uno)
 const TESTS = [
   {
     id: "k10",
@@ -28,11 +24,17 @@ const TESTS = [
       "Evalúa cinco dimensiones de la personalidad.",
   },
    {
-    id: "laminas",
-    nombre: "Escala de Láminas Zulliger y Bender",
+     id: "zulliger",
+     nombre: "Láminas Zulliger",
     descripcion:
-      "Evaluación proyectiva con láminas visuales.",
+       "Evaluación proyectiva con láminas Zulliger.",
   },
+   {
+     id: "bender",
+     nombre: "Test de Bender",
+     descripcion:
+       "Evaluación gestáltica visomotora (Bender).",
+   },
   {
     id: "raven",
     nombre: "Test de Raven Abreviado",
@@ -44,9 +46,6 @@ const TESTS = [
 export default function NuevaSesion() {
   const navigate = useNavigate();
 
-  // ----------------------
-  // Estados
-  // ----------------------
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -61,9 +60,6 @@ export default function NuevaSesion() {
 
   const [currentDate, setCurrentDate] = useState("");
 
-  // ----------------------
-  // Efectos
-  // ----------------------
   useEffect(() => {
     const today = new Date();
     setCurrentDate(
@@ -94,9 +90,6 @@ export default function NuevaSesion() {
     }
   };
 
-  // ----------------------
-  // Handlers
-  // ----------------------
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -116,7 +109,6 @@ export default function NuevaSesion() {
     setSaving(true);
 
     try {
-      // 1️⃣ Crear sesión (contenedor)
       const docRef = await addDoc(collection(db, "sesiones"), {
         pacienteId: formData.pacienteId,
         fecha: Timestamp.fromDate(new Date(formData.fecha)),
@@ -126,7 +118,6 @@ export default function NuevaSesion() {
         createdAt: Timestamp.now(),
       });
 
-      // 2️⃣ Navegar al test
       navigate(
         `/test/${formData.testId}?sesion=${docRef.id}&paciente=${formData.pacienteId}`,
       );
@@ -138,9 +129,6 @@ export default function NuevaSesion() {
     }
   };
 
-  // ----------------------
-  // Render
-  // ----------------------
   if (loading) {
     return (
       <div className={`global-container ${styles.container}`}>
@@ -151,7 +139,7 @@ export default function NuevaSesion() {
 
   return (
     <div className={`global-container ${styles.container}`}>
-      {/* Header */}
+      {}
       <div className={`nav`}>
         <h2>Nueva evaluación</h2>
         <BotonPersonalizado
@@ -201,7 +189,7 @@ export default function NuevaSesion() {
           />
         </div>
         <div className={styles.inputGroup}>
-          {/* Test */}
+          {}
           <h3>
             <label htmlFor="testId">Test a aplicar</label>
           </h3>
@@ -214,7 +202,7 @@ export default function NuevaSesion() {
           </select>
         </div>
         <div className={styles.inputGroup}>
-          {/* Observaciones */}
+          {}
           <h3>
             <label htmlFor="observaciones">Observaciones iniciales</label>
           </h3>
@@ -225,7 +213,7 @@ export default function NuevaSesion() {
             onChange={handleChange}
           />
         </div>
-        {/* CTA */}
+        {}
         <BotonPersonalizado variant="primary" type="submit" disabled={saving}>
           {saving ? "Creando sesión…" : "Comenzar evaluación"}
         </BotonPersonalizado>

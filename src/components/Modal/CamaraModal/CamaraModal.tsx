@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from "./CamaraModal.module.css";
 
-const ConsentimientoCamara = ({ /* onAccept */ changeStatus }) => {
+const ConsentimientoCamara = ({  changeStatus }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckboxChange = (e) => {

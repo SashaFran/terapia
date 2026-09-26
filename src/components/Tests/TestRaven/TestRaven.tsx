@@ -24,7 +24,8 @@ export default function TestRaven({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId,
     testId: "raven",
-    timeLimitMs: 20 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
     onFinish,
   });
 
@@ -33,24 +34,26 @@ export default function TestRaven({ onFinish, userId }: Props) {
   if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
   else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
-  // ----------------------
-  // INICIO TEST
-  // ----------------------
   const iniciarTest = () => engine.start();
 
-  // ----------------------
-  // HANDLE INPUT
-  // ----------------------
   const handleChange = (index: number, value: string) => {
-    const nuevas = [...respuestas];
-    nuevas[index] = value;
-    setRespuestas(nuevas);
-  };
+      const val = value.toString();
+      if (val === "") {
+        const nuevas = [...respuestas];
+        nuevas[index] = "";
+        setRespuestas(nuevas);
+        return;
+      }
+      if (!/^\d+$/.test(val)) return; // solo dígitos
+      let n = Number(val);
+      if (n > 8) n = 8;
+      if (n < 1) n = 1;
+      const nuevas = [...respuestas];
+      nuevas[index] = String(n);
+      setRespuestas(nuevas);
+    };
 
-  // ----------------------
-  // FINALIZAR
-  // ----------------------
-  const finalizar = () => {
+  const obtenerResultado = () => {
     let errores = 0;
     respuestas.forEach((r, i) => {
       if (Number(r) !== RESPUESTAS_CORRECTAS[i]) {
@@ -63,7 +66,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
     else if (errores <= 2) nivel = "Normal Superior";
     else if (errores <= 4) nivel = "Normal Promedio";
 
-    engine.submit({
+    return {
       score: 12 - errores,
       errores,
       nivel,
@@ -72,12 +75,13 @@ export default function TestRaven({ onFinish, userId }: Props) {
         respuesta: r || "Sin respuesta",
       })),
       metodo: "Test Raven",
-    });
+    };
   };
 
-  // ----------------------
-  // MODAL INICIAL
-  // ----------------------
+  const finalizar = () => {
+    void engine.submit(obtenerResultado()).catch(() => {});
+  };
+
   if (!engine.started) {
     return (
       <Modal abierto={true} onCerrar={() => {}} titulo="">
@@ -140,11 +144,9 @@ export default function TestRaven({ onFinish, userId }: Props) {
     );
   }
 
-  // ----------------------
-  // RENDER
-  // ----------------------
   return (
     <div className={`scrollbar ${styles.container}`}>
+      {engine.feedback}
       <div className="layout">
         <div className="panelVertical">
           <h2>Evaluación de Raven</h2>
@@ -193,7 +195,10 @@ export default function TestRaven({ onFinish, userId }: Props) {
                 />
 
                 <input
-                  type="text"
+                  type="number"
+                  disabled={engine.inputLocked}
+                  min={1}
+                  max={8}
                   value={respuestas[i]}
                   onChange={(e) => handleChange(i, e.target.value)}
                   placeholder="Respuesta"
@@ -206,7 +211,7 @@ export default function TestRaven({ onFinish, userId }: Props) {
           <BotonPersonalizado
             className={styles.boton}
             onClick={finalizar}
-            disabled={respuestas.some((r) => r === "")}
+            disabled={engine.inputLocked || respuestas.some((r) => r === "")}
             variant="primary"
           >
             Finalizar test

@@ -1,4 +1,3 @@
-// components/Modal/Modal.tsx (El componente global)
 import styles from "../Modal/Modal.module.css";
 import type { ReactNode } from 'react'; // Importamos ReactNode para tipar el contenido
 
@@ -26,7 +25,7 @@ export default function Modal({
         </div>
         
         <div className={styles.modalBody}>
-            {children} {/* Renderiza el contenido dinámico aquí */}
+            {children} {}
         </div>
         
       </div>

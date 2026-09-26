@@ -8,6 +8,16 @@
   min-height: 0;
 }
 
+.loading{
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #6b1d2a;
+}
+
 .cardPaciente {
   margin: 0 1rem;
   padding: 1.5rem;

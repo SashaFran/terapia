@@ -32,9 +32,6 @@ export const K10_TEST = {
     "¿Con qué frecuencia te has sentido inútil?",
   ],
 
-  // ---------------------------
-  // 🔢 Interpretación clínica
-  // ---------------------------
   interpretarResultado: (score: number) => {
     if (score <= 12) {
       return "Malestar psicológico bajo o moderado";
@@ -47,9 +44,6 @@ export const K10_TEST = {
     }
   },
 
-  // ---------------------------
-  // 🧠 Resumen clínico automático
-  // ---------------------------
  generarResumenClinico: ({
   pacienteNombre,
   score,

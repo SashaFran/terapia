@@ -45,7 +45,7 @@ export function Navbar() {
             <img src={logoImage} alt="Join Solution" className="h-10 w-auto" />
           </div>
 
-          {/* Desktop Navigation */}
+          {}
           <div className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
               <button
@@ -64,7 +64,7 @@ export function Navbar() {
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {}
           <button
             className="lg:hidden p-2 text-gray-700 hover:text-blue-600"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -77,7 +77,7 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {}
         {isMobileMenuOpen && (
           <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
             <div className="flex flex-col gap-4">

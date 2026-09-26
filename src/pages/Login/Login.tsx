@@ -3,31 +3,52 @@ import { useNavigate } from "react-router-dom";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./Login.module.css";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../firebase/firebase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth(); // 👈 CLAVE
+  const { login } = useAuth();
 
-const handleLogin = async () => {
-  console.log("CLICK EN LOGIN");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Completá email y contraseña");
+      return;
+    }
 
-  if (!email || !password) {
-    setError("Completá email y contraseña");
-    return;
-  }
+    try {
+      setLoading(true);
+      await login(email, password);
+      localStorage.removeItem("paciente");
+      localStorage.setItem("rol", "admin");
+      navigate("/admin/dashboard");
+    } catch {
+      setError("Credenciales incorrectas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  try {
-    await login(email, password);
-
-    // 🔥 LIMPIAR SESIÓN PACIENTE
-    localStorage.removeItem("paciente");
-
-    // 🔥 SETEAR ROL ADMIN
-    localStorage.setItem("rol", "admin");
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Ingresá tu email para restablecer la contraseña.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      alert("Te enviamos un correo con un enlace para restablecer tu contraseña.");
+    } catch {
+      setError("No se pudo enviar el correo de restablecimiento.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     console.log("LOGIN OK");
 
@@ -35,12 +56,13 @@ const handleLogin = async () => {
   } catch (err) {
     console.error(err);
     setError("Credenciales incorrectas");
+  if (loading) {
+    return <div className={styles.loading}>Cargando pantalla...</div>;
   }
-};
 
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginBox}>
+    <div className="loginContainer">
+      <div className="loginBox">
         <h2>Ingreso al sistema</h2>
         <div className={styles.form}>
           <input
@@ -59,23 +81,31 @@ const handleLogin = async () => {
 
           {error && <p className="error">{error}</p>}
 
-<div className="nav">
-<BotonPersonalizado
-            variant="primary"
-            onClick={handleLogin}
-            disabled={!email || !password}
-          >
-            Ingresar
-          </BotonPersonalizado>
-<BotonPersonalizado
+          <div className="nav">
+            <BotonPersonalizado
+              variant="primary"
+              onClick={handleLogin}
+              disabled={!email || !password}
+            >
+              Ingresar
+            </BotonPersonalizado>
+            <BotonPersonalizado
               variant="secondary"
               onClick={() => navigate("/login")}
               disabled={false}
             >
               Ingresar como paciente
             </BotonPersonalizado>
-</div>
-          
+          </div>
+          <div className="nav">
+            <BotonPersonalizado
+              variant="secondary"
+              onClick={handleResetPassword}
+              disabled={!email}
+            >
+              Restablecer contraseña
+            </BotonPersonalizado>
+          </div>
         </div>
       </div>
     </div>

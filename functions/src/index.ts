@@ -1,25 +1,22 @@
-import * as functions from "firebase-functions";
+import { onCall, HttpsError } from "firebase-functions/v1/https";
 import * as admin from "firebase-admin";
+import { crearPaciente, eliminarPaciente } from "./pacientes";
 
 admin.initializeApp();
 
-export const crearPacienteAuth = functions.https.onCall(async (data, context) => {
-  // 🔒 Solo admin puede ejecutar
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "No autorizado");
+// Preserve the existing name so no legacy callable is left deployed.
+export const crearPacienteAuth = onCall(async (data, context) => {
+  if (!context.auth) throw new HttpsError("unauthenticated", "Inicie sesión nuevamente.");
+  if (context.auth.token.admin !== true) {
+    throw new HttpsError("permission-denied", "Se requiere una cuenta administradora habilitada.");
   }
+  return crearPaciente(data);
+});
 
-  const { email, password } = data;
-
-  try {
-    const user = await admin.auth().createUser({
-      email,
-      password,
-    });
-
-    return { uid: user.uid };
-
-  } catch (error: any) {
-    throw new functions.https.HttpsError("internal", error.message);
+export const eliminarPacienteAuth = onCall(async (data, context) => {
+  if (!context.auth) throw new HttpsError("unauthenticated", "Inicie sesión nuevamente.");
+  if (context.auth.token.admin !== true) {
+    throw new HttpsError("permission-denied", "Se requiere una cuenta administradora habilitada.");
   }
+  return eliminarPaciente(data, context.auth.uid);
 });

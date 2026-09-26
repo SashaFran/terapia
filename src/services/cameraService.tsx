@@ -30,7 +30,6 @@ useEffect(() => {
       video.srcObject = stream;
       await video.play();
 
-      console.log("📸 cámara lista");
 
       interval = setInterval(() => {
         const v = videoRef.current;
@@ -44,7 +43,6 @@ useEffect(() => {
             if (yaCapturo.current) return;
             yaCapturo.current = true;
 
-            console.log("📸 capturando UNA SOLA VEZ");
 
             capturar();
           }, 5000);
@@ -104,7 +102,6 @@ const capturar = async () => {
 
   const data = await res.json();
 
-  console.log("📤 subida directa:", data);
 
   onCapturaTerminada({
     url: data.secure_url,

@@ -30,7 +30,8 @@ export default function TestK10({ onFinish, userId }: Props) {
   const engine = useTestEngine({
     userId: resolvedUserId,
     testId: "k10",
-    timeLimitMs: 15 * 60 * 1000,
+    timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
     onFinish: async (data) => {
       if (onFinish) await onFinish(data);
       navigate("/app/dashboard", { replace: true });
@@ -50,10 +51,7 @@ export default function TestK10({ onFinish, userId }: Props) {
     });
   };
 
-  const calcularResultado = async () => {
-    if (!engine.started || enviando) return;
-    setEnviando(true);
-
+  const obtenerResultado = () => {
     const total = respuestas.reduce((a, b) => a + b, 0);
 
     let nivel = "";
@@ -61,14 +59,15 @@ export default function TestK10({ onFinish, userId }: Props) {
     else if (total <= 19) nivel = "Malestar psicológico moderado a severo";
     else if (total <= 29) nivel = "Malestar psicológico severo";
     else nivel = "Malestar psicológico muy severo";
+    return { score: total, nivel, respuestas, metodo: "K10" };
+  };
+
+  const calcularResultado = async () => {
+    if (!engine.started || enviando) return;
+    setEnviando(true);
 
     try {
-      await engine.submit({
-        score: total,
-        nivel,
-        respuestas,
-        metodo: "K10",
-      });
+      await engine.submit(obtenerResultado());
     } catch (error) {
       console.error("❌ Error al guardar el K10:", error);
       setEnviando(false);
@@ -141,6 +140,7 @@ export default function TestK10({ onFinish, userId }: Props) {
 
   return (
     <div className={`container scrollbar`}>
+      {engine.feedback}
       <div className={styles.nav}>
         <h2>{K10_TEST.nombre}</h2>
         <div className={timerClass}>
@@ -161,6 +161,7 @@ export default function TestK10({ onFinish, userId }: Props) {
                 <label key={op.valor}>
                   <input
                     type="radio"
+                    disabled={engine.inputLocked}
                     name={`pregunta-${i}`}
                     checked={respuestas[i] === op.valor}
                     onChange={() => responder(i, op.valor)}
@@ -174,7 +175,7 @@ export default function TestK10({ onFinish, userId }: Props) {
 
         <BotonPersonalizado
           variant="primary"
-          disabled={incompleto || enviando}
+          disabled={incompleto || enviando || engine.inputLocked}
           onClick={calcularResultado}
         >
           {enviando ? "Guardando..." : "Finalizar test"}

@@ -12,7 +12,6 @@ export default function DashboardPaciente() {
   const [paciente, setPaciente] = useState<any>(null);
   const [asignaciones, setAsignaciones] = useState<any[]>([]);
 
-  // 🧠 CALCULO
   const calcularProgreso = (asignaciones: any[]) => {
     if (!asignaciones || asignaciones.length === 0) {
       return { realizados: 0, total: 0 };
@@ -28,7 +27,6 @@ export default function DashboardPaciente() {
 
   const { realizados, total } = calcularProgreso(asignaciones);
 
-  // 🧠 CARGAR PACIENTE
   useEffect(() => {
     const data = localStorage.getItem("paciente");
 
@@ -54,7 +52,6 @@ export default function DashboardPaciente() {
     setPaciente(parsed);
   }, []);
 
-  // 🧠 CARGAR ASIGNACIONES
   useEffect(() => {
     const cargarAsignaciones = async () => {
       if (!paciente?.id) return;
@@ -77,7 +74,6 @@ export default function DashboardPaciente() {
     cargarAsignaciones();
   }, [paciente]);
 
-  // 🧠 FECHA
   const formatearFecha = (fecha: any) => {
     if (!fecha?.seconds) return "—";
     return new Date(fecha.seconds * 1000).toLocaleDateString("es-AR");

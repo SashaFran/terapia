@@ -11,7 +11,6 @@ export default function BFQPage() {
   const [pacienteId, setPacienteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Cargar sesión   
   useEffect(() => {
     const cargarSesion = async () => {
       if (!sesionId) return;
@@ -32,7 +31,6 @@ export default function BFQPage() {
     cargarSesion();
   }, [sesionId, navigate]);
 
-  // 🔹 Guardar resultado
   const handleFinish = async (resultado: any) => {
     if (!pacienteId || !sesionId) return;
 
@@ -45,21 +43,20 @@ export default function BFQPage() {
         puntaje: resultado.score,
         nivel: resultado.nivel,
         metodo: resultado.metodo,
+        tiempoTotalMs: resultado.tiempoTotalMs ?? null,
+        out_of_time: resultado.out_of_time === true,
         fecha: serverTimestamp(),
         dimensiones: resultado.dimensiones,
       }).filter(([, value]) => value !== undefined),
     );
 
-    // 1️⃣ Guardar resultado del test
     await addDoc(collection(db, "resultados"), data);
 
-    // 2️⃣ Actualizar sesión
     await updateDoc(doc(db, "sesiones", sesionId), {
       estado: "finalizada",
       fechaUltimaSesion: serverTimestamp(),
     });
 
-    // 3️⃣ Volver al perfil
     navigate(`/paciente/${pacienteId}`);
   };
 
@@ -74,4 +71,3 @@ export default function BFQPage() {
     </div>
   );
 }
- 

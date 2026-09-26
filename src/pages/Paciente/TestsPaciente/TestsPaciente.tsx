@@ -4,6 +4,8 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import styles from "./TestsPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebase/firebase";
 
 interface Test {
   id: string;
@@ -17,7 +19,6 @@ export default function TestsPaciente() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🧠 CALCULAR PROGRESO
   const calcularProgreso = (tests: Test[]) => {
     const total = tests.length;
     const realizados = tests.filter((t) => t.estado === "completado").length;
@@ -29,8 +30,8 @@ export default function TestsPaciente() {
     return new Date(fecha.seconds * 1000).toLocaleDateString("es-AR");
   };
   const { realizados, total } = calcularProgreso(tests);
+  const dniCargado = !!paciente?.archivodni;
 
-  // 🧠 CARGAR PACIENTE + TESTS
   useEffect(() => {
     const fetchData = async () => {
       const data = localStorage.getItem("paciente");
@@ -59,19 +60,14 @@ export default function TestsPaciente() {
     fetchData();
   }, []);
 
-  // ⏳ LOADING REAL
   if (loading) {
-    return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando…</h2>
-      </div>
-    );
+    return <div className={styles.loading}>Cargando pantalla...</div>;
   }
 
   return (
     <div className={`container`}>
       <div className={`layout`}>
-        {/* PROGRESO */}
+        {}
         <div className={"panelVertical"}>
           <div className={`card panelVertical ${styles.cardPaciente}`}>
                 <h2>Tests asignados</h2>
@@ -88,9 +84,21 @@ export default function TestsPaciente() {
               </div>
             
         </div>
-
-        {/* TABLA */}
-        <main className={`scrollbar tablaPacientes`}>
+        
+        {total > 0 && realizados === total && (
+          <div className={`card`} style={{padding:16, marginBottom:12}}>
+            <h3>¡Completaste todos los tests asignados!</h3>
+            <p>Para salir de la sesión, por favor cierra sesión. Esto cerrará la sesión en este equipo.</p>
+            <div style={{display: 'flex', gap: 8}}>
+              <BotonPersonalizado variant="danger" onClick={async () => { await signOut(auth); navigate('/'); }}>
+                Cerrar sesión
+              </BotonPersonalizado>
+            </div>
+          </div>
+        )}
+        {}
+        <main className="scrollbar">
+          <div className="tablaPacientes">
           <table>
             <thead>
               <tr>
@@ -113,10 +121,22 @@ export default function TestsPaciente() {
                         >
                         Hecho
                       </BotonPersonalizado>
+                    ) : t.estado === "abandono" ? (
+                      <BotonPersonalizado variant="danger" disabled={true}>
+                        Abandonado
+                      </BotonPersonalizado>
                     ) : (
                       <BotonPersonalizado
                         variant="primary"
-                        onClick={() => navigate(`/app/test/${t.testId}`)}
+                        tooltip={dniCargado ? "Ver las instrucciones e iniciar esta evaluación." : "Primero debe cargar su DNI para realizar la evaluación."}
+                        onClick={() => {
+                          if (!dniCargado) {
+                            alert("Antes de iniciar tests, tenés que subir tu DNI.");
+                            navigate("/app/subir-dni");
+                            return;
+                          }
+                          navigate(`/app/test/${t.testId}`);
+                        }}
                         disabled={false}
                       >
                         Comenzar
@@ -127,6 +147,7 @@ export default function TestsPaciente() {
               ))}
             </tbody>
           </table>
+          </div>
         </main>
       </div>
     </div>

@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
 import { collection, addDoc, query, where, getDocs, updateDoc, doc, Timestamp } from "firebase/firestore";
+import { useEffect, useRef } from "react";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+  Timestamp,
+  getDoc,
+  writeBatch,
+} from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import TestK10 from "../../components/Tests/TestK10/TestK10";
 import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
-import TestLaminas from "../../components/Tests/TestLaminas/TestLaminas";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
+import TestZulliger from "../../components/Tests/TestZulliger/TestZulliger";
+import TestBender from "../../components/Tests/TestBender/TestBender";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 import { useNavigate, useParams } from "react-router-dom";
 import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal";
@@ -19,6 +32,8 @@ export default function TestRunner() {
   const pacienteId = localStorage.getItem("pacienteId"); // 🔥 CLAVE
   const testCompletadoRef = useRef(false);
   const bloqueoAplicadoRef = useRef(false);
+  const confirmarSalidaRef = useRef(false);
+  const resultadoRef = useRef(doc(collection(db, "resultados")));
 
   useEffect(() => {
     if (!pacienteId || !testId) return;
@@ -29,11 +44,26 @@ export default function TestRunner() {
       event.preventDefault();
       event.returnValue = "";
     };
+    const bloquearRetroceso = () => {
+      if (testCompletadoRef.current || confirmarSalidaRef.current) return;
+      const confirmar = window.confirm(
+        "¿Seguro que desea salir? Recuerde que al cerrar no podrá volver a ingresar y deberá comunicarse con Administración para solicitar un nuevo acceso.",
+      );
+      if (!confirmar) {
+        window.history.pushState(null, "", window.location.href);
+        return;
+      }
+      confirmarSalidaRef.current = true;
+      navigate("/app/tests");
+    };
 
     window.addEventListener("beforeunload", bloquearSalida);
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", bloquearRetroceso);
 
     return () => {
       window.removeEventListener("beforeunload", bloquearSalida);
+      window.removeEventListener("popstate", bloquearRetroceso);
 
       if (testCompletadoRef.current || bloqueoAplicadoRef.current || !pacienteId)
         return;
@@ -45,6 +75,18 @@ export default function TestRunner() {
           await updateDoc(doc(db, "pacientes", pacienteId), {
             activo: false,
           });
+          const asignacionesPendientes = await getDocs(
+            query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
+          );
+          await Promise.all(
+            asignacionesPendientes.docs.map((asig) => {
+              const estado = asig.data().estado;
+              if (estado === "completado") return Promise.resolve();
+              return updateDoc(doc(db, "asignaciones", asig.id), {
+                estado: "abandono",
+              });
+            }),
+          );
         } catch (error) {
           console.error("No se pudo bloquear al paciente al salir del test", error);
         } finally {
@@ -111,6 +153,12 @@ export default function TestRunner() {
       alert("Faltan datos del paciente");
       return;
     }
+    const pacienteSnapPre = await getDoc(doc(db, "pacientes", pacienteId));
+    if (!pacienteSnapPre.exists() || !pacienteSnapPre.data()?.archivodni) {
+      alert("Necesitás subir el DNI antes de realizar tests.");
+      navigate("/app/subir-dni");
+      return;
+    }
 
     const ahora = new Date();
 
@@ -122,15 +170,15 @@ export default function TestRunner() {
       pacienteId, // 🔥 AHORA NUNCA VA NULL
       archivoCaptura: resultado.archivoCaptura || null,
       captura_public_id: resultado.captura_public_id || null,
+      tiempoTotalMs: resultado.tiempoTotalMs ?? null,
+      out_of_time: resultado.out_of_time === true,
     };
 
-    // K10
     if (testId === "k10") {
       data.score = resultado.score;
       data.nivel = resultado.nivel;
     }
 
-    // BFQ
     if (testId === "bfq") {
       const scoreTotal = Object.values(resultado.dimensiones || {})
         .reduce((acc: number, val: any) => acc + (val || 0), 0);
@@ -140,14 +188,12 @@ export default function TestRunner() {
       data.dimensiones = resultado.dimensiones;
     }
 
-    // Raven
     if (testId === "raven") {
       data.nivel = resultado.nivel;
-      data.errores = resultado.errores;
+      data.errores = resultado.errores ?? null;
     }
 
-    // Láminas
-    if (testId === "laminas") {
+    if (testId === "zulliger" || testId === "bender") {
       data.nivel = "Interpretación Láminas";
       data.resumenClinico = generarResumenLaminas({
         pacienteNombre: "Paciente",
@@ -156,13 +202,6 @@ export default function TestRunner() {
       });
     }
 
-    // 💾 GUARDAR
-    testCompletadoRef.current = true;
-    clearTestEnCurso();
-
-    await addDoc(collection(db, "resultados"), data);
-
-    // 🔥 ACTUALIZAR ASIGNACIÓN
     const q = query(
       collection(db, "asignaciones"),
       where("pacienteId", "==", pacienteId),
@@ -171,8 +210,10 @@ export default function TestRunner() {
 
     const snap = await getDocs(q);
 
-    const updates = snap.docs.map((d) =>
-      updateDoc(doc(db, "asignaciones", d.id), {
+    const batch = writeBatch(db);
+    batch.set(resultadoRef.current, data);
+    snap.docs.forEach((d) =>
+      batch.update(doc(db, "asignaciones", d.id), {
         estado: "completado",
         fechaCompletado: Timestamp.fromDate(ahora),
       }),
@@ -182,6 +223,9 @@ export default function TestRunner() {
     const todasAsignacionesSnap = await getDocs(
       query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
     );
+    await batch.commit();
+    testCompletadoRef.current = true;
+    clearTestEnCurso();
 
     const asignaciones = todasAsignacionesSnap.docs.map((d) => d.data());
     const total = asignaciones.length;
@@ -231,4 +275,11 @@ export default function TestRunner() {
       />
     </>
   );
+  if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "zulliger") return <TestZulliger onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "bender") return <TestBender onFinish={handleFinish} userId={pacienteId} />;
+  if (testId === "raven") return <TestRaven onFinish={handleFinish} userId={pacienteId} />;
+
+  return <p>Test no encontrado</p>;
 }

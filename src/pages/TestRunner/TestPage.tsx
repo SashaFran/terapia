@@ -46,22 +46,20 @@ export default function TestPage() {
 
       {etapa === "test" && (
   <>
-    {/* Test Kessler K10 */}
+    {}
     {testId === "k10" && (
       <TestK10
         userId={pacienteId}
         onFinish={(resultado) => {
-          console.log("Resultado K10:", resultado);
         }}
       />
     )}
 
-    {/* Test Big Five (BFQ) */}
+    {}
     {testId === "bfq" && (
       <TestBFQ
         userId={pacienteId}
         onFinish={(resultado) => {
-          console.log("Resultado BFQ:", resultado);
 
           const scoreTotal = Object.values(resultado.dimensiones)
             .reduce((acc, val) => acc + val, 0);
@@ -71,6 +69,7 @@ export default function TestPage() {
             nivel: "Perfil Big Five", // ✅ string fijo
             respuestas: resultado.respuestas,
             metodo: resultado.metodo,
+            tiempoTotalMs: resultado.tiempoTotalMs ?? null,
             fecha: new Date(),
             pacienteId,
             sesionId,
@@ -83,13 +82,13 @@ export default function TestPage() {
 
     {testId === "bender" && (
       <TestBender onFinish={(resultado) => {
-        console.log("Resultado Bender:", resultado);
         guardarResultado({
           testId: "bender",
           score: resultado.score,
           nivel: resultado.nivel,
           respuestas: resultado.respuestas,
           metodo: resultado.metodo,
+          tiempoTotalMs: resultado.tiempoTotalMs ?? null,
           fecha: new Date(),
           pacienteId,
           sesionId,
@@ -99,13 +98,13 @@ export default function TestPage() {
 
     {testId === "zulliger" && (
       <TestZulliger onFinish={(resultado) => {
-        console.log("Resultado Zulliger:", resultado);
         guardarResultado({
           testId: "zulliger",
           score: resultado.score,
           nivel: resultado.nivel,
           respuestas: resultado.respuestas,
           metodo: resultado.metodo,
+          tiempoTotalMs: resultado.tiempoTotalMs ?? null,
           fecha: new Date(),
           pacienteId,
           sesionId,
@@ -117,7 +116,6 @@ export default function TestPage() {
       <TestLaminas
         userId={pacienteId}
         onFinish={(resultado) => {
-          console.log("Resultado Láminas:", resultado);
 
           const resumenClinico = generarResumenLaminas({
             pacienteNombre: "Paciente",
@@ -131,6 +129,7 @@ export default function TestPage() {
             nivel: "Interpretación Láminas",
             respuestas: resultado.respuestas,
             metodo: resultado.metodo,
+            tiempoTotalMs: resultado.tiempoTotalMs ?? null,
             fecha: new Date(),
             pacienteId,
             sesionId,

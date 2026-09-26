@@ -12,12 +12,14 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { eliminarPaciente, mensajeErrorPaciente } from "../../firebase/pacientes";
+import Tooltip from "@mui/material/Tooltip";
 
-// Componentes y Estilos
 import BotonPersonalizado from "../../components/Boton/Boton.tsx";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
 import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal.tsx";
 import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal.tsx";
+import Modal from "../../components/Modal/Modal";
 
 import styles from "./PacientePerfil.module.css";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
@@ -25,14 +27,12 @@ import editar from "../../assets/Icons/pen.svg";
 import borrar from "../../assets/Icons/trash.svg";
 import configuracion from "../../assets/Icons/wrench-circle.svg";
 
-// Utilidades de descarga
 import { descargarInforme } from "../../utils/descargarInforme";
 import { generarPdfResultado } from "../../utils/generarPdfResultado";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 
-// -------- INTERFACES --------
 interface Resultado {
   id: string;
   fecha?: any;
@@ -56,7 +56,7 @@ interface Paciente {
 interface Asignacion {
   id: string;
   testId: string;
-  estado: "pendiente" | "completado";
+  estado: "pendiente" | "completado" | "abandono";
   fechaAsignacion?: any;
   fechaCompletado?: any;
 }
@@ -65,7 +65,6 @@ export default function PacientePerfil() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // -------- ESTADOS --------
   const [patient, setPatient] = useState<Paciente | null>(null);
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
@@ -76,6 +75,7 @@ export default function PacientePerfil() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [dniModalOpen, setDniModalOpen] = useState(false);
 
   const [confirmData, setConfirmData] = useState<any>(null);
   const [loadingConfirm, setLoadingConfirm] = useState(false);
@@ -83,41 +83,44 @@ export default function PacientePerfil() {
   const abrirConfirm = (config: any) => {
     setConfirmData(config);
   };
-  // -------- EFECTOS (Carga de Datos) --------
-  useEffect(() => {
-    if (!id) return;
-    localStorage.setItem("pacienteId", id);
+   useEffect(() => {
+     if (!id) return;
+     localStorage.setItem("pacienteId", id);
 
-    const loadData = async () => {
-      const pacienteSnap = await getDoc(doc(db, "pacientes", id));
-      if (pacienteSnap.exists()) {
-        setPatient({
-          id: pacienteSnap.id,
-          ...pacienteSnap.data(),
-        } as unknown as Paciente);
-      }
-      // Cargar Resultados
-      const resSnap = await getDocs(
-        query(collection(db, "resultados"), where("pacienteId", "==", id)),
-      );
-      setResultados(
-        resSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Resultado[],
-      );
+     const loadData = async () => {
+       const pacienteSnap = await getDoc(doc(db, "pacientes", id));
+       if (pacienteSnap.exists()) {
+         setPatient({
+           id: pacienteSnap.id,
+           ...pacienteSnap.data(),
+         } as unknown as Paciente);
+       }
+       const resSnap = await getDocs(
+         query(collection(db, "resultados"), where("pacienteId", "==", id)),
+       );
+       setResultados(
+         resSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Resultado[],
+       );
 
-      // Cargar Asignaciones
-      const asignSnap = await getDocs(
-        query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
-      );
-      setAsignaciones(
-        asignSnap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<Asignacion, "id">),
-        })) as Asignacion[],
-      );
-    };
+       console.log("🔍 Buscando asignaciones con pacienteId:", id);
+       const asignSnap = await getDocs(
+         query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
+       );
+       console.log("📊 Asignaciones encontradas:", asignSnap.docs.length);
+       asignSnap.docs.forEach(d => {
+         console.log("  - Asignación:", d.data());
+       });
+       
+       setAsignaciones(
+         asignSnap.docs.map((d) => ({
+           id: d.id,
+           ...(d.data() as Omit<Asignacion, "id">),
+         })) as Asignacion[],
+       );
+     };
 
-    loadData();
-  }, [id]);
+     loadData();
+   }, [id]);
   useEffect(() => {
     if (!patient?.id) return;
 
@@ -130,7 +133,6 @@ export default function PacientePerfil() {
         : new Date(patient.fechaFinAcceso);
     }
 
-    // 🔥 Si está expirado PERO sigue activo en DB → lo corregimos
     if (fin && ahora > fin && patient.activo === true) {
       const actualizarEstado = async () => {
         try {
@@ -138,7 +140,6 @@ export default function PacientePerfil() {
             activo: false,
           });
 
-          // 🧠 actualizamos estado local también
           setPatient((prev) => (prev ? { ...prev, activo: false } : prev));
         } catch (error) {
           console.error("Error auto-expirando paciente:", error);
@@ -160,7 +161,6 @@ export default function PacientePerfil() {
     setTableData(data);
   }, [resultados]);
 
-  // -------- HELPERS --------
   const formatearFecha = (timestamp: any) => {
     if (!timestamp) return "N/A";
     if (timestamp.toDate) return timestamp.toDate().toLocaleDateString("es-AR");
@@ -172,7 +172,6 @@ export default function PacientePerfil() {
 
     const ahora = new Date();
 
-    // 1. Manejo seguro de fecha nula o Timestamp
     let fin: Date | null = null;
     if (patient.fechaFinAcceso) {
       fin = patient.fechaFinAcceso.toDate
@@ -180,7 +179,7 @@ export default function PacientePerfil() {
         : new Date(patient.fechaFinAcceso);
     }
 
-    // 2. Validaciones en orden
+    if (asignaciones.some((a) => a.estado === "abandono")) return "⚠️ Abandono";
     if (fin && ahora > fin) return "⛔ Expirado";
     if (patient.activo === false) return "⛔ Inactivo";
 
@@ -192,7 +191,6 @@ export default function PacientePerfil() {
     return asignaciones.length === completados ? "✔️ Completado" : "🟢 Activo";
   };
 
-  // -------- ACCIONES DE DESCARGA --------
   const descargarIndividual = async (r: any) => {
     await generarPdfResultado({
       pacienteNombre: patient?.nombre,
@@ -209,7 +207,8 @@ export default function PacientePerfil() {
     for (const r of tableData) {
       try {
         const blob = await generarPdfResultado({
-          pacienteNombre: "ZIP", // 👈 EL TRUCO
+          pacienteNombre: patient.nombre,
+          devolverBlob: true,
           resultado: r,
           fotoDNI: patient.archivodni,
           fotoCaptura: r.archivoCaptura,
@@ -244,7 +243,6 @@ export default function PacientePerfil() {
     );
   };
 
-  // -------- MANEJO DE MODALES --------
   const handleOpenModal = (r: Resultado) => {
     setSelectedResultado(r);
     setIsModalOpen(true);
@@ -270,17 +268,14 @@ export default function PacientePerfil() {
 
   if (!patient) return <h2>Cargando...</h2>;
 
-  // -------- ACCIÓN CONFIGURACIÓN --------
   const handleGuardarConfig = async (datosActualizados: any) => {
     if (!id) return;
 
-    // 🔥 1. Actualizar paciente
     await updateDoc(doc(db, "pacientes", id), {
       activo: datosActualizados.activo,
       fechaFinAcceso: datosActualizados.fechaFinAcceso,
     });
 
-    // 🔥 2. Sync de tests (ACÁ está la magia)
     const asignSnap = await getDocs(
       query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
     );
@@ -298,7 +293,6 @@ export default function PacientePerfil() {
       (a) => !datosActualizados.testsSeleccionados.includes(a.testId),
     );
 
-    // Crear nuevos
     await Promise.all(
       nuevos.map((testId: string) =>
         addDoc(collection(db, "asignaciones"), {
@@ -310,12 +304,10 @@ export default function PacientePerfil() {
       ),
     );
 
-    // Borrar eliminados
     await Promise.all(
       eliminados.map((a) => deleteDoc(doc(db, "asignaciones", a.id))),
     );
 
-    // 🔥 3. Recargar asignaciones (IMPORTANTE)
     const nuevoSnap = await getDocs(
       query(collection(db, "asignaciones"), where("pacienteId", "==", id)),
     );
@@ -327,32 +319,36 @@ export default function PacientePerfil() {
       })) as Asignacion[],
     );
   };
-  // -------- UI (RENDER) --------
   return (
     <div className={styles.layout}>
       <div className={"panelVertical"}>
         <div className={`card panelVertical ${styles.cardPaciente}`}>
-          <div>
-            {" "}
-            <div>
-              <h2>{patient.nombre}</h2>
-              <aside className={styles.sidebar}>
-                <p>
-                  <strong>DNI:</strong> {patient.dni}
-                </p>
-                <p>
-                  <strong>Estado:</strong> {getEstadoPaciente()}
-                </p>
-                <p>
-                  <strong>Acceso:</strong>{" "}
-                  {formatearFecha(patient.fechaInicioAcceso)} →{" "}
-                  {formatearFecha(patient.fechaFinAcceso)}
-                </p>
-              </aside>
-            </div>
+          <h2>{patient.nombre}</h2>
+          <aside className={styles.sidebar}>
+            <p>
+              <strong>DNI:</strong> {patient.dni}
+            </p>
+            <p>
+              <strong>Estado:</strong> {getEstadoPaciente()}
+            </p>
+            <p>
+              <strong>Acceso:</strong>{" "}
+              {formatearFecha(patient.fechaInicioAcceso)} →{" "}
+              {formatearFecha(patient.fechaFinAcceso)}
+            </p>
+          </aside>
+          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', gap: 8}}>
+            <BotonPersonalizado
+              variant="info"
+              onClick={() => setDniModalOpen(true)}
+              disabled={false}
+            >
+              <img src={guardadoIcono} alt="DNI" style={{width:20, marginRight:8}} /> DNI
+            </BotonPersonalizado>
             <BotonPersonalizado
               variant="primary"
               onClick={() => setIsConfigOpen(true)}
+              tooltip="Cambiar la fecha de acceso y los tests asignados."
               disabled={false}
             >
               Modificar acceso
@@ -360,6 +356,7 @@ export default function PacientePerfil() {
           </div>
           <BotonPersonalizado
             variant="danger"
+            tooltip="Eliminar el perfil, su cuenta de acceso y sus evaluaciones."
             onClick={() =>
               abrirConfirm({
                 titulo: `Eliminar paciente`,
@@ -371,35 +368,10 @@ export default function PacientePerfil() {
                   setLoadingConfirm(true);
 
                   try {
-                    const asignacionesSnap = await getDocs(
-                      query(
-                        collection(db, "asignaciones"),
-                        where("pacienteId", "==", id),
-                      ),
-                    );
-
-                    const resultadosSnap = await getDocs(
-                      query(
-                        collection(db, "resultados"),
-                        where("pacienteId", "==", id),
-                      ),
-                    );
-
-                    await Promise.all([
-                      ...asignacionesSnap.docs.map((d) =>
-                        deleteDoc(doc(db, "asignaciones", d.id)),
-                      ),
-                      ...resultadosSnap.docs.map((d) =>
-                        deleteDoc(doc(db, "resultados", d.id)),
-                      ),
-                    ]);
-
-                    await fetch("http://localhost:3001/api/delete-paciente", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ pacienteId: id }),
-                    });
+                    await eliminarPaciente({ pacienteId: id });
                     navigate("/admin/pacientes");
+                  } catch (error) {
+                    alert(mensajeErrorPaciente(error));
                   } finally {
                     setLoadingConfirm(false);
                     setConfirmData(null);
@@ -427,7 +399,8 @@ export default function PacientePerfil() {
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar tablaPacientes`}>
+          <div className="scrollbar">
+            <div className="tablaPacientes">
             <table>
               <thead>
                 <tr>
@@ -490,23 +463,26 @@ export default function PacientePerfil() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
-        {/* TABLA 2: Evaluaciones */}
+        {}
         <div className={styles.bloqueTabla}>
           <div className={styles.nav}>
             <h3>Evaluaciones</h3>
             <BotonPersonalizado
               variant="secondary"
               onClick={descargarZip}
+              tooltip="Descargar los informes PDF de todas las evaluaciones en un ZIP."
               disabled={false}
             >
               Descargar archivos
             </BotonPersonalizado>
           </div>
 
-          <div className={`scrollbar tablaPacientes`}>
+          <div className="scrollbar">
+            <div className="tablaPacientes">
             <table>
               <thead>
                 <tr>
@@ -523,14 +499,18 @@ export default function PacientePerfil() {
                     <td>{formatearFecha(r.fecha)}</td>
                     <td>{r.testId}</td>
                     <td>
-                      <button onClick={() => handleOpenModal(r)}>
+                      <Tooltip title="Agregar o editar observaciones" arrow>
+                      <button aria-label="Editar observaciones" onClick={() => handleOpenModal(r)}>
                         <img src={editar} alt="" />
                       </button>
+                      </Tooltip>
                     </td>
                     <td>
-                      <button onClick={() => descargarIndividual(r)}>
+                      <Tooltip title="Descargar el informe de esta evaluación" arrow>
+                      <button aria-label="Descargar PDF" onClick={() => descargarIndividual(r)}>
                         <img src={guardadoIcono} alt="Descargar PDF" />
                       </button>
+                      </Tooltip>
                     </td>
                     <td>
                       <button
@@ -559,11 +539,12 @@ export default function PacientePerfil() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* MODALES */}
+      {}
       {isConfigOpen && (
         <EditarPacienteModal
           abierto={isConfigOpen}
@@ -591,6 +572,23 @@ export default function PacientePerfil() {
         sesion={selectedResultado}
         onGuardarExitoso={handleSuccessfulSave}
       />
+
+      {dniModalOpen && (
+        <Modal abierto={dniModalOpen} onCerrar={() => setDniModalOpen(false)} titulo="Estado del DNI">
+          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', gap: 12}}>
+            <div>
+              <p><strong>DNI cargado:</strong> {patient.archivodni ? "✔ Sí" : "✖ No"}</p>
+              {patient.archivodni && (
+                <img src={patient.archivodni} alt="Foto DNI" style={{maxWidth: '12%', marginTop: 8}} />
+              )}
+            </div>
+          </div>
+          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginTop: 16}}>
+            <BotonPersonalizado variant="primary" onClick={() => { setDniModalOpen(false); navigate('/app/tests'); }}>Ir a Tests</BotonPersonalizado>
+            <BotonPersonalizado variant="secondary" onClick={() => setDniModalOpen(false)}>Cerrar</BotonPersonalizado>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

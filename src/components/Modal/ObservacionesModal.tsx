@@ -1,4 +1,3 @@
-// components/ObservacionesModal/ObservacionesModal.tsx
 import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import BotonPersonalizado from "../Boton/Boton";
@@ -25,7 +24,6 @@ export default function ObservacionesModal({
   const [editText, setEditText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Sync cuando se abre o cambia el resultado
   useEffect(() => {
     if (abierto && sesion) {
       setEditText(sesion.observacionesIniciales || "");
@@ -48,7 +46,6 @@ export default function ObservacionesModal({
       return;
     }
 
-    // 👇 A PARTIR DE ACÁ: solo UI (NO puede romper Firebase)
     try {
       onGuardarExitoso(sesion.id, editText);
       onCerrar();

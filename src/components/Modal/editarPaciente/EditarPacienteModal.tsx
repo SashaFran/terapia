@@ -3,11 +3,11 @@ import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../Modal";
 import styles from "./EditarPacienteModal.module.css";
 
-// Tests disponibles
 const TESTS_DISPONIBLES = [
   { id: "k10", nombre: "Escala K-10" },
   { id: "bfq", nombre: "Escala BFQ" },
-  { id: "laminas", nombre: "Láminas Zulliger" },
+  { id: "zulliger", nombre: "Láminas Zulliger" },
+  { id: "bender", nombre: "Test de Bender" },
   { id: "raven", nombre: "Test de Raven" },
 ];
 
@@ -30,16 +30,11 @@ export default function EditarPacienteModal({
   const [fechaFin, setFechaFin] = useState("");
   const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
 
-  // ---------------------------
-  // Sync inicial
-  // ---------------------------
-  // 🔥 Convertimos el Timestamp de Firebase a un Date de JS, y luego a String para el input
   useEffect(() => {
     if (abierto && paciente) {
       setActivo(paciente.activo);
       setTestsSeleccionados(asignacionesActuales);
 
-      // Si la fecha es null, ponemos un string vacío para el input
       if (paciente.fechaFinAcceso) {
         const date = paciente.fechaFinAcceso.toDate
           ? paciente.fechaFinAcceso.toDate()
@@ -54,9 +49,24 @@ export default function EditarPacienteModal({
     }
   }, [abierto, paciente, asignacionesActuales]);
 
-  // ---------------------------
-  // Toggle test
-  // ---------------------------
+  // Si el paciente estaba inactivo y el usuario lo activa aquí, establecer fechaFin a 24 horas desde ahora
+  useEffect(() => {
+    if (!abierto || !paciente) return;
+    try {
+      const previoActivo = paciente.activo;
+      if (!previoActivo && activo) {
+        const ahora = new Date();
+        const fin = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+        const year = fin.getFullYear();
+        const month = String(fin.getMonth() + 1).padStart(2, "0");
+        const day = String(fin.getDate()).padStart(2, "0");
+        setFechaFin(`${year}-${month}-${day}`);
+      }
+    } catch (e) {
+      // noop
+    }
+  }, [activo, abierto, paciente]);
+
   const toggleTest = (testId: string) => {
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
@@ -65,13 +75,66 @@ export default function EditarPacienteModal({
     );
   };
 
-  // ---------------------------
-  // Guardar
-  // ---------------------------
 
   const manejarGuardar = async () => {
     try {
       const dateObj = new Date(fechaFin.replace(/-/g, "\/"));
+    if (!paciente?.id) {
+      console.error("No se encontró el ID del paciente para actualizar");
+      return;
+    }
+
+    try {
+      const dateObj = new Date(fechaFin.replace(/-/g, "\/"));
+      const inicio = paciente?.fechaInicioAcceso?.toDate
+        ? paciente.fechaInicioAcceso.toDate()
+        : new Date(paciente?.fechaInicioAcceso);
+      if (inicio instanceof Date && !Number.isNaN(inicio.getTime())) {
+        const maxFin = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+        if (dateObj.getTime() > maxFin.getTime()) {
+          alert("La fecha de fin no puede superar las 24 horas desde la fecha de inicio.");
+          return;
+        }
+      }
+
+      const pacienteRef = doc(db, "pacientes", paciente.id);
+
+      await updateDoc(pacienteRef, {
+        activo: activo,
+        fechaFinAcceso: dateObj, // Firebase lo guardará como Timestamp
+      });
+
+const asignacionesSnap = await getDocs(
+  query(collection(db, "asignaciones"), where("pacienteId", "==", paciente.id))
+);
+
+const actuales = asignacionesSnap.docs.map(doc => ({
+  id: doc.id,
+  testId: doc.data().testId
+}));
+
+const nuevos = testsSeleccionados.filter(
+  test => !actuales.some(a => a.testId === test)
+);
+
+const eliminados = actuales.filter(
+  a => !testsSeleccionados.includes(a.testId)
+);
+
+const crear = nuevos.map(testId =>
+  addDoc(collection(db, "asignaciones"), {
+    pacienteId: paciente.id,
+    testId,
+    estado: "pendiente",
+    fechaAsignacion: new Date()
+  })
+);
+
+const borrar = eliminados.map(a =>
+  deleteDoc(doc(db, "asignaciones", a.id))
+);
+
+await Promise.all([...crear, ...borrar]);
       onGuardar({
         activo,
         fechaFinAcceso: dateObj,
@@ -93,7 +156,7 @@ export default function EditarPacienteModal({
     >
       <div className={styles.inputContainer}>
         <div className="container">
-          {/* ESTADO */}
+          {}
           <h3>Estado del Acceso</h3>
           <div className={`nav ${styles.estadoContainer}`}>
             <div className={styles.inputGroup}>
@@ -107,19 +170,31 @@ export default function EditarPacienteModal({
               </select>
             </div>
 
-            {/* FECHA */}
+            {}
             <div className={styles.inputGroup}>
               <label>Fecha límite de acceso</label>
               <input
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
+                min={
+                  paciente?.fechaInicioAcceso
+                    ? new Date(
+                        (paciente.fechaInicioAcceso.toDate
+                          ? paciente.fechaInicioAcceso.toDate()
+                          : new Date(paciente.fechaInicioAcceso)
+                        ).getTime(),
+                      )
+                        .toISOString()
+                        .slice(0, 10)
+                    : undefined
+                }
               />
             </div>
           </div>
 
 <h3>Tests asignados</h3>
-          {/* TESTS */}
+          {}
           <div className={styles.inputGroup}>
             
             <div className={styles.testsGrid}>
@@ -137,7 +212,7 @@ export default function EditarPacienteModal({
           </div>
         </div>
 
-        {/* BOTONES */}
+        {}
         <div className={styles.modalButtons}>
           <BotonPersonalizado
             variant="primary"
