@@ -320,6 +320,7 @@ export default function Dashboard() {
                     border: "1px solid var(--gris)",
                     borderRadius: "var(--radius)",
                     boxShadow: "var(--shadow)",
+                    fontSize: "12px",
                   }}
                 />
                 <Bar dataKey="valor" name="Participación" radius={[8, 8, 2, 2]}>

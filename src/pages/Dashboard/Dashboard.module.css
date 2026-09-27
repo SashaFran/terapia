@@ -108,7 +108,7 @@
 
 .kpiLabel {
   color: var(--gris-med);
-  font-size: 0.77rem;
+  font-size: var(--font-size-regular);
   line-height: 1.35;
 }
 
@@ -173,6 +173,7 @@
   flex: 0 0 auto;
   color: var(--gris-med);
   font-size: 0.72rem;
+  font-weight: var(--font-regular);
 }
 
 .chart {
@@ -201,7 +202,7 @@
 .activityItem {
   display: flex;
   min-width: 0;
-  align-items: flex-start;
+  align-items: baseline;
   gap: 0.65rem;
 }
 
@@ -228,21 +229,21 @@
 }
 
 .activityCopy h3 {
-  font-size: 0.78rem;
+  font-size: var(--font-size-h3);
   font-weight: 600;
 }
 
 .activityCopy p {
   margin-top: 0.18rem;
   color: var(--gris-med);
-  font-size: 0.72rem;
+  font-size: var(--font-size-small);
 }
 
 .activityTime {
   flex: 0 0 auto;
   margin-left: auto;
   color: var(--gris-med);
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
   white-space: nowrap;
 }
 
@@ -305,7 +306,7 @@
   }
 
   .kpiLabel {
-    font-size: 0.68rem;
+    font-size: var(--font-size-regular);
   }
 
   .trend {
