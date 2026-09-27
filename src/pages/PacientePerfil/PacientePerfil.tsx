@@ -559,12 +559,12 @@ export default function PacientePerfil() {
 
   return (
     <div className={styles.layout}>
-      <div className="panelVertical">
         <div
-          className={`card panelVertical ${styles.cardPaciente}`}
+          className={`card ${styles.cardPaciente}`}
         >
+          <div>
           <h2>{patient.nombre}</h2>
-
+          
           <aside className={styles.sidebar}>
             <p>
               <strong>DNI:</strong>{" "}
@@ -587,7 +587,7 @@ export default function PacientePerfil() {
               )}
             </p>
           </aside>
-
+</div>
           <div
             style={{
               display: "flex",
@@ -618,7 +618,7 @@ export default function PacientePerfil() {
             >
               Modificar acceso
             </BotonPersonalizado>
-          </div>
+          
 
           <BotonPersonalizado
             variant="danger"
@@ -638,8 +638,7 @@ export default function PacientePerfil() {
           >
             Borrar paciente
           </BotonPersonalizado>
-        </div>
-      </div>
+        </div></div>
 
       <div className={styles.container}>
         <div

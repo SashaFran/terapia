@@ -74,8 +74,7 @@ export default function Dashboard() {
 
           // Tests que ya fueron completados
           const testsFinalizados = asignacionesSnap.docs.filter(
-            (docAsignacion) =>
-              docAsignacion.data().estado === "completado",
+            (docAsignacion) => docAsignacion.data().estado === "completado",
           ).length;
 
           return {
@@ -129,19 +128,19 @@ export default function Dashboard() {
             Nuevo paciente
           </BotonPersonalizado>
 
-          <div className="card paddingHorizontal">
-            <h4>Total Pacientes</h4>
-            <p className={styles.numero}>{metricas.total}</p>
+          <div className={"card paddingHorizontal"}>
+            <h1 className={"numero"}>{metricas.total}</h1>
+            <p>Total Pacientes</p>
           </div>
 
           <div className="card paddingHorizontal">
-            <h4>Pacientes esta semana</h4>
-            <p className={styles.numero}>{metricas.nuevosSemana}</p>
+            <h1 className={"numero"}>{metricas.nuevosSemana}</h1>
+            <p>Pacientes esta semana</p>
           </div>
 
           <div className="card paddingHorizontal">
-            <h4>Pacientes este mes</h4>
-            <p className={styles.numero}>{metricas.nuevosMes}</p>
+            <h1 className={"numero"}>{metricas.nuevosMes}</h1>
+            <p>Pacientes este mes</p>
           </div>
         </div>
 
@@ -165,17 +164,14 @@ export default function Dashboard() {
                     <td>{paciente.fechaIngreso}</td>
 
                     <td>
-                      {paciente.testsAsignados} /{" "}
-                      {paciente.testsFinalizados}
+                      {paciente.testsAsignados} / {paciente.testsFinalizados}
                     </td>
 
                     <td>
                       <BotonPersonalizado
                         variant="secondary"
                         onClick={() =>
-                          navigate(
-                            `/admin/paciente/${paciente.id}`,
-                          )
+                          navigate(`/admin/paciente/${paciente.id}`)
                         }
                         disabled={false}
                       >

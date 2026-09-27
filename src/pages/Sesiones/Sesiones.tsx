@@ -6,9 +6,11 @@ import BotonPersonalizado from "../../components/Boton/Boton";
 import ObservacionesModal from "../../components/Modal/ObservacionesModal";
 import { collection, getDocs } from "firebase/firestore";
 import { descargarInforme } from "../../utils/descargarInforme.ts";
+import Modal from "../../components/Modal/Modal.tsx";
 import guardadoIcono from "../../assets/Icons/guardado.svg";
 import editar from "../../assets/Icons/pen.svg";
 import agregar from "../../assets/Icons/plus.svg";
+import NuevaSesion from "../NuevaSesion/NuevaSesion.tsx";
 
 interface Resultado {
   id: string;
@@ -27,6 +29,7 @@ interface Paciente {
 }
 
 export default function Sesiones() {
+  const [showModal, setShowModal] = useState(false);
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [pacientesMap, setPacientesMap] = useState<Record<string, Paciente>>(
     {},
@@ -64,6 +67,9 @@ export default function Sesiones() {
         r.id === id ? { ...r, observacionesIniciales: nuevasObservaciones } : r,
       ),
     );
+  };
+    const guardarNuevaSesion = () => {
+    setShowModal(true);
   };
 
   useEffect(() => {
@@ -125,18 +131,22 @@ export default function Sesiones() {
         <div className={"panelVertical"}>
           <BotonPersonalizado
             variant="primary"
-            onClick={() => navigate("/app/nueva-sesion")}
+            //onClick={() => navigate("/app/nueva-sesion")}
+            onClick={guardarNuevaSesion}
+            tooltip="Registrar una nueva sesión."
             disabled={false}
           >
             Nueva sesión
           </BotonPersonalizado>
           <div className="card paddingHorizontal">
-            <h3>Tests realizados</h3>
-            <p>{totalTests}</p>
+            <h1 className={"numero"}>{totalTests}</h1>
+            <p>Tests realizados</p>
+            
           </div>
           <div className="card paddingHorizontal">
-            <h3>Último test</h3>
-            <p>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</p>
+            <h1 className={"numero"}>{ultimaFecha ? formatearFecha(ultimaFecha) : "—"}</h1>
+            <p>Último test</p>
+            
           </div>
         </div>
 
@@ -189,6 +199,21 @@ export default function Sesiones() {
         sesion={selectedSession}
         onGuardarExitoso={handleSuccessfulSave}
       />
+      {showModal && (
+        <Modal
+          abierto={true}
+          onCerrar={() => setShowModal(false)}
+          titulo="Registrar nueva sesión"
+        >
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <NuevaSesion
+                onClose={() => setShowModal(false)}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

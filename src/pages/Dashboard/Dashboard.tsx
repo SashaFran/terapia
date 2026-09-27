@@ -213,8 +213,8 @@ export default function Dashboard() {
               >
                 <defs>
                   <linearGradient id="dashboardTrendFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--bordo)" stopOpacity={0.22} />
-                    <stop offset="100%" stopColor="var(--bordo)" stopOpacity={0.01} />
+                    <stop offset="0%" stopColor="var(--opuesto-light)" stopOpacity={0.22} />
+                    <stop offset="100%" stopColor="var(--opuesto-light)" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -246,10 +246,10 @@ export default function Dashboard() {
                   type="monotone"
                   dataKey="p"
                   name="Evaluaciones"
-                  stroke="var(--bordo)"
+                  stroke="var(--opuesto)"
                   strokeWidth={3}
                   fill="url(#dashboardTrendFill)"
-                  activeDot={{ r: 5, fill: "var(--bordo)" }}
+                  activeDot={{ r: 5, fill: "var(--opuesto)" }}
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -21,7 +21,7 @@
 .layout {
   width: var(--width-complete);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 2rem;
   height: 100%;
 }
@@ -51,6 +51,7 @@
   margin: 0 1rem;
   padding: 1.5rem;
   justify-content: space-between;
+  display: flex;
 }
 .cardPaciente h2{
   margin: 0;

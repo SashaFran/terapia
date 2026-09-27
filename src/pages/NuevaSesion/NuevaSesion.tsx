@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import styles from "./NuevaSesion.module.css";
 import { db } from "../../firebase/firebase";
+import {
+  crearSesion,
+  mensajeErrorSesion,
+} from "../../firebase/sesiones";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, addDoc, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
 
 interface Paciente {
   id: string;
@@ -23,18 +30,18 @@ const TESTS = [
     descripcion:
       "Evalúa cinco dimensiones de la personalidad.",
   },
-   {
-     id: "zulliger",
-     nombre: "Láminas Zulliger",
+  {
+    id: "zulliger",
+    nombre: "Láminas Zulliger",
     descripcion:
-       "Evaluación proyectiva con láminas Zulliger.",
+      "Evaluación proyectiva con láminas Zulliger.",
   },
-   {
-     id: "bender",
-     nombre: "Test de Bender",
-     descripcion:
-       "Evaluación gestáltica visomotora (Bender).",
-   },
+  {
+    id: "bender",
+    nombre: "Test de Bender",
+    descripcion:
+      "Evaluación gestáltica visomotora (Bender).",
+  },
   {
     id: "raven",
     nombre: "Test de Raven Abreviado",
@@ -43,8 +50,14 @@ const TESTS = [
   },
 ];
 
-export default function NuevaSesion() {
+export default function NuevaSesion({
+  onClose,
+  onPacienteCreado,
+}: any) {
   const navigate = useNavigate();
+
+  const cerrar =
+    onClose ?? (() => navigate("/admin/sesiones"));
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,33 +71,28 @@ export default function NuevaSesion() {
     observaciones: "",
   });
 
-  const [currentDate, setCurrentDate] = useState("");
-
   useEffect(() => {
-    const today = new Date();
-    setCurrentDate(
-      today.toLocaleDateString("es-AR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
-    );
-  }, []);
-
-  useEffect(() => {
-    cargarPacientes();
+    void cargarPacientes();
   }, []);
 
   const cargarPacientes = async () => {
     try {
-      const snap = await getDocs(collection(db, "pacientes"));
+      const snap = await getDocs(
+        collection(db, "pacientes"),
+      );
+
       const data = snap.docs.map((doc) => ({
         id: doc.id,
-        nombre: doc.data().nombre || "Sin nombre",
+        nombre:
+          doc.data().nombre || "Sin nombre",
       }));
+
       setPacientes(data);
     } catch (error) {
-      console.error("Error cargando pacientes:", error);
+      console.error(
+        "Error cargando pacientes:",
+        error,
+      );
     } finally {
       setLoading(false);
     }
@@ -92,38 +100,63 @@ export default function NuevaSesion() {
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
     >,
   ) => {
     const { id, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [id]: value,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent,
+  ) => {
     e.preventDefault();
-    if (!formData.pacienteId || !formData.fecha) return;
+
+    if (saving) return;
+
+    if (!formData.pacienteId) {
+      alert("Seleccioná un paciente");
+      return;
+    }
+
+    if (!formData.fecha) {
+      alert("Seleccioná una fecha de evaluación");
+      return;
+    }
+
+    if (!formData.testId) {
+      alert("Seleccioná un test");
+      return;
+    }
 
     setSaving(true);
 
     try {
-      const docRef = await addDoc(collection(db, "sesiones"), {
+      const { data } = await crearSesion({
         pacienteId: formData.pacienteId,
-        fecha: Timestamp.fromDate(new Date(formData.fecha)),
+        fecha: formData.fecha,
         testId: formData.testId,
-        estado: "en_progreso",
-        observacionesIniciales: formData.observaciones || "",
-        createdAt: Timestamp.now(),
+        observaciones: formData.observaciones,
       });
 
+      onPacienteCreado?.();
+
       navigate(
-        `/test/${formData.testId}?sesion=${docRef.id}&paciente=${formData.pacienteId}`,
+        `/test/${data.testId}?sesion=${data.sesionId}&paciente=${data.pacienteId}`,
       );
     } catch (error) {
-      console.error("Error creando sesión:", error);
-      alert("Error al crear la sesión");
+      console.error(
+        "Error creando sesión:",
+        error,
+      );
+
+      alert(mensajeErrorSesion(error));
     } finally {
       setSaving(false);
     }
@@ -131,35 +164,29 @@ export default function NuevaSesion() {
 
   if (loading) {
     return (
-      <div className={`global-container ${styles.container}`}>
+      <div
+        className={`global-container ${styles.container}`}
+      >
         <h2>Cargando…</h2>
       </div>
     );
   }
 
   return (
-    <div className={`global-container ${styles.container}`}>
-      {}
-      <div className={`nav`}>
-        <h2>Nueva evaluación</h2>
-        <BotonPersonalizado
-          variant="danger"
-          onClick={async () => {
-            if (confirm("¿Cancelar?")) {
-              navigate("/app/sesiones");
-            }
-          }}
-          disabled={false}
-        >
-          Cancelar
-        </BotonPersonalizado>
-      </div>
-
-      <form className={styles.form} onSubmit={handleSubmit}>
+    <div
+      className={`global-container ${styles.container}`}
+    >
+      <form
+        className={styles.form}
+        onSubmit={handleSubmit}
+      >
         <div className={styles.inputGroup}>
           <h3>
-            <label htmlFor="pacienteId">Seleccione un paciente</label>
+            <label htmlFor="pacienteId">
+              Seleccione un paciente
+            </label>
           </h3>
+
           <select
             id="pacienteId"
             value={formData.pacienteId}
@@ -169,17 +196,25 @@ export default function NuevaSesion() {
             <option value="" disabled>
               Seleccione
             </option>
-            {pacientes.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
+
+            {pacientes.map((paciente) => (
+              <option
+                key={paciente.id}
+                value={paciente.id}
+              >
+                {paciente.nombre}
               </option>
             ))}
           </select>
         </div>
+
         <div className={styles.inputGroup}>
           <h3>
-            <label htmlFor="fecha">Fecha de evaluación</label>
+            <label htmlFor="fecha">
+              Fecha de evaluación
+            </label>
           </h3>
+
           <input
             type="date"
             id="fecha"
@@ -188,24 +223,37 @@ export default function NuevaSesion() {
             required
           />
         </div>
+
         <div className={styles.inputGroup}>
-          {}
           <h3>
-            <label htmlFor="testId">Test a aplicar</label>
+            <label htmlFor="testId">
+              Test a aplicar
+            </label>
           </h3>
-          <select id="testId" value={formData.testId} onChange={handleChange}>
+
+          <select
+            id="testId"
+            value={formData.testId}
+            onChange={handleChange}
+          >
             {TESTS.map((test) => (
-              <option key={test.id} value={test.id}>
+              <option
+                key={test.id}
+                value={test.id}
+              >
                 {test.nombre}
               </option>
             ))}
           </select>
         </div>
+
         <div className={styles.inputGroup}>
-          {}
           <h3>
-            <label htmlFor="observaciones">Observaciones iniciales</label>
+            <label htmlFor="observaciones">
+              Observaciones iniciales
+            </label>
           </h3>
+
           <textarea
             id="observaciones"
             placeholder="Notas previas a la evaluación (opcional)"
@@ -213,10 +261,28 @@ export default function NuevaSesion() {
             onChange={handleChange}
           />
         </div>
-        {}
-        <BotonPersonalizado variant="primary" type="submit" disabled={saving}>
-          {saving ? "Creando sesión…" : "Comenzar evaluación"}
+        <div className="nav">
+        <BotonPersonalizado
+          variant="danger"
+          onClick={() => {
+            if (confirm("¿Cancelar?")) {
+              cerrar();
+            }
+          }}
+          disabled={saving}
+        >
+          Cancelar
         </BotonPersonalizado>
+        <BotonPersonalizado
+          variant="primary"
+          type="submit"
+          disabled={saving}
+        >
+          {saving
+            ? "Creando sesión…"
+            : "Comenzar evaluación"}
+        </BotonPersonalizado>
+        </div>
       </form>
     </div>
   );
