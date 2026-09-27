@@ -41,9 +41,9 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+{/*           <div className="flex items-center">
             <img src={logoImage} alt="Join Solution" className="h-10 w-auto" />
-          </div>
+          </div> */}
 
           {}
           <div className="hidden lg:flex items-center gap-8">

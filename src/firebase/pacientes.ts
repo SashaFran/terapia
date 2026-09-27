@@ -9,17 +9,41 @@ export const crearPaciente = httpsCallable<{
   contacto: string;
   fechaIngreso: string;
   testsSeleccionados: string[];
-}, { pacienteId: string; dni: string; password: string }>(functions, "crearPacienteAuth");
+}, {
+  pacienteId: string;
+  dni: string;
+  password: string;
+}>(
+  functions,
+  "crearPacienteAuth",
+);
 
-export const eliminarPaciente = httpsCallable<{ pacienteId: string }, { eliminado: boolean }>(
-  functions, "eliminarPacienteAuth",
+export const eliminarPaciente = httpsCallable<
+  { pacienteId: string },
+  { eliminado: boolean }
+>(
+  functions,
+  "eliminarPacienteAuth",
 );
 
 export function mensajeErrorPaciente(error: unknown) {
-  const { code, message } = error as { code?: string; message?: string };
-  if (["functions/already-exists", "functions/invalid-argument", "functions/failed-precondition",
-    "functions/permission-denied", "functions/unauthenticated", "functions/aborted"].includes(code || "")) {
+  const { code, message } = error as {
+    code?: string;
+    message?: string;
+  };
+
+  if (
+    [
+      "functions/already-exists",
+      "functions/invalid-argument",
+      "functions/failed-precondition",
+      "functions/permission-denied",
+      "functions/unauthenticated",
+      "functions/aborted",
+    ].includes(code || "")
+  ) {
     return message || "No se pudo completar la operación.";
   }
+
   return "No se pudo completar la operación. Intente nuevamente; si el problema persiste, contacte a administración.";
 }

@@ -13,25 +13,35 @@ interface Paciente {
   id: string;
   nombre: string;
   fechaIngreso: string;
-  sesiones: number;
+  testsAsignados: number;
+  testsFinalizados: number;
 }
 
 export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [metricas, setMetricas] = useState({
     total: 0,
     nuevosSemana: 0,
     nuevosMes: 0,
   });
 
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+  });
+
   const guardarNuevoPaciente = () => {
     setShowModal(true);
   };
+
   const formatearFecha = (timestamp: any): string => {
     if (!timestamp) return "N/A";
+
     if (timestamp.toDate) {
       return timestamp.toDate().toLocaleDateString("es-AR", {
         day: "2-digit",
@@ -39,23 +49,9 @@ export default function Dashboard() {
         year: "numeric",
       });
     }
+
     return "N/A";
   };
-
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-    dni: "",
-    fechaNacimiento: "",
-    contacto: "",
-    motivo: "",
-    notasIniciales: "",
-  });
-  const [showForm, setShowForm] = useState(false);
-
-  useEffect(() => {
-    cargarPacientes();
-  }, []);
 
   const cargarPacientes = async () => {
     try {
@@ -65,17 +61,29 @@ export default function Dashboard() {
         querySnapshot.docs.map(async (docPaciente) => {
           const docData = docPaciente.data();
 
+          // Buscamos todos los tests asignados al paciente
           const q = query(
-            collection(db, "resultados"),
+            collection(db, "asignaciones"),
             where("pacienteId", "==", docPaciente.id),
           );
-          const resultadosSnap = await getDocs(q);
+
+          const asignacionesSnap = await getDocs(q);
+
+          // Total de tests asignados
+          const testsAsignados = asignacionesSnap.size;
+
+          // Tests que ya fueron completados
+          const testsFinalizados = asignacionesSnap.docs.filter(
+            (docAsignacion) =>
+              docAsignacion.data().estado === "completado",
+          ).length;
 
           return {
             id: docPaciente.id,
             nombre: docData.nombre || "Sin nombre",
             fechaIngreso: formatearFecha(docData.createdAt),
-            sesiones: resultadosSnap.size, // 👈 ACÁ LA MAGIA
+            testsAsignados,
+            testsFinalizados,
           };
         }),
       );
@@ -87,7 +95,10 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-  const [stats, setStats] = useState({ total: 0, activos: 0 });
+
+  useEffect(() => {
+    void cargarPacientes();
+  }, []);
 
   useEffect(() => {
     obtenerMetricasPacientes().then(setMetricas);
@@ -96,7 +107,6 @@ export default function Dashboard() {
   useEffect(() => {
     obtenerEstadisticasPacientes().then(setStats);
   }, []);
-
 
   if (loading) {
     return (
@@ -109,7 +119,7 @@ export default function Dashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.layout}>
-        <div className={"panelVertical"}>
+        <div className="panelVertical">
           <BotonPersonalizado
             variant="primary"
             onClick={guardarNuevoPaciente}
@@ -118,6 +128,7 @@ export default function Dashboard() {
           >
             Nuevo paciente
           </BotonPersonalizado>
+
           <div className="card paddingHorizontal">
             <h4>Total Pacientes</h4>
             <p className={styles.numero}>{metricas.total}</p>
@@ -133,14 +144,15 @@ export default function Dashboard() {
             <p className={styles.numero}>{metricas.nuevosMes}</p>
           </div>
         </div>
-        <main className={`scrollbar`}>
+
+        <main className="scrollbar">
           <div className="tablaPacientes">
             <table>
               <thead>
                 <tr>
                   <th>Nombre</th>
                   <th>Fecha Ingreso</th>
-                  <th>Sesiones</th>
+                  <th>Tests asignados / finalizados</th>
                   <th>Acción</th>
                 </tr>
               </thead>
@@ -149,13 +161,21 @@ export default function Dashboard() {
                 {pacientes.map((paciente) => (
                   <tr key={paciente.id}>
                     <td>{paciente.nombre}</td>
+
                     <td>{paciente.fechaIngreso}</td>
-                    <td>{paciente.sesiones}</td>
+
+                    <td>
+                      {paciente.testsAsignados} /{" "}
+                      {paciente.testsFinalizados}
+                    </td>
+
                     <td>
                       <BotonPersonalizado
                         variant="secondary"
                         onClick={() =>
-                          navigate(`/admin/paciente/${paciente.id}`)
+                          navigate(
+                            `/admin/paciente/${paciente.id}`,
+                          )
                         }
                         disabled={false}
                       >
@@ -169,16 +189,21 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
       {showModal && (
-        <Modal abierto={true} onCerrar={() => {}} titulo="">
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <NuevoPaciente
-              onClose={() => setShowModal(false)}
-              onPacienteCreado={cargarPacientes}
-            />
+        <Modal
+          abierto={true}
+          onCerrar={() => setShowModal(false)}
+          titulo="Registrar nuevo paciente"
+        >
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <NuevoPaciente
+                onClose={() => setShowModal(false)}
+                onPacienteCreado={cargarPacientes}
+              />
+            </div>
           </div>
-        </div>
         </Modal>
       )}
     </div>

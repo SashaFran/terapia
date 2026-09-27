@@ -95,22 +95,8 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
 
   return (
     <div>
-      {}
       <div className={styles.nav}>
-        <h2>Registrar nuevo paciente</h2>
-
-        <BotonPersonalizado
-          variant="danger"
-          onClick={() => {
-            if (confirm("¿Cancelar?")) cerrar();
-          }}
-          disabled={loading}
-        >
-          Cancelar
-        </BotonPersonalizado>
       </div>
-
-      {}
       <form className={styles.form} onSubmit={guardarPaciente}>
         <div className={styles.inputGroup}>
           <div className={`container`}>
@@ -132,6 +118,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
               <label htmlFor="dni" className="paddingHorizontal">
                 DNI:{" "}
               </label>
+              <div className={`row`}>
               <input
                 type="text"
                 name="dni"
@@ -147,6 +134,7 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
                   🔑 Contraseña: <strong>{formData.dni.replace(/\D/g, "").slice(-6)}</strong>
                 </small>
               )}
+              </div>
             </div>
 
             <div className={styles.container}>
@@ -193,10 +181,20 @@ export default function NuevoPaciente({ onClose, onPacienteCreado }: any) {
             ))}
           </div>
         </div>
-
+        <div className={`nav`}>
+        <BotonPersonalizado
+          variant="danger"
+          onClick={() => {
+            if (confirm("¿Cancelar?")) cerrar();
+          }}
+          disabled={loading}
+        >
+          Cancelar
+        </BotonPersonalizado>
         <BotonPersonalizado type="submit" disabled={loading} tooltip="Registrar al paciente con todos los tests seleccionados.">
           {loading ? "Creando..." : "Crear paciente"}
         </BotonPersonalizado>
+        </div>
       </form>
     </div>
   );

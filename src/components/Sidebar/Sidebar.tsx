@@ -5,6 +5,7 @@ import { db } from "../../firebase/firebase"; // Ajusta la ruta a tu config de f
 
 import logo from "../../assets/images/JOIN SOLUTION.svg";
 import puntos from "../../assets/Icons/dots-y(1).svg";
+import flecha from "../../assets/Icons/angulo-pequeno-hacia-abajo.svg";
 
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebase.tsx";
@@ -39,12 +40,12 @@ export default function Sidebar() {
 
   const links = rol === "admin" ? linksAdmin : linksPaciente;
 
-const getTiempoRestante = (fechaLimite) => {
+const getTiempoRestante = (fechaLimite: any) => {
   if (!fechaLimite) return "Sin fecha";
   
-  const ahora = new Date();
-  const fin = new Date(fechaLimite);
-  const diff = fin - ahora;
+  const ahora: any = new Date();
+  const fin: any = new Date(fechaLimite);
+  const diff: any = fin - ahora;
 
   if (diff <= 0) return "Expirado";
 
@@ -123,7 +124,7 @@ useEffect(() => {
     const partes = nombreCompleto.split(" ");
 
     iniciales = partes
-      .map((p) => p[0])
+      .map((p: any) => p[0])
       .join("")
       .toUpperCase();
     displayName = nombreCompleto;
@@ -131,14 +132,11 @@ useEffect(() => {
   }
 
   return (
-    <aside className={styles.sidebar}>
-      <nav className={styles.navbar}>
-        {}
-        <div className={styles.left}>
+    <aside className={`${styles.sidebar} margin`}>
+      <nav className={`${styles.navbar}`}>
+{/*         <div className={styles.left}>
           <img src={logo} alt="Logo" />
-        </div>
-
-        {}
+        </div> */}
         <div className={styles.center}>
           {links.map((link) => (
             <Tooltip key={link.to} title={link.ayuda} describeChild arrow enterTouchDelay={300}>
@@ -156,13 +154,15 @@ useEffect(() => {
         </div>
 
         {}
-        <div className={`boton-secondary ${styles.right}`}>
+        <div className={`${styles.right}`}>
           <div className={styles.userWrapper}>
             <div className={styles.userTrigger}>
               <div className={styles.avatar}>{iniciales}</div>
+                
 
               <div className={styles.userInfo}>
                 <span className={styles.name}>{displayName}</span>
+                <img src={flecha} alt="Flecha" className={styles.arrow} />
                 <span className={styles.sub}>{subText}</span>
               </div>
               <div> </div>

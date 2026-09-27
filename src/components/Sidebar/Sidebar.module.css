@@ -1,5 +1,8 @@
 .sidebar {
-  width: 100%;
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid #eef1f6;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .navbar {
@@ -40,7 +43,7 @@
 
 .right {
   position: relative;
-  background: black;
+  background: transparent;
   padding: 0.5rem;
   border-radius: 48px;
 }
@@ -143,13 +146,14 @@
 
 .userInfo {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
 }
 
 .name {
   font-weight: var(--font-regular);
   font-size: 14px;
-  color: white;
+  color: var(--font-color);
 }
 
 .sub {
@@ -161,7 +165,8 @@
 
 .arrow {
   margin-left: 5px;
-  font-size: 12px;
+  width: 12px;
+  height: 12px;
 }
 
 @media (max-width: 900px) {

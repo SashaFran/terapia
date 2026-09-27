@@ -54,8 +54,6 @@
   --width-complete: 100%;
   --width-half: 50%;
   --width-third: 20%;
-
-  
 }
 
 a {
@@ -97,7 +95,18 @@ h4 {
   gap: 1rem;
 }
 
-.layout{
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  width: 100%;
+  align-items: center;
+}
+.row > * {
+  flex: 1;
+}
+
+.layout {
   width: var(--width-complete);
   display: flex;
   flex-direction: row;
@@ -179,19 +188,19 @@ h4 {
 .gap {
   gap: 1rem;
 }
-.justify-content-space-around{
+.justify-content-space-around {
   justify-content: space-around;
 }
-.justify-content-space-evenly{
+.justify-content-space-evenly {
   justify-content: space-evenly;
 }
-.font-size-small{
+.font-size-small {
   font-size: var(--font-size-small);
 }
-.width-complete{
- width: var(--width-complete);
+.width-complete {
+  width: var(--width-complete);
 }
-.height-complete{
+.height-complete {
   height: var(--heigh-complete);
 }
 .panelVertical {
@@ -210,14 +219,13 @@ button {
   width: 100px;
   height: 45px;
   transition: 0.3s;
-  width: 200px; 
-  white-space: nowrap; 
-  padding: 0 1rem; 
-  display: flex; 
+  width: 200px;
+  white-space: nowrap;
+  padding: 0 1rem;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
-
 
 button:focus,
 button:focus-visible {
@@ -268,7 +276,7 @@ select:focus {
 .margintop {
   margin-top: 1rem;
 }
-.padding{
+.padding {
   padding: 1rem;
 }
 .paddingHorizontal {
@@ -285,26 +293,22 @@ select:focus {
   flex: 1;
 }
 .cardPaciente {
-margin: 0 1rem;
+  margin: 0 1rem;
   padding: 1.5rem;
   justify-content: space-between;
 }
 .tablaPacientes {
   flex: 1;
   min-height: 0;
-
   overflow-y: auto;
   overflow-x: hidden;
-
   background: white;
   border-radius: var(--radius);
   border: 1px solid #eef1f6;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
-
   scrollbar-width: thin;
   scrollbar-color: #f2e9e2 #f1f1f1;
 }
-
 
 .tablaPacientes table {
   width: var(--width-complete);
@@ -312,13 +316,11 @@ margin: 0 1rem;
   font-size: 14px;
 }
 
-
 .container table th:nth-child(5),
 .container table td:nth-child(4) {
   width: 1%;
   white-space: nowrap;
 }
-
 
 .tablaPacientes thead {
   background: linear-gradient(
@@ -326,7 +328,7 @@ margin: 0 1rem;
     rgba(255, 176, 0, 1) 0%,
     rgba(255, 60, 42, 1) 100%
   );
-    position: sticky;
+  position: sticky;
   top: 0;
 }
 
@@ -336,8 +338,9 @@ margin: 0 1rem;
   padding: 12px;
   text-align: center;
 }
-.tablaPacientes thead th, .tablaPacientes tbody tr{
-height: 48px;
+.tablaPacientes thead th,
+.tablaPacientes tbody tr {
+  height: 48px;
 }
 
 .tablaPacientes th,
@@ -348,22 +351,18 @@ height: 48px;
   border-bottom: 1px solid #f1f1f1;
 }
 
-
 .tablaPacientes td {
   color: #333;
 }
-
 
 .tablaPacientes tbody tr:nth-child(even) {
   background: #faf5f6;
 }
 
-
 .tablaPacientes tbody tr:hover {
   background: #ffe0bd;
   transition: 0.2s ease;
 }
-
 
 .tablaPacientes td > * {
   display: inline-flex;
@@ -371,20 +370,20 @@ height: 48px;
   justify-content: center;
 }
 
-.loginContainer{
-   display: flex;
+.loginContainer {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
   width: 100vw;
 }
-.loginBox{
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    width: 80%;
+.loginBox {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
 }
 @media (prefers-color-scheme: light) {
   :root {

@@ -1,5 +1,7 @@
+// @ts-ignore Testing Library is supplied by the test runner; its declarations may not be available to this editor.
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+// @ts-ignore Vitest is supplied by the test runner; its declarations may not be available to this editor.
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import NuevoPaciente from '../src/pages/NuevoPaciente/NuevoPaciente';
 import { crearPaciente } from '../src/firebase/pacientes';
