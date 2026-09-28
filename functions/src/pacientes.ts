@@ -28,7 +28,7 @@ function validarEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function validarAlta(data: Record<string, unknown>) {
+export function validarAlta(data: Record<string, unknown>) {
   const nombre =
     typeof data.nombre === "string"
       ? data.nombre.trim()
@@ -93,7 +93,9 @@ function validarAlta(data: Record<string, unknown>) {
     `${fechaIngreso}T00:00:00-03:00`,
   );
 
-  if (!Number.isFinite(inicio.getTime())) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaIngreso) ||
+      !Number.isFinite(inicio.getTime()) ||
+      inicio.toISOString().slice(0, 10) !== fechaIngreso) {
     throw new HttpsError(
       "invalid-argument",
       "La fecha de acceso no es válida.",
@@ -386,8 +388,9 @@ export async function crearPaciente(
         email: emailAuth,
         password,
       });
-    } catch (error: any) {
-      if (error?.code === "auth/email-already-exists") {
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "code" in error &&
+          error.code === "auth/email-already-exists") {
         throw new HttpsError(
           "already-exists",
           "Ya existe una cuenta asociada a ese DNI.",
@@ -560,22 +563,25 @@ export async function eliminarPaciente(
     batch.delete(documento.ref);
   });
 
+  const progress = await db.collection("test_progress")
+    .where("userId", "==", pacienteId).get();
+  progress.docs.forEach((documento) => batch.delete(documento.ref));
+
   batch.delete(pacienteRef);
 
-  await batch.commit();
-
+  // Keep the profile available for retries if Auth deletion fails.
   if (typeof uidPaciente === "string") {
     try {
       await admin.auth().deleteUser(uidPaciente);
-    } catch (error: any) {
-      if (error?.code !== "auth/user-not-found") {
-        console.error(
-          "Error eliminando usuario de Auth:",
-          error,
-        );
+    } catch (error: unknown) {
+      if (!(error && typeof error === "object" && "code" in error &&
+            error.code === "auth/user-not-found")) {
+        throw error;
       }
     }
   }
+
+  await batch.commit();
 
   return {
     eliminado: true,

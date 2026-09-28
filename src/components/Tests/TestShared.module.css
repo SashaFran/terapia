@@ -1,0 +1,14 @@
+/* Shared BFQ layout. Modules compose these rules and inherit tokens from :root. */
+.page { width: 100%; max-width: var(--test-max-width); margin: 0 auto; padding: var(--test-padding); color: var(--font-color); font-family: var(--font-family-body); font-size: var(--font-size-regular); line-height: var(--line-height-body); }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--gris); }
+.header h1 { margin: 0; font-size: var(--font-size-h1); }
+.header p { max-width: 65ch; margin: .5rem 0 0; color: var(--text-muted); }
+.workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.content { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+.card { margin: 0; padding: var(--test-padding); background: var(--surface); border: 1px solid var(--gris); border-top: 3px solid var(--naranja2); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; scroll-margin-block: 2rem; }
+.field { width: 100%; min-height: 120px; height: auto; resize: vertical; padding: 1rem; border: 1px solid var(--control-border); border-radius: calc(var(--radius) / 2); color: var(--font-color); background: var(--surface); font: inherit; line-height: var(--line-height-body); }
+.page label { display: block; margin-bottom: .5rem; font-weight: var(--font-bold); }
+.page button { max-width: 100%; }
+.page :is(input, textarea):focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+@media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .header { flex-direction: column; } }

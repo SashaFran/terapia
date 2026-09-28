@@ -1,9 +1,9 @@
+import TestProgress from "../helpers/TestProgress";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useState } from "react";
 import BotonPersonalizado from "../../Boton/Boton";
-import Modal from "../../Modal/Modal";
 import styles from "./TestRaven.module.css";
 import { RAVEN_TEST } from "../../../data/tests/raven_test";
-import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import relojStyle from "../helpers/countdown.module.css";
 import { useTestEngine } from "../helpers/useTestEngine";
 
@@ -34,7 +34,6 @@ export default function TestRaven({ onFinish, userId }: Props) {
   if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
   else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
-  const iniciarTest = () => engine.start();
 
   const handleChange = (index: number, value: string) => {
       const val = value.toString();
@@ -83,118 +82,36 @@ export default function TestRaven({ onFinish, userId }: Props) {
   };
 
   if (!engine.started) {
-    return (
-      <Modal abierto={true} onCerrar={() => {}} titulo="">
-        <div>
-          <strong>Bienvenido/a.</strong>{" "}
-          <p>
-            {" "}
-            Antes de comenzar, por favor lea atentamente las siguientes
-            indicaciones para asegurar un resultado preciso:
-          </p>
-          <ol>
-            <li>
-              <strong>El objetivo:</strong>
-              <li>
-                En cada pantalla verá una imagen principal (matriz) a la cual le
-                falta una parte. Debajo de ella, encontrará varias opciones de
-                respuesta. Su tarea es identificar cuál de esas piezas completa
-                lógicamente el patrón de la imagen principal, tanto en su forma
-                como en su dibujo interno.
-              </li>
-            </li>
-            <li>
-              <strong>Cómo responder:</strong>
-              <li>
-                Mire atentamente la imagen y analice cómo cambian las figuras
-                tanto de forma horizontal como vertical. Haga clic sobre la
-                opción que considere correcta para avanzar a la siguiente
-                lámina. Solo hay una respuesta correcta para cada ejercicio.
-              </li>
-            </li>
-          </ol>
-          <li className="padding">
-            Tiene <strong>30 minutos</strong> para completar el test y se
-            realizarán capturas a traves de la camara para verificar su
-            identidad.
-            <br />
-            <strong>Importante:</strong> Es necesario que acepte o no podra ser
-            evaluado.
-          </li>
-        </div>
-
-        <ConsentimientoCamara changeStatus={setCanStart} />
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-          }}
-        >
-          <BotonPersonalizado
-            variant="primary"
-            onClick={iniciarTest}
-            disabled={!canStart}
-          >
-            Comenzar Evaluación
-          </BotonPersonalizado>
-        </div>
-      </Modal>
-    );
+    return <TestIntroModal nombre="Evaluación de Raven" descripcion="Observe cada matriz y complete el patrón"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={false} instrucciones={[{ titulo: "Observe la imagen", texto: <p>En cada matriz falta una pieza. Compare las opciones que aparecen debajo de la imagen.</p> },
+{ titulo: "Escriba el número de su respuesta", texto: <p>Ingrese un número del 1 al 8 en el campo de cada matriz. Puede revisar sus respuestas antes de finalizar.</p> }]} />;
   }
 
   return (
-    <div className={`scrollbar ${styles.container}`}>
+    <div className={styles.page}>
       {engine.feedback}
-      <div className="layout">
-        <div className="panelVertical">
-          <h2>Evaluación de Raven</h2>
-          <div className={`card padding ${styles.cardPaciente}`}>
-            
-            <aside className={styles.sidebar}>
-              <h3>Tiempo disponible:</h3>
-
-              <div className={relojStyle.timer}>
-                {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
-              </div>
-
-              <h3>Preguntas:</h3>
-
-              <div className={relojStyle.progressContainer}>
-                {Array.from({ length: totalPreguntas }).map((_, i) => {
-                  const r = respuestas[i];
-                  const respondida = !!r && r !== "Sin respuesta";
-
-                  return (
-                    <button
-                      key={i}
-                      disabled={respondida}
-                      className={`${relojStyle.progressItem} ${
-                        respondida ? relojStyle.completa : relojStyle.pendiente
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            </aside>
-          </div>
-        </div>
-        {engine.CameraComponent && <engine.CameraComponent />}
+      <header className={styles.header}><div><h1>Evaluación de Raven</h1><p>Observe cada matriz e ingrese el número de la pieza que completa el patrón, del 1 al 8.</p></div>
+        <div><span>Tiempo restante</span><div className={timerClass}>{engine.minutes}:{String(engine.seconds).padStart(2, "0")}</div></div>
+      </header>
+      {engine.CameraComponent && <engine.CameraComponent />}
+      <div className={styles.workspace}>
+        <TestProgress total={totalPreguntas} completadas={respuestas.map(Boolean)} itemLabel="Matriz" />
         <main className={styles.container}>
           
           <div className="container">
             {RAVEN_TEST.imagenes.map((img: string, i: number) => (
-              <div key={i} className={`card padding ${styles.testCard}`}>
+              <div key={i} id={`test-item-${i}`} className={styles.testCard}>
+                <h2>Matriz {i + 1}</h2>
                 <img
                   src={img}
                   alt={`Matriz ${i + 1}`}
                   className={styles.imagen}
                 />
 
+                <label htmlFor={`raven-${i}`}>Respuesta para la matriz {i + 1} (del 1 al 8)</label>
                 <input
+                  id={`raven-${i}`}
                   type="number"
                   disabled={engine.inputLocked}
                   min={1}

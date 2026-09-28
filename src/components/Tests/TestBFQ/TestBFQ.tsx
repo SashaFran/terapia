@@ -206,7 +206,7 @@ export default function TestBFQ({
 
     window.scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
   }, [preguntaActual, engine.started]);
 
@@ -515,7 +515,7 @@ export default function TestBFQ({
               )}
             </div>
 
-            <h2 className={styles.question}>
+            <h2 id="bfq-question" className={styles.question}>
               {pregunta}
             </h2>
 
@@ -526,9 +526,7 @@ export default function TestBFQ({
             <div
               className={styles.options}
               role="radiogroup"
-              aria-label={`Pregunta ${
-                preguntaActual + 1
-              }`}
+              aria-labelledby="bfq-question"
             >
               {BFQ_TEST.opciones.map(
                 (op) => {

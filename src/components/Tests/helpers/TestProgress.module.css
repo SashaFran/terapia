@@ -8,7 +8,7 @@
 
   box-sizing: border-box;
 
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
   border-radius: var(--radius);
@@ -53,7 +53,7 @@
 
   margin-bottom: 0.25rem;
 
-  color: var(--naranja2);
+  color: var(--accent-text);
 
   font-family: var(--font-family-body);
   font-size: var(--font-size-small);
@@ -155,7 +155,7 @@
   padding: 0.5rem;
 
   color: var(--gris-med);
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
   border-radius: calc(var(--radius) / 2);
@@ -179,7 +179,7 @@
 .item:hover {
   color: var(--font-color);
 
-  border-color: var(--naranja2);
+  border-color: var(--accent-text);
 
   box-shadow: var(--shadow);
 
@@ -192,7 +192,7 @@
 }
 
 .completed {
-  color: var(--verde);
+  color: var(--success-text);
   background: color-mix(
     in srgb,
     var(--verde) 7%,
@@ -207,9 +207,9 @@
 }
 
 .completed:hover {
-  color: var(--verde);
+  color: var(--success-text);
 
-  border-color: var(--verde);
+  border-color: var(--success-text);
 }
 
 .check {
@@ -226,7 +226,7 @@
 
   border-radius: 50%;
 
-  font-size: 0.6rem;
+  font-size: var(--font-size-small);
 }
 
 .pending {

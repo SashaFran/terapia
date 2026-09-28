@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
   docs: new Map<string, any>(), users: new Map<string, any>(), counter: 0,
@@ -46,6 +46,7 @@ vi.mock('firebase-admin', () => {
       return user;
     },
     createUser: async (data: any) => {
+      if ([...state.users.values()].some((u) => u.email === data.email)) throw { code: 'auth/email-already-exists' };
       const user = { uid: `uid${++state.counter}`, ...data };
       state.users.set(user.uid, user);
       return user;
@@ -64,9 +65,11 @@ vi.mock('firebase-admin', () => {
 import { crearPaciente, eliminarPaciente, validarAlta } from '../src/pacientes';
 import { crearPacienteAuth, eliminarPacienteAuth } from '../src/index';
 
-const alta = { nombre: 'Paciente ficticio', dni: '12345678', contacto: '',
+const alta = { nombre: 'Paciente ficticio', dni: '12345678', contacto: 'paciente@example.com',
   fechaIngreso: '2099-01-01', testsSeleccionados: ['k10', 'bfq', 'raven'] };
-beforeEach(() => { state.docs.clear(); state.users.clear(); state.counter = 0; state.failBatch = false; state.failDelete = false; });
+beforeEach(() => { vi.stubEnv('RESEND_API_KEY', ''); vi.spyOn(console, 'error').mockImplementation(() => {}); state.docs.clear(); state.users.clear(); state.counter = 0; state.failBatch = false; state.failDelete = false; });
+
+afterEach(() => vi.unstubAllEnvs());
 
 it('creates the patient with every selected assignment under the same patient ID', async () => {
   const result = await crearPaciente(alta);
@@ -80,20 +83,26 @@ it('allows recreation after deleting both Auth and patient data', async () => {
   const first = await crearPaciente(alta);
   state.docs.set('resultados/r1', { pacienteId: first.pacienteId });
   state.docs.set('test_progress/t1', { userId: first.pacienteId });
-  await eliminarPaciente({ pacienteId: first.pacienteId }, 'admin');
+  await eliminarPaciente(first.pacienteId, 'admin');
   expect(state.users.size).toBe(0);
   expect(state.docs.size).toBe(0);
   const second = await crearPaciente(alta);
   expect(second.uid).not.toBe(first.uid);
 });
 
-it('repairs an orphaned legacy Auth account but refuses an existing patient', async () => {
+it('refuses an existing Auth account without deleting it', async () => {
   state.users.set('legacy', { uid: 'legacy', email: '12345678@paciente.com' });
+  await expect(crearPaciente(alta)).rejects.toMatchObject({ code: 'already-exists' });
+  expect(state.users.has('legacy')).toBe(true);
+  expect(state.docs.size).toBe(0);
+});
+
+it('refuses an existing patient without changing assignments', async () => {
   const patient = await crearPaciente(alta);
-  expect(state.users.has('legacy')).toBe(false);
-  expect(state.users.has(patient.uid)).toBe(true);
+  const documentCount = state.docs.size;
   await expect(crearPaciente(alta)).rejects.toMatchObject({ code: 'already-exists' });
   expect(state.users.has(patient.uid)).toBe(true);
+  expect(state.docs.size).toBe(documentCount);
 });
 
 it('does not replace a privileged or otherwise linked account', async () => {
@@ -115,31 +124,32 @@ it('rolls back a new Auth user when saving assignments fails', async () => {
 it('retains the profile when Auth deletion fails, allowing a retry', async () => {
   const patient = await crearPaciente(alta);
   state.failDelete = true;
-  await expect(eliminarPaciente({ pacienteId: patient.pacienteId }, 'admin')).rejects.toThrow('auth failed');
+  await expect(eliminarPaciente(patient.pacienteId, 'admin')).rejects.toThrow('auth failed');
   expect(state.docs.has(`pacientes/${patient.pacienteId}`)).toBe(true);
   state.failDelete = false;
-  await eliminarPaciente({ pacienteId: patient.pacienteId }, 'admin');
+  await eliminarPaciente(patient.pacienteId, 'admin');
   expect(state.docs.size).toBe(0);
 });
 
 it('retries a partial deletion after Auth was already removed', async () => {
   const patient = await crearPaciente(alta);
   state.failBatch = true;
-  await expect(eliminarPaciente({ pacienteId: patient.pacienteId }, 'admin')).rejects.toThrow('write failed');
+  await expect(eliminarPaciente(patient.pacienteId, 'admin')).rejects.toThrow('write failed');
   expect(state.users.size).toBe(0);
   expect(state.docs.has(`pacientes/${patient.pacienteId}`)).toBe(true);
   state.failBatch = false;
-  await eliminarPaciente({ pacienteId: patient.pacienteId }, 'admin');
+  await eliminarPaciente(patient.pacienteId, 'admin');
   expect(state.docs.size).toBe(0);
 });
 
 it('rejects concurrent operations for the same DNI', async () => {
-  state.docs.set('pacienteOperaciones/12345678', { hasta: Date.now() + 60000, token: 'other' });
+  const first = crearPaciente(alta);
   await expect(crearPaciente(alta)).rejects.toMatchObject({ code: 'aborted' });
+  await first;
 });
 
 it.each([{ ...alta, testsSeleccionados: [] }, { ...alta, testsSeleccionados: ['unknown'] },
-  { ...alta, dni: '1234' }, { ...alta, fechaIngreso: '2099-02-31' }])('validates input before Auth changes', (input) => {
+  { ...alta, contacto: '' }, { ...alta, contacto: 'invalid' }, { ...alta, dni: '1234' }, { ...alta, fechaIngreso: '2099-02-31' }])('validates input before Auth changes', (input) => {
   expect(() => validarAlta(input)).toThrow();
   expect(state.users.size).toBe(0);
 });
