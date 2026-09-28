@@ -1,30 +1,651 @@
-.loginContainer{
-   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  width: 100vw;
-}
-.loginBox{
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    width: 80%;
-}
-.form{
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page {
+  position: relative;
+
+  display: grid;
+
+  width: 100%;
+  min-height: 100vh;
+
+  padding: 2rem;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 176, 0, 0.06),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      rgba(255, 68, 56, 0.045),
+      transparent 28%
+    ),
+    var(--gris-bg);
+
+  place-items: center;
 }
 
-.loading{
-  min-height: 60vh;
+
+/* =========================================================
+   BACKGROUND DECORATION
+========================================================= */
+
+.backgroundGlow {
+  position: absolute;
+
+  width: 420px;
+  height: 420px;
+
+  top: 50%;
+  left: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 153, 0, 0.055),
+      transparent 65%
+    );
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  transform: translate(-50%, -50%);
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.loginCard {
+  position: relative;
+
+  width: min(100%, 470px);
+
+  padding: 2rem;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid rgba(53, 37, 28, 0.08);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 2px 5px rgba(25, 30, 35, 0.025),
+    0 16px 45px rgba(25, 30, 35, 0.075);
+
+  z-index: 1;
+}
+
+.loginCard::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffb000,
+      #ff8800,
+      #ff4438
+    );
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
   display: flex;
+
+  align-items: flex-start;
+
+  gap: 1rem;
+
+  padding-bottom: 1.5rem;
+
+  border-bottom: 1px solid #eceef1;
+}
+
+.brandMark {
+  position: relative;
+
+  display: flex;
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+}
+.brandMark img{
+  width: inherit;
+}
+
+
+
+/* =========================================================
+   BRAND COPY
+========================================================= */
+
+.brandCopy {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.28rem;
+
+  color: #ff6b18;
+
+  font-size: 0.61rem;
+  font-weight: 800;
+
+  letter-spacing: 0.11em;
+
+  text-transform: uppercase;
+}
+
+.brandCopy h1 {
+  margin: 0;
+
+  color: #342e2a;
+
+  font-size: clamp(1.15rem, 3vw, 1.42rem);
+
   font-weight: 600;
-  color: #6b1d2a;
+
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 0.4rem 0 0;
+
+  color: #92979d;
+
+  font-size: 0.67rem;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1rem;
+
+  padding: 1.5rem 0;
+}
+
+
+/* =========================================================
+   FIELDS
+========================================================= */
+
+.field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.4rem;
+}
+
+.field label {
+  color: #555a5f;
+
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.field input {
+  width: 100%;
+  height: 43px;
+
+  padding: 0 0.85rem;
+
+  box-sizing: border-box;
+
+  color: #41464b;
+  background: #fafbfb;
+
+  border: 1px solid #e1e4e7;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 0.67rem;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.field input::placeholder {
+  color: #a7abb0;
+}
+
+.field input:hover:not(:disabled) {
+  background: #ffffff;
+
+  border-color: #cfd3d7;
+}
+
+.field input:focus {
+  background: #ffffff;
+
+  border-color: #ff9b55;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 126, 31, 0.08);
+}
+
+.field input:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   PASSWORD HEADER
+========================================================= */
+
+.passwordHeader {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+}
+
+.forgotButton {
+  padding: 0;
+
+  color: #a26a36;
+  background: transparent;
+
+  border: none;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 0.57rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: color 0.15s ease;
+}
+
+.forgotButton:hover:not(:disabled) {
+  color: #ff6c1c;
+}
+
+.forgotButton:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.message {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 0.55rem;
+
+  padding: 0.7rem 0.75rem;
+
+  border-radius: 8px;
+}
+
+.message p {
+  margin: 0;
+
+  font-size: 0.59rem;
+
+  line-height: 1.45;
+}
+
+.errorMessage {
+  color: #a7464c;
+  background: #fff6f6;
+
+  border: 1px solid #f3dddd;
+}
+
+.infoMessage {
+  color: #776345;
+  background: #fffbf3;
+
+  border: 1px solid #f3e6cd;
+}
+
+.messageIndicator,
+.infoIndicator {
+  flex: 0 0 auto;
+
+  width: 6px;
+  height: 6px;
+
+  margin-top: 0.25rem;
+
+  border-radius: 50%;
+}
+
+.messageIndicator {
+  background: #c94d55;
+
+  box-shadow:
+    0 0 0 3px rgba(201, 77, 85, 0.08);
+}
+
+.infoIndicator {
+  background: #e49b27;
+
+  box-shadow:
+    0 0 0 3px rgba(228, 155, 39, 0.09);
+}
+
+
+/* =========================================================
+   PRIMARY ACTION
+========================================================= */
+
+.primaryAction {
+  display: flex;
+
+  width: 100%;
+
+  margin-top: 0.15rem;
+}
+
+.primaryAction > * {
+  width: 100%;
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.divider {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 0.75rem;
+}
+
+.divider span {
+  height: 1px;
+
+  background: #eceef0;
+}
+
+.divider p {
+  margin: 0;
+
+  color: #a1a6ab;
+
+  font-size: 0.54rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   PATIENT ACCESS
+========================================================= */
+
+.patientAccess {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-top: 1.15rem;
+
+  padding: 0.85rem 0.9rem;
+
+  background: #fafafa;
+
+  border: 1px solid #e9ebed;
+
+  border-radius: 9px;
+}
+
+.patientAccess > div {
+  min-width: 0;
+}
+
+.patientAccess strong {
+  display: block;
+
+  margin: 0;
+
+  color: #555a5f;
+
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.patientAccess p {
+  margin: 0.18rem 0 0;
+
+  color: #9a9fa4;
+
+  font-size: 0.54rem;
+
+  line-height: 1.4;
+}
+
+.patientButton {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  align-items: center;
+
+  gap: 0.45rem;
+
+  padding: 0.55rem 0.7rem;
+
+  color: #7e6856;
+  background: #ffffff;
+
+  border: 1px solid #e3ded9;
+
+  border-radius: 7px;
+
+  font-family: inherit;
+  font-size: 0.56rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.patientButton span {
+  font-size: 0.72rem;
+
+  transition: transform 0.16s ease;
+}
+
+.patientButton:hover:not(:disabled) {
+  color: #ef6d22;
+
+  border-color: #f0c3a5;
+
+  box-shadow:
+    0 4px 12px rgba(40, 36, 32, 0.04);
+
+  transform: translateY(-1px);
+}
+
+.patientButton:hover:not(:disabled) span {
+  transform: translateX(2px);
+}
+
+.patientButton:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.45rem;
+
+  margin-top: 1.25rem;
+
+  padding-top: 1rem;
+
+  border-top: 1px solid #f0f1f2;
+}
+
+.footer p {
+  margin: 0;
+
+  color: #a2a6ab;
+
+  font-size: 0.52rem;
+}
+
+.securityDot {
+  width: 5px;
+  height: 5px;
+
+  background: #54a879;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 3px rgba(84, 168, 121, 0.08);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .loginCard {
+    padding: 1.4rem;
+  }
+
+  .patientAccess {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .patientButton {
+    justify-content: center;
+
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .header {
+    gap: 0.75rem;
+  }
+
+  .brandMark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brandMark span {
+    width: 6px;
+    height: 21px;
+  }
+
+  .passwordHeader {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 0.25rem;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .field input,
+  .forgotButton,
+  .patientButton,
+  .patientButton span {
+    transition: none;
+  }
+
+  .patientButton:hover {
+    transform: none;
+  }
 }

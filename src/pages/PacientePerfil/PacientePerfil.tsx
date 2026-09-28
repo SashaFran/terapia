@@ -447,14 +447,22 @@ export default function PacientePerfil() {
   ========================================================= */
   if (loading) {
     return (
-      <div className={styles.loading}>
+      <div
+        className={
+          styles.loading
+        }
+      >
         <div
           className={
             styles.loadingIndicator
           }
-        />
+        >
+          <span />
+        </div>
 
-        <p>Cargando paciente...</p>
+        <p>
+          Cargando paciente...
+        </p>
       </div>
     );
   }

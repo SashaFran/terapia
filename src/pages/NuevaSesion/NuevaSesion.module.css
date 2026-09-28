@@ -581,14 +581,14 @@ display: grid;
 .loading {
   display: flex;
 
-  min-height: 250px;
+  min-height: 55vh;
 
   flex-direction: column;
 
   align-items: center;
   justify-content: center;
 
-  gap: 0.75rem;
+  gap: 0.8rem;
 
   color: #92979d;
 }
@@ -596,18 +596,21 @@ display: grid;
 .loading p {
   margin: 0;
 
-  font-size: 0.65rem;
+  font-size: 0.68rem;
 }
 
 .loadingIndicator {
+  position: relative;
+
   display: grid;
 
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
 
   background: #f8f8f8;
 
-  border: 1px solid #e5e8ea;
+  border:
+    1px solid #e6e8ea;
 
   border-radius: 50%;
 
@@ -615,8 +618,8 @@ display: grid;
 }
 
 .loadingIndicator span {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 
   background:
     linear-gradient(
@@ -628,26 +631,45 @@ display: grid;
   border-radius: 50%;
 
   animation:
-    sessionPulse
+    dashboardPulse
     1.2s ease-in-out
     infinite;
 }
 
-@keyframes sessionPulse {
+@keyframes dashboardPulse {
   0%,
   100% {
-    opacity: 0.55;
+    transform:
+      scale(0.8);
 
-    transform: scale(0.8);
+    opacity: 0.55;
   }
 
   50% {
-    opacity: 1;
+    transform:
+      scale(1);
 
-    transform: scale(1);
+    opacity: 1;
   }
 }
 
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .card,
+  .card::before,
+  .kpi,
+  .loadingIndicator span {
+    transition: none;
+    animation: none;
+  }
+
+  .card:hover,
+  .kpi:hover {
+    transform: none;
+  }
+}
 
 /* =========================================================
    RESPONSIVE

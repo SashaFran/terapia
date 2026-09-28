@@ -1,5 +1,10 @@
-import { onCall, HttpsError } from "firebase-functions/v1/https";
+import {
+  onCall,
+  HttpsError,
+} from "firebase-functions/v1/https";
+
 import { runWith } from "firebase-functions/v1";
+
 import * as admin from "firebase-admin";
 
 import {
@@ -9,7 +14,15 @@ import {
 
 import { crearSesion } from "./sesiones";
 
+import {
+  recuperarAccesoAdmin,
+} from "./recuperarAdmin";
+
 admin.initializeApp();
+
+/* =========================================================
+   VALIDACIÓN ADMIN
+========================================================= */
 
 function validarAdmin(context: any) {
   if (!context.auth) {
@@ -26,6 +39,10 @@ function validarAdmin(context: any) {
     );
   }
 }
+
+/* =========================================================
+   PACIENTES
+========================================================= */
 
 export const crearPacienteAuth = runWith({
   secrets: ["RESEND_API_KEY"],
@@ -46,6 +63,10 @@ export const eliminarPacienteAuth = onCall(
   },
 );
 
+/* =========================================================
+   SESIONES
+========================================================= */
+
 export const crearSesionAuth = onCall(
   async (data, context) => {
     validarAdmin(context);
@@ -53,3 +74,24 @@ export const crearSesionAuth = onCall(
     return crearSesion(data);
   },
 );
+
+/* =========================================================
+   RECUPERACIÓN DE ADMINISTRADOR
+========================================================= */
+
+/*
+ * Esta función NO requiere login.
+ *
+ * Es necesario porque justamente se utiliza cuando
+ * el administrador no puede iniciar sesión.
+ *
+ * Internamente verifica que el email corresponda a
+ * una cuenta con custom claim admin === true.
+ */
+
+export const recuperarAccesoAdminAuth =
+  runWith({
+    secrets: ["RESEND_API_KEY"],
+  }).https.onCall(async (data) => {
+    return recuperarAccesoAdmin(data);
+  });

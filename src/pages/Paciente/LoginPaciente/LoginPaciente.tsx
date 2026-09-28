@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { db } from "../../../firebase/firebase";
+import { useNavigate } from "react-router-dom";
+
 import {
   collection,
   query,
@@ -8,13 +9,23 @@ import {
   updateDoc,
   doc,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+
+import { db } from "../../../firebase/firebase";
+
 import BotonPersonalizado from "../../../components/Boton/Boton";
+
 import styles from "./LoginPaciente.module.css";
+
 import {
   isPacienteAuthenticated,
   setPacienteSession,
 } from "../../../utils/pacienteSession";
+
+import Logo from "../../../assets/images/logo.svg"
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function convertirFecha(fecha: any): Date | null {
   if (!fecha) return null;
@@ -42,12 +53,21 @@ function formatearFecha(fecha: Date): string {
   });
 }
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function LoginPaciente() {
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  /* =======================================================
+     SESIÓN EXISTENTE
+  ======================================================= */
 
   useEffect(() => {
     if (isPacienteAuthenticated()) {
@@ -57,17 +77,35 @@ export default function LoginPaciente() {
     }
   }, [navigate]);
 
-  const handleLogin = async (e: any) => {
-    e.preventDefault();
+  /* =======================================================
+     LOGIN
+  ======================================================= */
+
+  const handleLogin = async (
+    e?: React.FormEvent,
+  ) => {
+    e?.preventDefault();
+
+    if (loading) return;
 
     setError("");
 
     const dniLimpio = dni.replace(/\D/g, "");
 
+    if (!dniLimpio || !password) {
+      setError(
+        "Completá tu DNI y contraseña.",
+      );
+      return;
+    }
+
+    setLoading(true);
+
     try {
       /*
        * Buscar paciente por DNI
        */
+
       const q = query(
         collection(db, "pacientes"),
         where("dni", "==", dniLimpio),
@@ -76,7 +114,9 @@ export default function LoginPaciente() {
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        setError("Paciente no encontrado");
+        setError(
+          "No encontramos un acceso asociado a los datos ingresados.",
+        );
         return;
       }
 
@@ -86,14 +126,18 @@ export default function LoginPaciente() {
       /*
        * Validar contraseña
        */
+
       if (pacienteData.password !== password) {
-        setError("Contraseña incorrecta");
+        setError(
+          "El DNI o la contraseña ingresados no son correctos.",
+        );
         return;
       }
 
       /*
        * Obtener ventana real de acceso
        */
+
       const ahora = new Date();
 
       const inicio = convertirFecha(
@@ -107,6 +151,7 @@ export default function LoginPaciente() {
       /*
        * Todavía no comenzó el acceso
        */
+
       if (inicio && ahora < inicio) {
         setError(
           `Tu acceso estará habilitado a partir del ${formatearFecha(
@@ -120,6 +165,7 @@ export default function LoginPaciente() {
       /*
        * El período ya terminó
        */
+
       if (fin && ahora >= fin) {
         setError(
           "El período de acceso a tus evaluaciones ha finalizado.",
@@ -137,10 +183,10 @@ export default function LoginPaciente() {
                 activo: false,
               },
             );
-          } catch (error) {
+          } catch (updateError) {
             console.error(
               "No se pudo actualizar el estado del paciente:",
-              error,
+              updateError,
             );
           }
         }
@@ -151,6 +197,7 @@ export default function LoginPaciente() {
       /*
        * Paciente desactivado manualmente
        */
+
       if (pacienteData.activo === false) {
         setError(
           "Tu acceso se encuentra deshabilitado.",
@@ -162,6 +209,7 @@ export default function LoginPaciente() {
       /*
        * Obtener tests asignados
        */
+
       const qAsignaciones = query(
         collection(db, "asignaciones"),
         where(
@@ -175,20 +223,21 @@ export default function LoginPaciente() {
         await getDocs(qAsignaciones);
 
       const asignaciones =
-        snapAsignaciones.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
+        snapAsignaciones.docs.map((documento) => ({
+          id: documento.id,
+          ...documento.data(),
         }));
 
       /*
        * Comprobar si terminó todo el flujo
        */
+
       const total = asignaciones.length;
 
       const completados =
         asignaciones.filter(
-          (a: any) =>
-            a.estado === "completado",
+          (asignacion: any) =>
+            asignacion.estado === "completado",
         ).length;
 
       const testsCompletos =
@@ -206,6 +255,7 @@ export default function LoginPaciente() {
        * Si ya terminó evaluaciones + DNI,
        * no puede volver a entrar.
        */
+
       if (flujoTerminado) {
         setError(
           "Las evaluaciones asignadas ya fueron completadas.",
@@ -223,10 +273,10 @@ export default function LoginPaciente() {
                 activo: false,
               },
             );
-          } catch (error) {
+          } catch (updateError) {
             console.error(
               "No se pudo actualizar el estado del paciente:",
-              error,
+              updateError,
             );
           }
         }
@@ -237,6 +287,7 @@ export default function LoginPaciente() {
       /*
        * Login correcto
        */
+
       const pacienteLogueado = {
         id: docPaciente.id,
         ...pacienteData,
@@ -249,68 +300,217 @@ export default function LoginPaciente() {
       );
 
       navigate("/app/dashboard");
-    } catch (error) {
+    } catch (loginError) {
       console.error(
         "Error al intentar ingresar:",
-        error,
+        loginError,
       );
 
       setError(
-        "Error al intentar ingresar",
+        "No pudimos iniciar tu sesión. Intentá nuevamente.",
       );
+    } finally {
+      setLoading(false);
     }
   };
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
-    <div className="loginContainer">
-      <div className="loginBox">
-        <h2>Ingreso Paciente</h2>
+    <main className={styles.page}>
+      <div
+        className={styles.backgroundGlow}
+        aria-hidden="true"
+      />
 
-        <div className={styles.form}>
-          <input
-            placeholder="DNI"
-            value={dni}
-            onChange={(e) =>
-              setDni(e.target.value)
-            }
-          />
+      <section className={styles.loginCard}>
+        {/* ===============================================
+            HEADER
+        =============================================== */}
 
-          <input
-            type="password"
-            placeholder="Contraseña (últimos 6 dígitos del DNI)"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-          />
+        <header className={styles.header}>
+          <div
+            className={styles.brandMark}
+            aria-hidden="true"
+          >
+            <img src={Logo} alt="logo"/>
+          </div>
+
+          <div className={styles.brandCopy}>
+            <p className={styles.eyebrow}>
+              Join Solution
+            </p>
+
+            <h1>Acceso a evaluaciones</h1>
+
+            <p className={styles.subtitle}>
+              Ingresá con los datos que recibiste
+              para acceder a tus evaluaciones.
+            </p>
+          </div>
+        </header>
+
+        {/* ===============================================
+            FORM
+        =============================================== */}
+
+        <form
+          className={styles.form}
+          onSubmit={handleLogin}
+        >
+          {/* DNI */}
+
+          <div className={styles.field}>
+            <label htmlFor="paciente-dni">
+              DNI
+            </label>
+
+            <input
+              id="paciente-dni"
+              type="text"
+              inputMode="numeric"
+              autoComplete="username"
+              placeholder="Ingresá tu DNI"
+              value={dni}
+              onChange={(e) => {
+                setDni(e.target.value);
+
+                if (error) {
+                  setError("");
+                }
+              }}
+              disabled={loading}
+            />
+
+            <span className={styles.fieldHelp}>
+              Ingresalo sin puntos ni espacios.
+            </span>
+          </div>
+
+          {/* CONTRASEÑA */}
+
+          <div className={styles.field}>
+            <label htmlFor="paciente-password">
+              Contraseña
+            </label>
+
+            <input
+              id="paciente-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Ingresá tu contraseña"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+
+                if (error) {
+                  setError("");
+                }
+              }}
+              disabled={loading}
+            />
+
+            <span className={styles.fieldHelp}>
+              Usá la contraseña incluida en tu
+              correo de acceso.
+            </span>
+          </div>
+
+          {/* ERROR */}
 
           {error && (
-            <p className="error">
-              {error}
-            </p>
+            <div
+              className={styles.errorMessage}
+              role="alert"
+            >
+              <span
+                className={styles.errorIndicator}
+              />
+
+              <p>{error}</p>
+            </div>
           )}
 
-          <div className="nav">
+          {/* BOTÓN PRINCIPAL */}
+
+          <div className={styles.primaryAction}>
             <BotonPersonalizado
               variant="primary"
-              onClick={handleLogin}
-              disabled={!dni || !password}
-            >
-              Ingresar
-            </BotonPersonalizado>
-
-            <BotonPersonalizado
-              variant="secondary"
-              onClick={() =>
-                navigate("/admin/login")
+              type="submit"
+              disabled={
+                loading ||
+                !dni.trim() ||
+                !password
               }
-              disabled={false}
             >
-              Ingresar como administrador
+              {loading
+                ? "Ingresando..."
+                : "Ingresar a mis evaluaciones"}
             </BotonPersonalizado>
           </div>
+        </form>
+
+        {/* ===============================================
+            DIVISOR
+        =============================================== */}
+
+        <div className={styles.divider}>
+          <span />
+
+          <p>Otro tipo de acceso</p>
+
+          <span />
         </div>
-      </div>
-    </div>
+
+        {/* ===============================================
+            ADMIN
+        =============================================== */}
+
+        <div className={styles.adminAccess}>
+          <div>
+            <strong>
+              ¿Sos parte del equipo?
+            </strong>
+
+            <p>
+              Accedé al panel de gestión de
+              Join Solution.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className={styles.adminButton}
+            onClick={() =>
+              navigate("/admin/login")
+            }
+            disabled={loading}
+          >
+            Acceso administrativo
+
+            <span aria-hidden="true">
+              →
+            </span>
+          </button>
+        </div>
+
+        {/* ===============================================
+            FOOTER
+        =============================================== */}
+
+        <footer className={styles.footer}>
+          <span
+            className={styles.securityDot}
+          />
+
+          <p>
+            Tus datos de acceso son personales
+            y confidenciales
+          </p>
+        </footer>
+      </section>
+    </main>
   );
 }

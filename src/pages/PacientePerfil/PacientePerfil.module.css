@@ -880,46 +880,82 @@
 
   font-size: 0.68rem;
 }
-
-
 /* =========================================================
    LOADING
 ========================================================= */
 
 .loading {
   display: flex;
+
+  min-height: 55vh;
+
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
 
-  min-height: 60vh;
-
   gap: 0.8rem;
+
+  color: #92979d;
 }
 
 .loading p {
   margin: 0;
 
-  color: var(--gris-dark);
-
-  font-size: 0.8rem;
+  font-size: 0.68rem;
 }
 
 .loadingIndicator {
-  width: 24px;
-  height: 24px;
+  position: relative;
 
-  border: 2px solid #f0f1f3;
-  border-top-color: #ff7900;
+  display: grid;
+
+  width: 38px;
+  height: 38px;
+
+  background: #f8f8f8;
+
+  border:
+    1px solid #e6e8ea;
+
+  border-radius: 50%;
+
+  place-items: center;
+}
+
+.loadingIndicator span {
+  width: 11px;
+  height: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffb000,
+      #ff6538
+    );
+
   border-radius: 50%;
 
   animation:
-    spin 0.8s linear infinite;
+    dashboardPulse
+    1.2s ease-in-out
+    infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@keyframes dashboardPulse {
+  0%,
+  100% {
+    transform:
+      scale(0.8);
+
+    opacity: 0.55;
+  }
+
+  50% {
+    transform:
+      scale(1);
+
+    opacity: 1;
   }
 }
 
