@@ -5,7 +5,7 @@
 
   width: 100%;
 
-  color: #3f4144;
+  color: var(--text-muted);
 }
 
 /* =========================================================
@@ -21,7 +21,7 @@
 
   padding-bottom: 1.35rem;
 
-  border-bottom: 1px solid #eceef0;
+  border-bottom: 1px solid var(--gris);
 }
 
 .headerCopy {
@@ -34,7 +34,7 @@
 
   margin-bottom: 0.35rem;
 
-  color: #f06a1f;
+  color: var(--text-muted);
 
   font-size: var(--font-size-regular);
   font-weight: 800;
@@ -45,7 +45,7 @@
 .header h2 {
   margin: 0;
 
-  color: #383431;
+  color: var(--text-muted);
 
   font-size: clamp(1.2rem, 3vw, 1.55rem);
   font-weight: 650;
@@ -56,7 +56,7 @@
 .headerCopy > p {
   margin: 0.4rem 0 0;
 
-  color: #92979d;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
 
@@ -73,10 +73,10 @@
 
   padding: 0.38rem 0.65rem;
 
-  color: #776b62;
-  background: #faf9f8;
+  color: var(--text-muted);
+  background: var(--surface-muted);
 
-  border: 1px solid #ebe7e3;
+  border: 1px solid var(--gris);
   border-radius: 999px;
 
   font-size: var(--font-size-small);
@@ -89,7 +89,7 @@
   width: 5px;
   height: 5px;
 
-  background: #f49a42;
+  background: var(--gris);
 
   border-radius: 50%;
 
@@ -112,7 +112,7 @@
 .summaryCard {
   position: relative;
   padding: 1rem;
-  border: 1px solid #e6e8ea;
+  border: 1px solid var(--gris);
   border-radius: 10px;
 }
 
@@ -129,9 +129,9 @@
 
   background: linear-gradient(
     180deg,
-    #ffb000,
-    #ff7b23,
-    #ff4438
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
   );
 
   border-radius: 10px 0 0 10px;
@@ -151,7 +151,7 @@
 }
 
 .summaryLabel {
-  color: #999ea3;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
   font-weight: 800;
@@ -163,7 +163,7 @@
 .summaryCard strong {
   display: block;
 
-  color: #47433f;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
   font-weight: 700;
@@ -172,7 +172,7 @@
 .summaryCard > p {
   margin: 0.25rem 0 0;
 
-  color: #9b9fa4;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
 
@@ -194,10 +194,10 @@
   align-items: center;
   justify-content: center;
 
-  color: #9da1a5;
-  background: #ffffff;
+  color: var(--text-muted);
+  background: var(--surface);
 
-  border: 1px solid #dfe2e5;
+  border: 1px solid var(--gris);
   border-radius: 50%;
 
   outline: none;
@@ -220,10 +220,10 @@
 
   padding: 0.65rem 0.7rem;
 
-  color: #666b70;
-  background: #ffffff;
+  color: var(--text-muted);
+  background: var(--surface);
 
-  border: 1px solid #e1e3e5;
+  border: 1px solid var(--gris);
   border-radius: 8px;
 
   box-shadow:
@@ -260,10 +260,10 @@
   width: 8px;
   height: 8px;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border-right: 1px solid #e1e3e5;
-  border-bottom: 1px solid #e1e3e5;
+  border-right: 1px solid var(--gris);
+  border-bottom: 1px solid var(--gris);
 
   transform:
     translateY(-4px)
@@ -293,7 +293,7 @@
 .sectionHeading h3 {
   margin: 0;
 
-  color: #45413e;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
   font-weight: 700;
@@ -302,7 +302,7 @@
 .sectionHeading > p {
   margin: 0.25rem 0 0;
 
-  color: #969ba0;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
 
@@ -313,7 +313,7 @@
   display: flex;
   flex-direction: column;
 
-  border: 1px solid #e8eaec;
+  border: 1px solid var(--gris);
   border-radius: 10px;
 
   overflow: hidden;
@@ -328,11 +328,11 @@
 
   padding: 0.9rem 1rem;
 
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .instruction + .instruction {
-  border-top: 1px solid #eceef0;
+  border-top: 1px solid var(--gris);
 }
 
 .instructionNumber {
@@ -344,10 +344,10 @@
   align-items: center;
   justify-content: center;
 
-  color: #ed762f;
-  background: #fff8f3;
+  color: var(--text-muted);
+  background: var(--surface-muted);
 
-  border: 1px solid #f6dfcf;
+  border: 1px solid var(--gris);
   border-radius: 7px;
 
   font-size: var(--font-size-small);
@@ -357,14 +357,14 @@
 .instruction h4 {
   margin: 0 0 0.25rem;
 
-  color: #53504d;
+  color: var(--text-muted);
 
  font-size: var(--font-size-regular);
   font-weight: 750;
 }
 
 .instructionText {
-  color: #858a8f;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
 
@@ -389,7 +389,7 @@
 
   padding-top: 1.15rem;
 
-  border-top: 1px solid #eceef0;
+  border-top: 1px solid var(--gris);
 }
 
 .footerInfo {
@@ -405,7 +405,7 @@
 .footerInfo p {
   margin: 0;
 
-  color: #999da2;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
 
@@ -423,14 +423,14 @@
 }
 
 .statusDotReady {
-  background: #42a878;
+  background: var(--gris);
 
   box-shadow:
     0 0 0 3px rgba(66, 168, 120, 0.09);
 }
 
 .statusDotPending {
-  background: #d4a04a;
+  background: var(--gris);
 
   box-shadow:
     0 0 0 3px rgba(212, 160, 74, 0.09);
@@ -499,3 +499,14 @@
     transition: none;
   }
 }
+/* Global typography and interaction tokens also apply before the test starts. */
+.intro { color: var(--font-color); font: var(--font-size-regular)/var(--line-height-body) var(--font-family-body); }
+.intro :where(h2, h3, h4, p, strong) { overflow-wrap: anywhere; }
+.header h2, .instruction h4, .summaryCard strong, .sectionHeading h3 { color: var(--font-color); }
+.eyebrow, .sectionEyebrow, .instructionNumber { color: var(--accent-text); }
+.headerCopy > p, .instructionText, .summaryCard > p, .summaryCard strong, .sectionHeading > p, .footerInfo p { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
+.sectionHeading h3 { font-size: var(--font-size-h3); }
+.tooltip { width: var(--control-height); height: var(--control-height); border-color: var(--control-border); }
+.tooltip:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
+.statusDotReady { background: var(--success-text); }
+.statusDotPending { background: var(--accent-text); }

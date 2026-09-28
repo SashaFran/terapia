@@ -3,11 +3,13 @@
 ========================================================= */
 
 .page {
-  width: min(100%, 1180px);
+  composes: page from "../TestShared.module.css";
+  width: 100%;
+  max-width: var(--test-max-width);
   min-height: calc(100vh - 10rem);
 
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 3rem;
+  padding: var(--test-padding);
 
   box-sizing: border-box;
 
@@ -175,7 +177,7 @@
   display: grid;
 
   grid-template-columns:
-    290px
+    var(--test-sidebar-width)
     minmax(0, 1fr);
 
   align-items: start;
@@ -639,7 +641,7 @@
   gap: 0.7rem;
 }
 
-.option {
+.options .option {
   position: relative;
 
   display: flex;
@@ -937,7 +939,7 @@
    TABLET
 ========================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .testLayout {
     grid-template-columns: 1fr;
 
@@ -945,7 +947,7 @@
   }
 
   .questionNavigator {
-    position: static;
+    position: relative;
   }
 
   .questionGrid {
@@ -965,7 +967,7 @@
     grid-template-columns: 1fr;
   }
 
-  .option {
+  .options .option {
     flex-direction: row;
 
     min-height: auto;
@@ -1072,7 +1074,6 @@
   }
 }
 /* Shared root tokens for readable answers and keyboard navigation. */
-.page { composes: page from "../TestShared.module.css"; }
 .optionLabel, .subtitle { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
 .option:has(input:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
 .optionSelected { border-color: var(--action-bg); background: var(--beige); }
@@ -1082,4 +1083,20 @@
 .questionGrid { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
 .questionIndexCurrent, .nextButton { color: var(--on-action); background: var(--action-bg); }
 .backButton, .nextButton { font-size: var(--font-size-regular); }
+.header h1 { font-size: var(--font-size-h1); }
+.question { font-size: var(--question-font-size); }
+.timer { composes: timer from "../TestShared.module.css"; }
+.timer strong { font: inherit; }
+.options .option { margin: 0; font-weight: var(--font-regular); }
+.questionGrid { padding: 4px; }
+.questionIndex { display: flex; gap: .25rem; border-color: var(--control-border); }
+.questionIndexAnswered { background: var(--surface-success); border-color: var(--success-text); }
+.questionIndexCurrent { border: 2px solid var(--action-bg); background: var(--action-bg); color: var(--on-action); }
+.options .optionSelected { background: var(--surface-selected); border-color: var(--action-bg); }
+.questionIndexCurrent:hover:not(:disabled) { color: var(--on-action); }
+.legendCurrent { background: var(--action-bg); }
+.nextButton:hover:not(:disabled) { background: var(--action-hover); }
+.backButton:disabled, .nextButton:disabled { opacity: 1; color: var(--text-muted); background: var(--surface-muted); }
+.questionHeader, .progressMeta { flex-wrap: wrap; }
+.helper { font-size: var(--font-size-regular); }
 @media (max-width: 600px) { .navigation { display: flex; flex-wrap: wrap; justify-content: space-between; } }

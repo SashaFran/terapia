@@ -9,5 +9,10 @@
 .imagen, .img { display: block; max-width: 100%; height: auto; max-height: 480px; object-fit: contain; align-self: center; }
 .img { cursor: grab; }
 .textarea { composes: field from "../TestShared.module.css"; }
-.input { width: 100%; min-height: var(--control-height); padding: .75rem; border: 1px solid var(--control-border); border-radius: calc(var(--radius) / 2); background: var(--surface); }
+.input { width: 100%; min-height: var(--control-height); height: auto; padding: .75rem; border: 1px solid var(--control-border); border-radius: var(--radius-control); background: var(--surface); }
 .boton { align-self: flex-end; }
+
+/* Shared reading defaults are composed above; local states use root tokens. */
+.input:disabled { color: var(--text-muted); background: var(--surface-muted); }
+.testCard:focus-within, .containerImg:focus-within { border-color: var(--control-border); }
+.input:focus-visible, .textarea:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }

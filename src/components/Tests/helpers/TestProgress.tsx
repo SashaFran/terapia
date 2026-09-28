@@ -30,6 +30,8 @@ export default function TestProgress({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       block: "center",
     });
+    // Move keyboard and screen-reader navigation to the selected response.
+    elemento?.querySelector<HTMLElement>("textarea, input, button")?.focus({ preventScroll: true });
   };
 
   return (
@@ -60,7 +62,7 @@ export default function TestProgress({
         />
       </div>
 
-      <p className={styles.summary}>
+      <p className={styles.summary} role="status">
         {cantidadCompletadas === total
           ? "Todas las respuestas están completas."
           : `${cantidadCompletadas} de ${total} respondidas`}

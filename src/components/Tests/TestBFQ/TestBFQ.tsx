@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
@@ -37,6 +37,7 @@ export default function TestBFQ({
   const [canStart, setCanStart] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [preguntaActual, setPreguntaActual] = useState(0);
+  const questionRef = useRef<HTMLHeadingElement>(null);
 
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(BFQ_TEST.preguntas.length).fill(0),
@@ -204,8 +205,9 @@ export default function TestBFQ({
   useEffect(() => {
     if (!engine.started) return;
 
-    window.scrollTo({
-      top: 0,
+    questionRef.current?.focus({ preventScroll: true });
+    questionRef.current?.scrollIntoView({
+      block: "nearest",
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
   }, [preguntaActual, engine.started]);
@@ -353,6 +355,10 @@ export default function TestBFQ({
 
         <div
           className={styles.progressTrack}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalPreguntas}
+          aria-valuenow={respondidas}
           aria-label={`${respondidas} de ${totalPreguntas} preguntas respondidas`}
         >
           <div
@@ -459,6 +465,7 @@ export default function TestBFQ({
                     {String(
                       index + 1,
                     ).padStart(2, "0")}
+                    {respondida && <span aria-hidden="true">✓</span>}
                   </button>
                 );
               },
@@ -515,7 +522,7 @@ export default function TestBFQ({
               )}
             </div>
 
-            <h2 id="bfq-question" className={styles.question}>
+            <h2 id="bfq-question" ref={questionRef} tabIndex={-1} className={styles.question}>
               {pregunta}
             </h2>
 
@@ -661,10 +668,11 @@ export default function TestBFQ({
           </div>
 
           <p className={styles.helper}>
-            Puede volver a las preguntas
-            anteriores para modificar sus
-            respuestas antes de finalizar la
-            evaluación.
+            {esUltima && incompleto
+              ? `Faltan ${totalPreguntas - respondidas} preguntas por responder. Seleccione una pregunta pendiente en el navegador para completarla.`
+              : respuestaActual === 0
+                ? "Seleccione una opción para continuar. No hay respuestas correctas o incorrectas."
+                : "Puede volver a cualquier pregunta para revisar o cambiar su respuesta antes de finalizar."}
           </p>
         </section>
       </div>

@@ -4,10 +4,10 @@
 
 .page {
   width: var(--width-complete);
-  max-width: 1380px;
+  max-width: var(--test-max-width);
 
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--test-padding);
 
   box-sizing: border-box;
 
@@ -110,7 +110,7 @@
   display: grid;
 
   grid-template-columns:
-    320px
+    var(--test-sidebar-width)
     minmax(0, 1fr);
 
   align-items: start;
@@ -369,7 +369,7 @@
   display: block;
 
   width: var(--width-complete);
-  min-height: 110px;
+  min-height: 120px;
 
   padding: 0.8rem;
 
@@ -380,7 +380,7 @@
   color: var(--font-color);
   background: var(--gris-bg);
 
-  border: 1px solid var(--gris);
+  border: 1px solid var(--control-border);
   border-radius: calc(
     var(--radius) / 2
   );
@@ -559,3 +559,8 @@
 }
 .page { composes: page from "../TestShared.module.css"; }
 .testHeader p, .answerHeader label { font-size: var(--font-size-regular); }
+
+.textarea { composes: field from "../TestShared.module.css"; height: auto; line-height: var(--line-height-body); }
+.textarea:disabled { opacity: 1; color: var(--text-muted); }
+.testHeader h1 { font-size: var(--font-size-h1); }
+.answerHeader { flex-wrap: wrap; }
