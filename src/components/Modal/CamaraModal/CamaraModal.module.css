@@ -1,6 +1,6 @@
 .consent {
   overflow: hidden;
-  border: 1px solid #e5e7e9;
+  border: 1px solid var(--gris);
   border-radius: 10px;
 }
 
@@ -18,7 +18,7 @@
 
   padding: 1rem;
 
-  border-bottom: 1px solid #e9ebed;
+  border-bottom: 1px solid var(--gris);
 }
 
 .header > div {
@@ -30,9 +30,9 @@
 
   margin-bottom: 0.3rem;
 
-  color: #9b8a7c;
+  color: var(--text-muted);
 
-  font-size: 0.52rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 
   letter-spacing: 0.08em;
@@ -42,7 +42,7 @@
 .header h3 {
   margin: 0;
 
-  color: #4a4643;
+  color: var(--text-muted);
 
   font-size: var(--font-size-h3);
   font-weight: 750;
@@ -53,9 +53,9 @@
 
   margin: 0.35rem 0 0;
 
-  color: #898e93;
+  color: var(--text-muted);
 
-  font-size: 0.58rem;
+  font-size: var(--font-size-small);
 
   line-height: 1.5;
 }
@@ -71,13 +71,13 @@
   align-items: center;
   justify-content: center;
 
-  color: #e67532;
-  background: #fff7f1;
+  color: var(--text-muted);
+  background: var(--surface-muted);
 
-  border: 1px solid #f3ddcf;
+  border: 1px solid var(--gris);
   border-radius: 8px;
 
-  font-size: 0.52rem;
+  font-size: var(--font-size-small);
   font-weight: 850;
 
   letter-spacing: 0.03em;
@@ -116,7 +116,7 @@
 }
 
 .detail + .detail {
-  border-left: 1px solid #e9ebed;
+  border-left: 1px solid var(--gris);
 }
 
 .check {
@@ -132,13 +132,13 @@
 
   margin-top: 1px;
 
-  color: #3e9c70;
-  background: #eff9f4;
+  color: var(--text-muted);
+  background: var(--surface-muted);
 
-  border: 1px solid #d2ecdf;
+  border: 1px solid var(--gris);
   border-radius: 50%;
 
-  font-size: 0.48rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 }
 
@@ -167,9 +167,9 @@
 
   padding: 0.8rem;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #e0e3e5;
+  border: 1px solid var(--gris);
   border-radius: 8px;
 
   cursor: pointer;
@@ -181,13 +181,13 @@
 }
 
 .acceptance:hover {
-  border-color: #efc6aa;
+  border-color: var(--gris);
 }
 
 .acceptanceChecked {
-  background: #fffaf6;
+  background: var(--surface-muted);
 
-  border-color: #f1bd99;
+  border-color: var(--gris);
 
   box-shadow:
     0 0 0 3px rgba(239, 123, 50, 0.04);
@@ -215,13 +215,13 @@
   align-items: center;
   justify-content: center;
 
-  color: #ffffff;
-  background: #ffffff;
+  color: var(--text-muted);
+  background: var(--surface);
 
-  border: 1px solid #cfd3d6;
+  border: 1px solid var(--gris);
   border-radius: 5px;
 
-  font-size: 0.55rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 
   transition:
@@ -233,11 +233,11 @@
   background:
     linear-gradient(
       135deg,
-      #ffad16,
-      #ff7130
+      var(--naranja),
+      var(--naranja2)
     );
 
-  border-color: #f28a37;
+  border-color: var(--gris);
 }
 
 .acceptanceCopy {
@@ -248,7 +248,7 @@
 }
 
 .acceptanceCopy strong {
-  color: #5c5753;
+  color: var(--text-muted);
 
   font-size: var(--font-size-small);
   font-weight: 700;
@@ -280,7 +280,7 @@ color: var(--gris-dark);
   .detail + .detail {
     padding-top: 0.65rem;
 
-    border-top: 1px solid #e9ebed;
+    border-top: 1px solid var(--gris);
     border-left: none;
   }
 }
@@ -291,3 +291,15 @@ color: var(--gris-dark);
     transition: none;
   }
 }
+/* Consent uses the same readable root styles as questionnaire instructions. */
+.consent { color: var(--font-color); font: var(--font-size-regular)/var(--line-height-body) var(--font-family-body); }
+.header p, .detail p, .acceptanceCopy strong { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
+.header h3, .acceptanceCopy strong { color: var(--font-color); }
+.eyebrow, .cameraMark { color: var(--accent-text); }
+.check { color: var(--success-text); }
+.acceptance { min-height: var(--control-height); border-color: var(--control-border); }
+.acceptanceCopy { min-width: 0; overflow-wrap: anywhere; }
+.acceptance:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: -3px; }
+.acceptanceChecked { background: var(--surface-selected); border-color: var(--action-bg); }
+.customCheckbox { color: var(--on-action); border-color: var(--control-border); }
+.acceptanceChecked .customCheckbox { background: var(--action-bg); border-color: var(--action-bg); }

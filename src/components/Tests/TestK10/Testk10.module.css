@@ -17,3 +17,10 @@
 .questionGrid button[aria-current] { background: var(--action-bg); color: var(--on-action); }
 .progress { width: 100%; accent-color: var(--action-bg); margin-bottom: 1.5rem; }
 .navigation { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+/* Inherit global typography; retain explicit response and keyboard states. */
+.navigator p { color: var(--text-muted); font-size: var(--font-size-small); }
+.testCardItems label:has(input:disabled) { cursor: not-allowed; color: var(--text-muted); background: var(--surface-muted); }
+.testCardItems label:hover:has(input:not(:disabled)) { border-color: var(--action-bg); }
+.testCardItems label:has(input:checked) { background: var(--surface-selected); }
+.questionGrid { padding: 4px; }
+.questionGrid button:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }

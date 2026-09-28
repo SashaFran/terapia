@@ -1,5 +1,5 @@
 import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { K10_TEST } from "../../../data/tests/k10";
 import BotonPersonalizado from "../../Boton/Boton";
@@ -8,7 +8,7 @@ import relojStyle from "../helpers/countdown.module.css";
 import { useTestEngine } from "../helpers/useTestEngine";
 
 type Props = {
-  onFinish?: (resultado: any) => void | Promise<void>;
+  onFinish?: (resultado: { score: number; nivel: string; respuestas: number[]; metodo: string }) => void | Promise<void>;
   userId?: string | number;
 };
 
@@ -16,6 +16,7 @@ export default function TestK10({ onFinish, userId }: Props) {
   const navigate = useNavigate();
 
   const [preguntaActual, setPreguntaActual] = useState(0);
+  const questionRef = useRef<HTMLHeadingElement>(null);
   const [canStart, setCanStart] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [respuestas, setRespuestas] = useState<number[]>(
@@ -76,6 +77,15 @@ export default function TestK10({ onFinish, userId }: Props) {
 
   const incompleto = respuestas.some((r) => r === 0);
 
+  useEffect(() => {
+    if (!engine.started) return;
+    questionRef.current?.focus({ preventScroll: true });
+    questionRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [preguntaActual, engine.started]);
+
   if (!engine.started) {
     return <TestIntroModal nombre="Cuestionario K10" descripcion="Cómo se ha sentido en los últimos 30 días"
       canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
@@ -110,7 +120,7 @@ export default function TestK10({ onFinish, userId }: Props) {
         <section className={styles.content}>
           <fieldset className={styles.testCard} disabled={engine.inputLocked}>
             <legend>Pregunta {preguntaActual + 1} de {respuestas.length}</legend>
-            <h2 id="k10-question">{K10_TEST.preguntas[preguntaActual]}</h2>
+            <h2 id="k10-question" ref={questionRef} tabIndex={-1}>{K10_TEST.preguntas[preguntaActual]}</h2>
             <div className={styles.testCardItems} role="radiogroup" aria-labelledby="k10-question">
               {K10_TEST.opciones.map(op => (
                 <label key={op.valor}>
