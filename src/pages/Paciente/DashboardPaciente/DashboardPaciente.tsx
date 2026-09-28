@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import styles from "./DashboardPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
@@ -10,22 +15,39 @@ export default function DashboardPaciente() {
   const navigate = useNavigate();
 
   const [paciente, setPaciente] = useState<any>(null);
-  const [asignaciones, setAsignaciones] = useState<any[]>([]);
+  const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
 
-  const calcularProgreso = (asignaciones: any[]) => {
-    if (!asignaciones || asignaciones.length === 0) {
-      return { realizados: 0, total: 0 };
+  const calcularProgreso = (items: Asignacion[]) => {
+    if (!items || items.length === 0) {
+      return {
+        realizados: 0,
+        total: 0,
+        porcentaje: 0,
+      };
     }
 
-    const total = asignaciones.length;
-    const realizados = asignaciones.filter(
-      (a) => a.estado === "completado",
+    const total = items.length;
+
+    const realizados = items.filter(
+      (asignacion) => asignacion.estado === "completado",
     ).length;
 
-    return { realizados, total };
+    const porcentaje = Math.round(
+      (realizados / total) * 100,
+    );
+
+    return {
+      realizados,
+      total,
+      porcentaje,
+    };
   };
 
-  const { realizados, total } = calcularProgreso(asignaciones);
+  const {
+    realizados,
+    total,
+    porcentaje,
+  } = calcularProgreso(asignaciones);
 
   useEffect(() => {
     const data = localStorage.getItem("paciente");
@@ -38,136 +60,328 @@ export default function DashboardPaciente() {
     const parsed = JSON.parse(data);
 
     const ahora = new Date();
+
     const fin = parsed.fechaFinAcceso?.seconds
-      ? new Date(parsed.fechaFinAcceso.seconds * 1000)
+      ? new Date(
+          parsed.fechaFinAcceso.seconds * 1000,
+        )
       : null;
 
-    if (!fin || ahora > fin) {
-      alert("Acceso expirado");
+    if (!fin || ahora >= fin) {
       localStorage.removeItem("paciente");
+      localStorage.removeItem("pacienteId");
+      localStorage.removeItem("rol");
+
       navigate("/login");
       return;
     }
 
     setPaciente(parsed);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const cargarAsignaciones = async () => {
       if (!paciente?.id) return;
 
-      const q = query(
-        collection(db, "asignaciones"),
-        where("pacienteId", "==", paciente.id),
-      );
+      try {
+        const q = query(
+          collection(db, "asignaciones"),
+          where(
+            "pacienteId",
+            "==",
+            paciente.id,
+          ),
+        );
 
-      const snap = await getDocs(q);
+        const snap = await getDocs(q);
 
-      const asignacionesData = snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      })) as Asignacion[];
+        const asignacionesData =
+          snap.docs.map((documento) => ({
+            id: documento.id,
+            ...documento.data(),
+          })) as Asignacion[];
 
-      setAsignaciones(asignacionesData);
+        setAsignaciones(asignacionesData);
+      } catch (error) {
+        console.error(
+          "Error cargando asignaciones:",
+          error,
+        );
+      }
     };
 
-    cargarAsignaciones();
+    void cargarAsignaciones();
   }, [paciente]);
 
-  const formatearFecha = (fecha: any) => {
-    if (!fecha?.seconds) return "—";
-    return new Date(fecha.seconds * 1000).toLocaleDateString("es-AR");
+  const convertirFecha = (fecha: any): Date | null => {
+    if (!fecha) return null;
+
+    if (typeof fecha.toDate === "function") {
+      return fecha.toDate();
+    }
+
+    if (typeof fecha.seconds === "number") {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    const date = new Date(fecha);
+
+    return Number.isNaN(date.getTime())
+      ? null
+      : date;
   };
+
+  const formatearFechaLimite = (fecha: any) => {
+    const date = convertirFecha(fecha);
+
+    if (!date) return "—";
+
+    return date
+      .toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+      .replace(".", "")
+      .toUpperCase();
+  };
+
+  const formatearHoraLimite = (fecha: any) => {
+    const date = convertirFecha(fecha);
+
+    if (!date) return "";
+
+    return date.toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatearDni = (dni: string) => {
+    if (!dni) return "—";
+
+    return new Intl.NumberFormat("es-AR").format(
+      Number(dni),
+    );
+  };
+
+  const primerNombre =
+    paciente?.nombre?.trim().split(" ")[0] || "";
 
   if (!paciente) {
     return (
-      <div className={`global-container ${styles.container}`}>
-        <h2>Cargando…</h2>
+      <div
+        className={`global-container ${styles.container}`}
+      >
+        <div className={styles.loading}>
+          <div className={styles.loadingCircle} />
+          <p>Cargando tu información…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`container ${styles.container}`}>
-      <div className={`nav`}>
-        <h2>
-          ¡Bienvenido/a {paciente.nombre} a nuestra plataforma de evaluación!
-        </h2>
-      </div>
-      <div className="layout">
-        <nav className={`panelVertical ${styles.sidebar}`}>
-          <div className={"card padding"}>
-            <h3 className={styles.cardTitle}>DNI</h3>
-            <p className={`font-size-small ${styles.cardResult}`}>
-              {paciente.dni}
-            </p>
+    <div className={`${styles.container} scrollbar padding`}>
+      {/* BIENVENIDA */}
+      <section className={styles.welcome}>
+        <span className={styles.eyebrow}>
+          JOIN SOLUTION
+        </span>
+
+        <h1>
+          Hola, {primerNombre}
+          <span className={styles.wave}>👋</span>
+        </h1>
+
+        <p>
+          Todo está listo para comenzar tu proceso de
+          evaluación.
+        </p>
+      </section>
+
+      {/* RESUMEN PRINCIPAL */}
+      <section className={styles.summaryCard}>
+        <div className={styles.accessInfo}>
+          <span className={styles.sectionLabel}>
+            TU ACCESO
+          </span>
+
+          
+    <div className={styles.accessInfo}>
+      <p className={styles.accessSubtitle}>
+            Disponible hasta
+          </p>
+          <div className={styles.deadline}>
+            {formatearFechaLimite(
+              paciente.fechaFinAcceso,
+            )}
           </div>
 
-          <div className="card padding">
-            <h3 className={styles.cardTitle}>Fecha límite</h3>
-            <p className={`font-size-small ${styles.cardResult}`}>
-              {formatearFecha(paciente.fechaFinAcceso)}
-            </p>
-          </div>
+          <p className={styles.deadlineTime}>
+            {formatearHoraLimite(
+              paciente.fechaFinAcceso,
+            )}{" "}
+            hs
+          </p>
+          </div> </div>
+        <div className={styles.divider} />
 
-          <div className="card padding">
-            <h3 className={styles.cardTitle}>Tests realizados</h3>
-            <p className={`font-size-small ${styles.cardResult}`}>
-              {realizados} / {total}
-            </p>
-          </div>
-        </nav>
+        <div className={styles.progressInfo}>
+          <div className={styles.progressHeader}>
+            <div>
+              <span className={styles.sectionLabel}>
+                TU PROGRESO
+              </span>
 
-        <div className="card padding">
-          <div className="container justify-content-space-around">
-            <p className={styles.cardTitle}>
-              Para facilitar tu proceso de ingreso, hemos asignado los tests
-              psicológicos necesarios en tu perfil. Estos estarán disponibles
-              durante las próximas 24 horas (o hasta la fecha indicada en la
-              tarjeta superior). Antes de comenzar, por favor tené en cuenta:
-            </p>
-            <ul>
-              <li>
-                <strong> Sin interrupciones</strong>: Una vez iniciado un test,
-                no podrás pausarlo ni cerrar la página. Si lo hacés, el acceso
-                se bloqueará y deberás contactar a administración.
-              </li>
-              <li>
-                <strong>Tiempo estimado</strong>: Te sugerimos disponer de al
-                menos 2 horas de tranquilidad para completar el proceso. Si
-                tenés el tiempo ahora, ¡adelante! Si no, te recomendamos volver
-                cuando puedas dedicarle toda tu atención.
-              </li>
-              <li>
-                <strong>Atención y tiempo</strong>: Cada test tiene un tiempo
-                límite. Leé las instrucciones con cuidado y mantené el enfoque
-                en cada respuesta.
-              </li>
-              <li>
-                <strong>Identidad</strong>: Para finalizar, te solicitaremos una
-                foto de tu DNI para validar tu identidad.
-              </li>
-            </ul>
-            Muchas gracias por tu compromiso.
-            <div className={styles.buttonContainer}>
-              <BotonPersonalizado
-                variant="primary"
-                onClick={() => navigate("/app/dni")}
-                disabled={false}
-              >
-                Subir DNI
-              </BotonPersonalizado>
-              <BotonPersonalizado
-                variant="secondary"
-                onClick={() => navigate("/app/tests")}
-                disabled={false}
-              >
-                Ver Tests
-              </BotonPersonalizado>
+              <h2>
+                {realizados} de {total}
+              </h2>
+
+              <p>
+                evaluaciones completadas
+              </p>
             </div>
+
+            <span className={styles.percentage}>
+              {porcentaje}%
+            </span>
           </div>
+
+          <div className={styles.progressTrack}>
+            <div
+              className={styles.progressBar}
+              style={{
+                width: `${porcentaje}%`,
+              }}
+            />
+          </div>
+
+          <p className={styles.progressMessage}>
+            {realizados === 0
+              ? "Todavía no comenzaste. Cuando estés listo/a, podés iniciar tu primera evaluación."
+              : realizados === total
+                ? "Completaste todas las evaluaciones asignadas."
+                : "Muy bien. Podés continuar con las evaluaciones que quedan pendientes."}
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* INSTRUCCIONES */}
+      <section className={styles.instructions}>
+        <div className={styles.instructionsHeader}>
+          <span className={styles.eyebrow}>
+            INFORMACIÓN IMPORTANTE
+          </span>
+
+          <h2>Antes de comenzar</h2>
+
+          <p>
+            Tené en cuenta estas indicaciones para
+            realizar tus evaluaciones sin inconvenientes.
+          </p>
+        </div>
+
+        <div className={styles.instructionsGrid}>
+          <article className={styles.instruction}>
+            <div className={styles.icon}>
+              01
+            </div>
+
+            <div>
+              <h3>Sin interrupciones</h3>
+
+              <p>
+                Una vez iniciado un test, no podrás
+                pausarlo ni cerrar la página hasta
+                finalizarlo.
+              </p>
+            </div>
+          </article>
+
+          <article className={styles.instruction}>
+            <div className={styles.icon}>
+              02
+            </div>
+
+            <div>
+              <h3>Reservá tu tiempo</h3>
+
+              <p>
+                Te recomendamos disponer de al menos
+                2 horas de tranquilidad para completar
+                el proceso.
+              </p>
+            </div>
+          </article>
+
+          <article className={styles.instruction}>
+            <div className={styles.icon}>
+              03
+            </div>
+
+            <div>
+              <h3>Leé con atención</h3>
+
+              <p>
+                Algunas evaluaciones tienen tiempo
+                límite. Leé cada instrucción antes de
+                comenzar.
+              </p>
+            </div>
+          </article>
+
+          <article className={styles.instruction}>
+            <div className={styles.icon}>
+              04
+            </div>
+
+            <div>
+              <h3>Validá tu identidad</h3>
+
+              <p>
+                Para completar el proceso te
+                solicitaremos una foto de tu DNI.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* ACCIONES */}
+      <section className={styles.actions}>
+        <div className={styles.actionsText}>
+          <h2>¿Todo listo?</h2>
+
+          <p>
+            Podés comenzar cuando tengas el tiempo
+            necesario para completar las evaluaciones
+            con tranquilidad.
+          </p>
+        </div>
+
+        <div className={styles.buttonContainer}>
+          <BotonPersonalizado
+            variant="primary"
+            onClick={() =>
+              navigate("/app/tests")
+            }
+            disabled={false}
+          >
+            Ver mis evaluaciones
+          </BotonPersonalizado>
+
+          <BotonPersonalizado
+            variant="secondary"
+            onClick={() =>
+              navigate("/app/dni")
+            }
+            disabled={false}
+          >
+            Subir DNI
+          </BotonPersonalizado>
+        </div>
+      </section>
     </div>
   );
 }

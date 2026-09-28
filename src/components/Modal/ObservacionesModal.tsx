@@ -1,18 +1,27 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+
 import Modal from "./Modal";
 import BotonPersonalizado from "../Boton/Boton";
+
 import { db } from "../../firebase/firebase";
-import styles from "./editarPaciente/EditarPacienteModal.module.css";
-import { doc, updateDoc } from "firebase/firestore";
+
+import styles from "./ObservacionesModal.module.css";
 
 interface Props {
   abierto: boolean;
+
   onCerrar: () => void;
+
   sesion: {
     id: string;
     observacionesIniciales?: string;
   } | null;
-  onGuardarExitoso: (id: string, nuevasObservaciones: string) => void;
+
+  onGuardarExitoso: (
+    id: string,
+    nuevasObservaciones: string,
+  ) => void;
 }
 
 export default function ObservacionesModal({
@@ -26,7 +35,9 @@ export default function ObservacionesModal({
 
   useEffect(() => {
     if (abierto && sesion) {
-      setEditText(sesion.observacionesIniciales || "");
+      setEditText(
+        sesion.observacionesIniciales || "",
+      );
     }
   }, [abierto, sesion]);
 
@@ -36,22 +47,40 @@ export default function ObservacionesModal({
     setSaving(true);
 
     try {
-      await updateDoc(doc(db, "resultados", sesion.id), {
-        observacionesIniciales: editText,
-      });
+      await updateDoc(
+        doc(db, "resultados", sesion.id),
+        {
+          observacionesIniciales: editText,
+        },
+      );
     } catch (error) {
-      console.error("Error REAL guardando en Firebase:", error);
-      alert("No se pudo guardar en la base de datos.");
+      console.error(
+        "Error REAL guardando en Firebase:",
+        error,
+      );
+
+      alert(
+        "No se pudo guardar en la base de datos.",
+      );
+
       setSaving(false);
       return;
     }
 
     try {
-      onGuardarExitoso(sesion.id, editText);
+      onGuardarExitoso(
+        sesion.id,
+        editText,
+      );
+
       onCerrar();
     } catch (uiError) {
-      console.warn("Guardado OK, error solo de UI:", uiError);
-      onCerrar(); // igual cerramos
+      console.warn(
+        "Guardado OK, error solo de UI:",
+        uiError,
+      );
+
+      onCerrar();
     } finally {
       setSaving(false);
     }
@@ -60,29 +89,45 @@ export default function ObservacionesModal({
   return (
     <Modal
       abierto={abierto}
-      onCerrar={onCerrar}
+      onCerrar={saving ? () => {} : onCerrar}
       titulo="Observaciones de la sesión"
+      subtitulo="Añadí o editá las notas asociadas a esta evaluación."
     >
-      <p className={styles.inputGroup}>Edita o añade notas para esta sesión.</p>
+      <div className={styles.form}>
+        <div className={styles.field}>
+          <div className={styles.labelRow}>
+            <label htmlFor="observaciones">
+              Observaciones
+            </label>
 
-      <div className={styles.inputContainer}>
-        <textarea
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          rows={6}
-          className={styles.inputGroup}
-          placeholder="Añade tus observaciones aquí..."
-        />
+            <span>
+              {editText.length} caracteres
+            </span>
+          </div>
 
-        <div className={styles.modalButtons}>
-          <BotonPersonalizado
+          <textarea
+            id="observaciones"
+            value={editText}
+            onChange={(event) =>
+              setEditText(event.target.value)
+            }
+            rows={7}
+            className={styles.textarea}
+            placeholder="Escribí las observaciones de la sesión..."
+            disabled={saving}
+          />
+        </div>
+
+        <div className={styles.actions}>
+                    <BotonPersonalizado
             variant="primary"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !sesion?.id}
           >
-            {saving ? "Guardando..." : "Guardar"}
+            {saving
+              ? "Guardando..."
+              : "Guardar observaciones"}
           </BotonPersonalizado>
-
           <BotonPersonalizado
             variant="secondary"
             onClick={onCerrar}
@@ -90,6 +135,8 @@ export default function ObservacionesModal({
           >
             Cancelar
           </BotonPersonalizado>
+
+
         </div>
       </div>
     </Modal>

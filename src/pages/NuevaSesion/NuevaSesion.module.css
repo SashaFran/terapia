@@ -1,44 +1,730 @@
-.container{
-  margin: 0 auto;
-    color:  var(--font-color);
-    
-}
-.nav{
-  display: inline-flex;
-  justify-content: space-between;
-  width: var(--width-complete);
-}
+/* =========================================================
+   FORM
+========================================================= */
+
 .form {
   display: flex;
   flex-direction: column;
+
+  width: 100%;
+
+  gap: 1.35rem;
+}
+
+
+/* =========================================================
+   SECCIONES
+========================================================= */
+
+.section {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.85rem;
+}
+
+.section + .section {
+  padding-top: 1.2rem;
+
+  border-top: 1px solid #eceef1;
+}
+
+.sectionHeader {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
   gap: 1rem;
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid #eef1f6;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
+}
+
+.sectionHeader h3 {
+  margin: 0;
+
+  color: #3c4146;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sectionHeader p {
+  margin: 0.22rem 0 0;
+
+  color: #959aa0;
+
+  font-size: 0.61rem;
+
+  line-height: 1.45;
 }
 
 
-.tablaPacientes {
-  width: var(--width-complete);
-  background-color: var(--gris-bg);
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid var(--gris-dark);
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.06); 
-  text-align: justify;
-}
-.centerAlign {
-  text-align: center;
+/* =========================================================
+   BADGES
+========================================================= */
+
+.sessionBadge,
+.testCounter,
+.optionalBadge,
+.selectedBadge {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  align-items: center;
+
+  width: fit-content;
+
+  border-radius: 999px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
 }
 
-span{
-  text-wrap: nowrap;
+.sessionBadge {
+  min-height: 24px;
+
+  padding: 0.28rem 0.58rem;
+
+  color: #a26a22;
+  background: #fff5e7;
+
+  border: 1px solid #f7e3c5;
+
+  font-size: 0.57rem;
 }
 
-.inputGroup{
-    display: flex;
+.testCounter {
+  padding: 0.27rem 0.52rem;
+
+  color: #777d83;
+  background: #f5f6f7;
+
+  border: 1px solid #e8eaec;
+
+  font-size: 0.55rem;
+}
+
+.optionalBadge {
+  padding: 0.25rem 0.5rem;
+
+  color: #8e9398;
+  background: #f6f7f8;
+
+  border: 1px solid #e9ebed;
+
+  font-size: 0.54rem;
+}
+
+.selectedBadge {
+  padding: 0.2rem 0.42rem;
+
+  color: #98702c;
+  background: #fff4e1;
+
+  font-size: 0.51rem;
+}
+
+
+/* =========================================================
+   DATOS DE SESIÓN
+========================================================= */
+
+.fieldsGrid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.2fr)
+    minmax(0, 0.8fr);
+
+  gap: 0.75rem;
+}
+
+.fieldCard {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 0.45rem;
+
+  padding: 0.9rem 0.95rem;
+
+  background: #f9fafb;
+
+  border: 1px solid #e7e9ec;
+
+  border-radius: 10px;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.fieldCard:hover {
+  background: #ffffff;
+
+  border-color: #dedfe2;
+
+  box-shadow:
+    0 5px 16px
+    rgba(35, 39, 44, 0.04);
+}
+
+.labelRow {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.5rem;
+}
+
+.fieldCard label {
+  color: #565b61;
+
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   SELECTS + INPUT
+========================================================= */
+
+.fieldCard select,
+.fieldCard input {
+  width: 100%;
+  height: 39px;
+
+  padding: 0 0.7rem;
+
+  box-sizing: border-box;
+
+  color: #41464c;
+  background: #ffffff;
+
+  border: 1px solid #e1e4e7;
+
+  border-radius: 7px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 0.66rem;
+
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.fieldCard select {
+  cursor: pointer;
+}
+
+.fieldCard select:hover:not(:disabled),
+.fieldCard input:hover:not(:disabled) {
+  border-color: #ccd1d5;
+}
+
+.fieldCard select:focus,
+.fieldCard input:focus {
+  border-color: #ff9b55;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 126, 31, 0.08);
+}
+
+.fieldCard select:disabled,
+.fieldCard input:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+.fieldHelp {
+  min-height: 14px;
+
+  color: #9ca1a6;
+
+  font-size: 0.56rem;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   TESTS
+========================================================= */
+
+.testsGrid {
+display: grid;
+  grid-template-columns: repeat(3, minmax(0, 0.5fr));
+  justify-content: center;
+  justify-items: center;
+  row-gap: 0.5rem;
+}
+
+.testCard {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 76px;
+
+  gap: 0.35rem;
+
+  padding: 0.78rem 0.8rem;
+
+  color: inherit;
+  background: #ffffff;
+
+  border: 1px solid #e3e6e9;
+
+  border-radius: 9px;
+
+  outline: none;
+
+  font-family: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.testCard:hover:not(:disabled) {
+  background: #fffdfb;
+
+  border-color: #f0c9aa;
+
+  box-shadow:
+    0 5px 14px
+    rgba(40, 36, 32, 0.045);
+
+  transform:
+    translateY(-1px);
+}
+
+.testCardSelected {
+  background:
+    linear-gradient(
+      135deg,
+      #fffaf5 0%,
+      #fffdfb 100%
+    );
+
+  border-color: #f4b783;
+}
+
+.testCardSelected::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: 9px;
+  left: 9px;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffb000,
+      #ff8800,
+      #ff4438
+    );
+
+  border-radius: 0 0 3px 3px;
+}
+
+.testCard:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+.testCardTop {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.5rem;
+}
+
+.testCardTop strong {
+  overflow: hidden;
+
+  color: #41464c;
+
+  font-size: 0.67rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.testDescription {
+  color: #999ea4;
+
+  font-size: 0.55rem;
+
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   RADIO VISUAL
+========================================================= */
+
+.radioCircle {
+  display: grid;
+
+  flex: 0 0 auto;
+
+  width: 17px;
+  height: 17px;
+
+  background: #ffffff;
+
+  border: 1px solid #d7dade;
+
+  border-radius: 50%;
+
+  place-items: center;
+
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.radioCircleSelected {
+  border-color: #ff8e18;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 142, 24, 0.08);
+}
+
+.radioCircleSelected span {
+  width: 7px;
+  height: 7px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffb000,
+      #ff6438
+    );
+
+  border-radius: 50%;
+}
+
+
+/* =========================================================
+   OBSERVACIONES
+========================================================= */
+
+.observationsCard {
+  position: relative;
+
+  padding: 0.75rem 0.85rem 0.55rem;
+
+  background: #f9fafb;
+
+  border: 1px solid #e7e9ec;
+
+  border-radius: 10px;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.observationsCard:focus-within {
+  background: #ffffff;
+
+  border-color: #f0c29b;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 126, 31, 0.055);
+}
+
+.observationsCard textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 66px;
+
+  padding: 0;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  color: #454a4f;
+  background: transparent;
+
+  border: none;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 0.67rem;
+
+  line-height: 1.5;
+}
+
+.observationsCard textarea::placeholder {
+  color: #a2a7ac;
+}
+
+.observationsCard textarea:disabled {
+  opacity: 0.55;
+}
+
+.characterCount {
+  padding-top: 0.35rem;
+
+  color: #a5a9ae;
+
+  border-top: 1px solid #eceef0;
+
+  font-size: 0.51rem;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.formFooter {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  padding-top: 1.05rem;
+
+  border-top: 1px solid #eceef1;
+}
+
+.footerInfo {
+  display: flex;
+
+  align-items: center;
+
+  max-width: 360px;
+
+  gap: 0.5rem;
+}
+
+.footerInfo p {
+  margin: 0;
+
+  color: #9ba0a5;
+
+  font-size: 0.56rem;
+
+  line-height: 1.4;
+}
+
+.footerDot {
+  flex: 0 0 auto;
+
+  width: 6px;
+  height: 6px;
+
+  background: #ff9700;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(255, 151, 0, 0.08);
+}
+
+.actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 0.6rem;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading {
+  display: flex;
+
+  min-height: 250px;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.75rem;
+
+  color: #92979d;
+}
+
+.loading p {
+  margin: 0;
+
+  font-size: 0.65rem;
+}
+
+.loadingIndicator {
+  display: grid;
+
+  width: 36px;
+  height: 36px;
+
+  background: #f8f8f8;
+
+  border: 1px solid #e5e8ea;
+
+  border-radius: 50%;
+
+  place-items: center;
+}
+
+.loadingIndicator span {
+  width: 10px;
+  height: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffb000,
+      #ff6538
+    );
+
+  border-radius: 50%;
+
+  animation:
+    sessionPulse
+    1.2s ease-in-out
+    infinite;
+}
+
+@keyframes sessionPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+
+    transform: scale(1);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .testsGrid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .fieldsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .testsGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .sectionHeader {
     flex-direction: column;
-    width: var(--width-complete);
+
+    gap: 0.55rem;
+  }
+
+  .formFooter {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 0.8rem;
+  }
+
+  .footerInfo {
+    max-width: none;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .testsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .testCard,
+  .fieldCard,
+  .loadingIndicator span {
+    transition: none;
+    animation: none;
+  }
+
+  .testCard:hover {
+    transform: none;
+  }
 }

@@ -1,27 +1,615 @@
-.inputDNI {
-  display: flex;
-  flex-direction: row;
+.container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+
+  color: var(--font-color);
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  max-width: 700px;
+  margin-bottom: 2.25rem;
+}
+
+.eyebrow,
+.sectionLabel,
+.successLabel {
+  display: block;
+
+  margin-bottom: 0.5rem;
+
+  color: #ff7900;
+
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.header h1 {
+  margin: 0;
+
+  color: var(--gris-dark);
+
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.header p {
+  max-width: 650px;
+
+  margin: 0.75rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* =========================
+   REQUISITOS
+========================= */
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
   gap: 1rem;
-  padding: 16px;
-  margin: 1.5rem 0 0 0;
-}
-.containerDNI{
-  align-items:start;
+
+  margin-bottom: 1.25rem;
 }
 
+.infoItem {
+  display: flex;
+  align-items: flex-start;
 
-.sidebar p{
-  display: 0.2rem;
-  font-size: var(--font-size-small);
-  margin: 1rem 0;
+  gap: 0.85rem;
+
+  padding: 1rem 1.1rem;
+
+  background: #ffffff;
+
+  border: 1px solid #edf0f4;
+  border-radius: 14px;
 }
 
-.loading{
-  min-height: 60vh;
+.infoItem > span {
+  display: flex;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  color: #ff7900;
+  background: #fff5eb;
+
+  border-radius: 9px;
+
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.infoItem h3 {
+  margin: 0 0 0.2rem;
+
+  color: var(--gris-dark);
+
+  font-size: 0.85rem;
+}
+
+.infoItem p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+/* =========================
+   CARD DE CARGA
+========================= */
+
+.uploadCard {
+  padding: 2rem;
+
+  background: #ffffff;
+
+  border: 1px solid #edf0f4;
+  border-radius: 18px;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 12px 35px rgba(32, 40, 50, 0.05);
+}
+
+.uploadHeader {
+  margin-bottom: 1.5rem;
+}
+
+.uploadHeader h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+
+  font-size: 1.25rem;
+}
+
+.uploadHeader p {
+  margin: 0.4rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.85rem;
+}
+
+.hiddenInput {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  overflow: hidden;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.dropArea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #6b1d2a;
+
+  min-height: 180px;
+
+  padding: 2rem;
+
+  cursor: pointer;
+
+  background: #fafbfc;
+
+  border: 1.5px dashed #d7dce2;
+  border-radius: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.dropArea:hover {
+  background: #fffaf5;
+  border-color: #ffad6b;
+}
+
+.uploadIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+
+  margin-right: 1rem;
+
+  color: #ff7900;
+
+  background: #fff1e4;
+
+  border-radius: 12px;
+
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.selectText {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.25rem;
+}
+
+.selectText strong {
+  color: var(--gris-dark);
+
+  font-size: 0.9rem;
+}
+
+.selectText span {
+  color: var(--gris-med);
+
+  font-size: 0.75rem;
+}
+
+/* =========================
+   ARCHIVO SELECCIONADO
+========================= */
+
+.fileSelected {
+  justify-content: flex-start;
+
+  min-height: 100px;
+
+  background: #fffaf5;
+
+  border-style: solid;
+  border-color: #ffd7b3;
+}
+
+.fileIcon {
+  display: flex;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+
+  width: 48px;
+  height: 48px;
+
+  margin-right: 1rem;
+
+  color: #ff7900;
+
+  background: #fff0e1;
+
+  border-radius: 10px;
+
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.fileInfo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 0.25rem;
+}
+
+.fileInfo strong {
+  overflow: hidden;
+
+  color: var(--gris-dark);
+
+  font-size: 0.85rem;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileInfo span {
+  color: var(--gris-med);
+
+  font-size: 0.75rem;
+}
+
+.changeFile {
+  margin-left: 1rem;
+
+  color: #e56d00;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* =========================
+   FOOTER DE CARGA
+========================= */
+
+.uploadFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 2rem;
+
+  margin-top: 1.5rem;
+}
+
+.privacy {
+  display: flex;
+  align-items: flex-start;
+
+  max-width: 570px;
+
+  gap: 0.65rem;
+}
+
+.privacy p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.lock {
+  margin-top: 0.15rem;
+
+  color: #6f9b83;
+
+  font-size: 0.55rem;
+}
+
+/* =========================
+   ERROR
+========================= */
+
+.errorMessage {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+
+  color: #9f3636;
+  background: #fff5f5;
+
+  border: 1px solid #f3d5d5;
+  border-radius: 9px;
+
+  font-size: 0.78rem;
+}
+
+/* =========================
+   DNI YA CARGADO
+========================= */
+
+.documentReady {
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 1.5rem;
+
+  padding: 2rem;
+
+  background: #ffffff;
+
+  border: 1px solid #dcefe4;
+  border-radius: 18px;
+
+  box-shadow:
+    0 12px 35px rgba(32, 40, 50, 0.05);
+}
+
+.successIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 48px;
+  height: 48px;
+
+  color: #357557;
+  background: #eaf7f0;
+
+  border-radius: 50%;
+
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.documentReadyContent h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+
+  font-size: 1.2rem;
+}
+
+.documentReadyContent p {
+  max-width: 550px;
+
+  margin: 0.4rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.readyActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 0.65rem;
+}
+
+.replaceButton {
+  padding: 0;
+
+  cursor: pointer;
+
+  color: var(--gris-med);
+  background: transparent;
+
+  border: none;
+
+  font-family: inherit;
+  font-size: 0.72rem;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* =========================
+   ÉXITO
+========================= */
+
+.uploadComplete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1000px;
+
+  margin: 2rem auto 0;
+  padding: 3rem;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  border: 1px solid #dcefe4;
+  border-radius: 20px;
+
+  box-shadow:
+    0 12px 35px rgba(32, 40, 50, 0.05);
+}
+
+.successIconLarge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  margin-bottom: 1.25rem;
+
+  color: #357557;
+  background: #eaf7f0;
+
+  border-radius: 50%;
+
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.uploadComplete h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+
+  font-size: 1.35rem;
+}
+
+.uploadComplete p {
+  max-width: 520px;
+
+  margin: 0.65rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.successActions {
+  display: flex;
+
+  gap: 0.75rem;
+
+  margin-top: 1.75rem;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 60vh;
+
+  color: var(--gris-med);
+
+  font-size: 0.9rem;
+}
+
+.loadingCircle {
+  width: 32px;
+  height: 32px;
+
+  margin-bottom: 0.75rem;
+
+  border: 3px solid #eeeeee;
+  border-top-color: #ff7900;
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 800px) {
+  .container {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .uploadFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .documentReady {
+    grid-template-columns: auto 1fr;
+  }
+
+  .readyActions {
+    grid-column: 1 / -1;
+
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .uploadCard {
+    padding: 1.25rem;
+  }
+
+  .dropArea {
+    min-height: 150px;
+    padding: 1.25rem;
+  }
+
+  .uploadComplete {
+    padding: 2rem 1.25rem;
+  }
+
+  .successActions {
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+  .documentReady {
+    padding: 1.5rem;
+  }
 }

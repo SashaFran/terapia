@@ -1,26 +1,70 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+
 import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../Modal";
-import styles from "./EditarPacienteModal.module.css";
-import noEntry from "../../../assets/Icons/no-entry(2).svg";
-import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+
 import { db } from "../../../firebase/firebase";
 
+import styles from "./EditarPacienteModal.module.css";
+
+/* =========================================================
+   TESTS
+========================================================= */
+
 const TESTS_DISPONIBLES = [
-  { id: "k10", nombre: "Escala K-10" },
-  { id: "bfq", nombre: "Escala BFQ" },
-  { id: "zulliger", nombre: "Láminas Zulliger" },
-  { id: "bender", nombre: "Test de Bender" },
-  { id: "raven", nombre: "Test de Raven" },
+  {
+    id: "k10",
+    nombre: "K-10",
+    descripcion: "Escala Kessler",
+  },
+  {
+    id: "bfq",
+    nombre: "BFQ",
+    descripcion: "Personalidad",
+  },
+  {
+    id: "zulliger",
+    nombre: "Zulliger",
+    descripcion: "Técnica proyectiva",
+  },
+  {
+    id: "bender",
+    nombre: "Bender",
+    descripcion: "Evaluación visomotora",
+  },
+  {
+    id: "raven",
+    nombre: "Raven",
+    descripcion: "Matrices progresivas",
+  },
 ];
+
+/* =========================================================
+   PROPS
+========================================================= */
 
 interface Props {
   abierto: boolean;
   onCerrar: () => void;
   onGuardar: (data: any) => void;
   paciente: any;
-  asignacionesActuales?: string[]; // 👈 ahora opcional para evitar errores
+  asignacionesActuales?: string[];
 }
+
+/* =========================================================
+   COMPONENTE
+========================================================= */
 
 export default function EditarPacienteModal({
   abierto,
@@ -31,206 +75,742 @@ export default function EditarPacienteModal({
 }: Props) {
   const [activo, setActivo] = useState(true);
   const [fechaFin, setFechaFin] = useState("");
-  const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
+  const [testsSeleccionados, setTestsSeleccionados] =
+    useState<string[]>([]);
 
-  useEffect(() => {
-    if (abierto && paciente) {
-      setActivo(paciente.activo);
-      setTestsSeleccionados(asignacionesActuales);
+  const [guardando, setGuardando] = useState(false);
 
-      if (paciente.fechaFinAcceso) {
-        const date = paciente.fechaFinAcceso.toDate
-          ? paciente.fechaFinAcceso.toDate()
-          : new Date(paciente.fechaFinAcceso);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        setFechaFin(`${year}-${month}-${day}`);
-      } else {
-        setFechaFin(""); // Input vacío si no hay fecha en la BBDD
-      }
-    }
-  }, [abierto, paciente, asignacionesActuales]);
+  /* =======================================================
+     CARGAR DATOS
+  ======================================================= */
 
-  // Si el paciente estaba inactivo y el usuario lo activa aquí, establecer fechaFin a 24 horas desde ahora
   useEffect(() => {
     if (!abierto || !paciente) return;
+
+    setActivo(paciente.activo);
+    setTestsSeleccionados(asignacionesActuales);
+
+    if (paciente.fechaFinAcceso) {
+      const date = paciente.fechaFinAcceso.toDate
+        ? paciente.fechaFinAcceso.toDate()
+        : new Date(paciente.fechaFinAcceso);
+
+      const year = date.getFullYear();
+
+      const month = String(
+        date.getMonth() + 1,
+      ).padStart(2, "0");
+
+      const day = String(
+        date.getDate(),
+      ).padStart(2, "0");
+
+      setFechaFin(
+        `${year}-${month}-${day}`,
+      );
+    } else {
+      setFechaFin("");
+    }
+  }, [
+    abierto,
+    paciente,
+    asignacionesActuales,
+  ]);
+
+  /* =======================================================
+     REACTIVAR PACIENTE
+  ======================================================= */
+
+  useEffect(() => {
+    if (!abierto || !paciente) return;
+
     try {
       const previoActivo = paciente.activo;
+
       if (!previoActivo && activo) {
         const ahora = new Date();
-        const fin = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+
+        const fin = new Date(
+          ahora.getTime() +
+            24 * 60 * 60 * 1000,
+        );
+
         const year = fin.getFullYear();
-        const month = String(fin.getMonth() + 1).padStart(2, "0");
-        const day = String(fin.getDate()).padStart(2, "0");
-        setFechaFin(`${year}-${month}-${day}`);
+
+        const month = String(
+          fin.getMonth() + 1,
+        ).padStart(2, "0");
+
+        const day = String(
+          fin.getDate(),
+        ).padStart(2, "0");
+
+        setFechaFin(
+          `${year}-${month}-${day}`,
+        );
       }
-    } catch (e) {
-      // noop
+    } catch {
+      // No hacemos nada.
     }
   }, [activo, abierto, paciente]);
 
-  const toggleTest = (testId: string) => {
+  /* =======================================================
+     TOGGLE TEST
+  ======================================================= */
+
+  const toggleTest = (
+    testId: string,
+  ) => {
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
-        ? prev.filter((t) => t !== testId)
+        ? prev.filter(
+            (test) => test !== testId,
+          )
         : [...prev, testId],
     );
   };
 
+  /* =======================================================
+     FECHA MÍNIMA
+  ======================================================= */
 
-  const manejarGuardar = async () => {
-    if (!paciente?.id) {
-      console.error("No se encontró el ID del paciente para actualizar");
-      return;
+  const obtenerFechaMinima = () => {
+    if (!paciente?.fechaInicioAcceso) {
+      return undefined;
     }
 
-    try {
-      const dateObj = new Date(fechaFin.replace(/-/g, "\/"));
-      const inicio = paciente?.fechaInicioAcceso?.toDate
+    const inicio =
+      paciente.fechaInicioAcceso.toDate
         ? paciente.fechaInicioAcceso.toDate()
-        : new Date(paciente?.fechaInicioAcceso);
-      if (inicio instanceof Date && !Number.isNaN(inicio.getTime())) {
-        const maxFin = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
-        if (dateObj.getTime() > maxFin.getTime()) {
-          alert("La fecha de fin no puede superar las 24 horas desde la fecha de inicio.");
-          return;
-        }
+        : new Date(
+            paciente.fechaInicioAcceso,
+          );
+
+    return new Date(
+      inicio.getTime(),
+    )
+      .toISOString()
+      .slice(0, 10);
+  };
+
+  /* =======================================================
+     GUARDAR
+  ======================================================= */
+
+  const manejarGuardar =
+    async () => {
+      if (!paciente?.id) {
+        console.error(
+          "No se encontró el ID del paciente para actualizar",
+        );
+
+        return;
       }
 
-      const pacienteRef = doc(db, "pacientes", paciente.id);
+      if (!fechaFin) {
+        alert(
+          "Seleccioná una fecha límite de acceso.",
+        );
 
-      await updateDoc(pacienteRef, {
-        activo: activo,
-        fechaFinAcceso: dateObj, // Firebase lo guardará como Timestamp
-      });
+        return;
+      }
 
-const asignacionesSnap = await getDocs(
-  query(collection(db, "asignaciones"), where("pacienteId", "==", paciente.id))
-);
+      try {
+        setGuardando(true);
 
-const actuales = asignacionesSnap.docs.map(doc => ({
-  id: doc.id,
-  testId: doc.data().testId
-}));
+        const dateObj = new Date(
+          fechaFin.replace(/-/g, "/"),
+        );
 
-const nuevos = testsSeleccionados.filter(
-  test => !actuales.some(a => a.testId === test)
-);
+        const inicio =
+          paciente?.fechaInicioAcceso
+            ?.toDate
+            ? paciente.fechaInicioAcceso.toDate()
+            : new Date(
+                paciente?.fechaInicioAcceso,
+              );
 
-const eliminados = actuales.filter(
-  a => !testsSeleccionados.includes(a.testId)
-);
+        if (
+          inicio instanceof Date &&
+          !Number.isNaN(
+            inicio.getTime(),
+          )
+        ) {
+          const maxFin = new Date(
+            inicio.getTime() +
+              24 * 60 * 60 * 1000,
+          );
 
-const crear = nuevos.map(testId =>
-  addDoc(collection(db, "asignaciones"), {
-    pacienteId: paciente.id,
-    testId,
-    estado: "pendiente",
-    fechaAsignacion: new Date()
-  })
-);
+          if (
+            dateObj.getTime() >
+            maxFin.getTime()
+          ) {
+            alert(
+              "La fecha de fin no puede superar las 24 horas desde la fecha de inicio.",
+            );
 
-const borrar = eliminados.map(a =>
-  deleteDoc(doc(db, "asignaciones", a.id))
-);
+            return;
+          }
+        }
 
-await Promise.all([...crear, ...borrar]);
-      onGuardar({
-        activo,
-        fechaFinAcceso: dateObj,
-        testsSeleccionados, // 🔥 ESTE ES EL QUE FALTABA
-      });
-      onCerrar();
-    } catch (error) {
-      console.error("Error al guardar:", error);
-    }
-  };
+        /* -------------------------
+           PACIENTE
+        ------------------------- */
+
+        const pacienteRef = doc(
+          db,
+          "pacientes",
+          paciente.id,
+        );
+
+        await updateDoc(
+          pacienteRef,
+          {
+            activo,
+            fechaFinAcceso: dateObj,
+          },
+        );
+
+        /* -------------------------
+           ASIGNACIONES ACTUALES
+        ------------------------- */
+
+        const asignacionesSnap =
+          await getDocs(
+            query(
+              collection(
+                db,
+                "asignaciones",
+              ),
+              where(
+                "pacienteId",
+                "==",
+                paciente.id,
+              ),
+            ),
+          );
+
+        const actuales =
+          asignacionesSnap.docs.map(
+            (documento) => ({
+              id: documento.id,
+              testId:
+                documento.data()
+                  .testId,
+            }),
+          );
+
+        /* -------------------------
+           NUEVOS
+        ------------------------- */
+
+        const nuevos =
+          testsSeleccionados.filter(
+            (test) =>
+              !actuales.some(
+                (asignacion) =>
+                  asignacion.testId ===
+                  test,
+              ),
+          );
+
+        /* -------------------------
+           ELIMINADOS
+        ------------------------- */
+
+        const eliminados =
+          actuales.filter(
+            (asignacion) =>
+              !testsSeleccionados.includes(
+                asignacion.testId,
+              ),
+          );
+
+        const crear = nuevos.map(
+          (testId) =>
+            addDoc(
+              collection(
+                db,
+                "asignaciones",
+              ),
+              {
+                pacienteId:
+                  paciente.id,
+
+                testId,
+
+                estado:
+                  "pendiente",
+
+                fechaAsignacion:
+                  new Date(),
+              },
+            ),
+        );
+
+        const borrar =
+          eliminados.map(
+            (asignacion) =>
+              deleteDoc(
+                doc(
+                  db,
+                  "asignaciones",
+                  asignacion.id,
+                ),
+              ),
+          );
+
+        await Promise.all([
+          ...crear,
+          ...borrar,
+        ]);
+
+        onGuardar({
+          activo,
+
+          fechaFinAcceso:
+            dateObj,
+
+          testsSeleccionados,
+        });
+
+        onCerrar();
+      } catch (error) {
+        console.error(
+          "Error al guardar:",
+          error,
+        );
+
+        alert(
+          "No se pudieron guardar los cambios.",
+        );
+      } finally {
+        setGuardando(false);
+      }
+    };
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   if (!abierto) return null;
 
   return (
     <Modal
       abierto={abierto}
-      onCerrar={onCerrar}
-      titulo={`Configurar paciente: ${paciente?.nombre || ""}`}
+      onCerrar={
+        guardando
+          ? () => {}
+          : onCerrar
+      }
+      titulo={`Configurar paciente: ${
+        paciente?.nombre || ""
+      }`}
     >
-      <div className={styles.inputContainer}>
-        <div className="container">
-          {}
-          <h3>Estado del Acceso</h3>
-          <div className={`nav ${styles.estadoContainer}`}>
-            <div className={styles.inputGroup}>
-              <label>Usuario</label>
-              <select
-                value={activo ? "true" : "false"}
-                onChange={(e) => setActivo(e.target.value === "true")}
-              >
-                <option value="true">🟢 Activo</option>
-                <option value="false">🔴 Inactivo</option>
-              </select>
+      <div
+        className={
+          styles.modalLayout
+        }
+      >
+        {/* ===============================================
+            ACCESO
+        =============================================== */}
+
+        <section
+          className={
+            styles.section
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
+            <div>
+              <h3>
+                Estado del acceso
+              </h3>
+
+              <p>
+                Configurá la
+                disponibilidad de la
+                cuenta del paciente.
+              </p>
             </div>
 
-            {}
-            <div className={styles.inputGroup}>
-              <label>Fecha límite de acceso</label>
-              <input
-                type="date"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-                min={
-                  paciente?.fechaInicioAcceso
-                    ? new Date(
-                        (paciente.fechaInicioAcceso.toDate
-                          ? paciente.fechaInicioAcceso.toDate()
-                          : new Date(paciente.fechaInicioAcceso)
-                        ).getTime(),
-                      )
-                        .toISOString()
-                        .slice(0, 10)
-                    : undefined
+            <span
+              className={`${styles.currentStatus} ${
+                activo
+                  ? styles.currentStatusActive
+                  : styles.currentStatusInactive
+              }`}
+            >
+              <span />
+
+              {activo
+                ? "Activo"
+                : "Inactivo"}
+            </span>
+          </div>
+
+          <div
+            className={
+              styles.accessGrid
+            }
+          >
+            {/* ESTADO */}
+
+            <div
+              className={
+                styles.settingCard
+              }
+            >
+              <div
+                className={
+                  styles.settingTop
                 }
-              />
-            </div>
-          </div>
+              >
+                <div>
+                  <span
+                    className={
+                      styles.settingLabel
+                    }
+                  >
+                    Estado del usuario
+                  </span>
 
-<h3>Tests asignados</h3>
-          {}
-          <div className={styles.inputGroup}>
-            
-            <div className={styles.testsGrid}>
-              {TESTS_DISPONIBLES.map((test) => (
-                <label key={test.id} className={styles.testCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={testsSeleccionados.includes(test.id)}
-                    onChange={() => toggleTest(test.id)}
+                  <strong>
+                    {activo
+                      ? "Acceso habilitado"
+                      : "Acceso deshabilitado"}
+                  </strong>
+                </div>
+
+                <span
+                  className={`${styles.accessDot} ${
+                    activo
+                      ? styles.accessDotActive
+                      : styles.accessDotInactive
+                  }`}
+                />
+              </div>
+
+              <div
+                className={
+                  styles.statusSelector
+                }
+              >
+                <button
+                  type="button"
+                  className={`${styles.statusOption} ${
+                    activo
+                      ? styles.statusOptionSelected
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setActivo(true)
+                  }
+                  disabled={
+                    guardando
+                  }
+                >
+                  <span
+                    className={
+                      styles.optionDotActive
+                    }
                   />
-                  <p>{test.nombre}</p>
-                </label>
-              ))}
+
+                  Activo
+
+                  {activo && (
+                    <span
+                      className={
+                        styles.optionCheck
+                      }
+                    >
+                      ✓
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.statusOption} ${
+                    !activo
+                      ? styles.statusOptionSelectedDanger
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setActivo(false)
+                  }
+                  disabled={
+                    guardando
+                  }
+                >
+                  <span
+                    className={
+                      styles.optionDotInactive
+                    }
+                  />
+
+                  Inactivo
+
+                  {!activo && (
+                    <span
+                      className={
+                        styles.optionCheck
+                      }
+                    >
+                      ✓
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              <p
+                className={
+                  styles.settingHelp
+                }
+              >
+                {activo
+                  ? "El paciente puede ingresar mientras su período esté vigente."
+                  : "El paciente no podrá ingresar aunque la fecha de acceso siga vigente."}
+              </p>
+            </div>
+
+            {/* FECHA */}
+
+            <div
+              className={
+                styles.settingCard
+              }
+            >
+              <div
+                className={
+                  styles.settingTop
+                }
+              >
+                <div>
+                  <span
+                    className={
+                      styles.settingLabel
+                    }
+                  >
+                    Fecha límite
+                  </span>
+
+                  <strong>
+                    Vencimiento del
+                    acceso
+                  </strong>
+                </div>
+
+                <span
+                  className={
+                    styles.calendarMark
+                  }
+                >
+                  24h
+                </span>
+              </div>
+
+              <div
+                className={
+                  styles.dateField
+                }
+              >
+                <input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(event) =>
+                    setFechaFin(
+                      event.target
+                        .value,
+                    )
+                  }
+                  min={obtenerFechaMinima()}
+                  disabled={
+                    guardando
+                  }
+                />
+              </div>
+
+              <p
+                className={
+                  styles.settingHelp
+                }
+              >
+                El acceso no puede
+                superar las 24 horas
+                desde la fecha de
+                inicio.
+              </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {}
-        <div className={styles.modalButtons}>
-          <BotonPersonalizado
-            variant="primary"
-            onClick={manejarGuardar}
-            disabled={false}
-          >
-            Guardar cambios
-          </BotonPersonalizado>
+        {/* ===============================================
+            TESTS
+        =============================================== */}
 
-          <BotonPersonalizado
-            variant="secondary"
-            onClick={onCerrar}
-            disabled={false}
+        <section
+          className={
+            styles.section
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
           >
-            Cancelar
-          </BotonPersonalizado>
-        </div>
+            <div>
+              <h3>
+                Tests asignados
+              </h3>
+
+              <p>
+                Seleccioná las
+                evaluaciones
+                disponibles para este
+                paciente.
+              </p>
+            </div>
+
+            <span
+              className={
+                styles.testCounter
+              }
+            >
+              {
+                testsSeleccionados.length
+              }{" "}
+              de{" "}
+              {
+                TESTS_DISPONIBLES.length
+              }{" "}
+              seleccionados
+            </span>
+          </div>
+
+          <div
+            className={
+              styles.testsGrid
+            }
+          >
+            {TESTS_DISPONIBLES.map(
+              (test) => {
+                const selected =
+                  testsSeleccionados.includes(
+                    test.id,
+                  );
+
+                return (
+                  <button
+                    type="button"
+                    key={test.id}
+                    className={`${styles.testCard} ${
+                      selected
+                        ? styles.testCardSelected
+                        : ""
+                    }`}
+                    onClick={() =>
+                      toggleTest(
+                        test.id,
+                      )
+                    }
+                    disabled={
+                      guardando
+                    }
+                    aria-pressed={
+                      selected
+                    }
+                  >
+                    <div
+                      className={
+                        styles.testCardTop
+                      }
+                    >
+                      <strong>
+                        {test.nombre}
+                      </strong>
+
+                      <span
+                        className={`${styles.checkCircle} ${
+                          selected
+                            ? styles.checkCircleSelected
+                            : ""
+                        }`}
+                      >
+                        {selected
+                          ? "✓"
+                          : ""}
+                      </span>
+                    </div>
+
+                    <span
+                      className={
+                        styles.testDescription
+                      }
+                    >
+                      {
+                        test.descripcion
+                      }
+                    </span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+        </section>
+
+        {/* ===============================================
+            FOOTER
+        =============================================== */}
+
+        <footer
+          className={
+            styles.modalFooter
+          }
+        >
+          <p
+            className={
+              styles.footerHint
+            }
+          >
+            Los cambios se aplicarán
+            inmediatamente al perfil.
+          </p>
+
+          <div
+            className={
+              styles.modalButtons
+            }
+          >
+            <BotonPersonalizado
+              variant="secondary"
+              onClick={onCerrar}
+              disabled={
+                guardando
+              }
+            >
+              Cancelar
+            </BotonPersonalizado>
+
+            <BotonPersonalizado
+              variant="primary"
+              onClick={
+                manejarGuardar
+              }
+              disabled={
+                guardando
+              }
+            >
+              {guardando
+                ? "Guardando..."
+                : "Guardar cambios"}
+            </BotonPersonalizado>
+          </div>
+        </footer>
       </div>
     </Modal>
   );

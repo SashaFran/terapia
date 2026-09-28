@@ -18,25 +18,73 @@ cursor: pointer;
   background: linear-gradient(90deg,rgba(255, 176, 0, 1) 0%, rgba(255, 60, 42, 1) 50%);
     color: white;
     font-weight: var(--font-bold);
+
+    flex: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(168, 74, 84, 0.2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.66rem;
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
 
 
 .boton-secondary {
-  background-color: var(--marron);
+flex: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  color: #a84a54;
+  background: transparent;
+  border: 1px solid rgba(168, 74, 84, 0.2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.25s;
-  color: var(--gris-bg);
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
-
 .boton-secondary:hover {
-  background-color: #900020;
+  color: #8b313a;
+  background: #fff5f5;
+  border-color: rgba(168, 74, 84, 0.3);
 }
 
+.boton-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.text-button {
+  padding: 0.4rem 0;
+  color: #a14d54;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.67rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+.text-button:hover {
+  color: #7e2932;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
 .boton-danger {
   background-color: #900020;
   color: white;
+  flex: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(168, 74, 84, 0.2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
 .boton-danger:hover {

@@ -1,158 +1,695 @@
+/* =========================
+   PÁGINA
+========================= */
+
 .container {
-  color: var(--font-color);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  width: 100%;
   height: 100%;
-}
-.header {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  align-items: center;
-  position: relative;
-}
-table {
-  table-layout: auto;
-  width: var(--width-complete);
-}
-.container table th:nth-child(5),
-.container table td:nth-child(4) {
-  width: 1%;
-  white-space: nowrap;
-}
 
-.tablaPacientes {
-  background: white;
-  border-radius: var(--radius);
-  border: 1px solid #eef1f6;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
-  width: var(--width-complete);
-}
-
-.tablaPacientes table {
-  width: var(--width-complete);
-  border-collapse: collapse;
-  font-size: 14px;
-  height: auto;
-  min-height: auto;
-}
-
-.tablaPacientes tbody tr {
-  height: 2rem;
-}
-
-.tablaPacientes thead,
-.tablaPacientes thead th {
-  color: white;
-  font-weight: 600;
-  padding: 12px;
-  text-align: center;
-  position: sticky;
-  top: 0;
-}
-.tablaPacientes th {
-  line-height: 1.2;
-}
-
-.tablaPacientes thead tr {
-  height: 48px;
-}
-
-.tablaPacientes th,
-.tablaPacientes td {
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #f1f1f1;
-}
-.tablaPacientes td {
-  height: 40px;
-  vertical-align: middle;
-  border-bottom: 1px solid #eef1f6;
-}
-
-.tablaPacientes tbody tr {
-  height: 50px;
+  color: var(--font-color);
 }
 
 .layout {
-  width: var(--width-complete);
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  height: 100%;
-}
-
-.tablaPacientes td > * {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: var(--width-complete);
-  margin-bottom: 1.5rem;
-}
-.navCards {
-  display: flex;
-  gap: 2rem;
-  flex-direction: column;
-  width: var(--width-third);
-  align-items: center;
-}
-.containerCards {
   display: flex;
   flex-direction: column;
+
+  width: 100%;
+
   gap: 1.5rem;
-  height: 100%;
 }
 
-.tablaPacientes table {
-  width: var(--width-complete);
-  border-collapse: collapse;
-  font-size: 14px;
+/* =========================
+   ENCABEZADO
+========================= */
+
+.pageHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  width: 100%;
+
+  gap: 2rem;
+
+  padding: 0.5rem 0;
 }
 
-.tablaPacientes thead {
-  background: var(--naranja2);
+.pageHeader h1 {
+  margin: 0.2rem 0 0.3rem;
+
+  color: var(--gris-dark);
+
+  font-size: clamp(
+    1.55rem,
+    2vw,
+    2rem
+  );
+
+  font-weight: 700;
+  line-height: 1.15;
 }
 
-.tablaPacientes thead th,
-.tablaPacientes thead {
-  color: white;
-  font-weight: 600;
-  padding: 14px;
-  text-align: center;
-  position: sticky;
+.pageHeader p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.eyebrow {
+  color: #ff7900;
+
+  font-size: 0.63rem;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.headerAction {
+  flex-shrink: 0;
+}
+
+/* =========================
+   MÉTRICAS
+========================= */
+
+.metricasGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  width: 100%;
+
+  gap: 1rem;
+}
+
+.metricaCard {
+  position: relative;
+
+  min-height: 130px;
+
+  padding: 1.25rem 1.35rem;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e9edf2;
+  border-radius: 14px;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 5px 18px rgba(32, 40, 50, 0.05);
+}
+
+.metricaCard::before {
+  content: "";
+
+  position: absolute;
+
   top: 0;
+  right: 0;
+  left: 0;
+
+  height: 3px;
+
+  background: linear-gradient(
+    90deg,
+    #ffb000,
+    #ff8800,
+    #ff4438
+  );
+
+  opacity: 0;
+
+  transition: opacity 0.2s ease;
 }
 
-.tablaPacientes td {
-  padding: 12px;
-  text-align: center;
+.metricaCard:hover::before {
+  opacity: 1;
+}
+
+.metricaTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 0.65rem;
+
+  color: var(--gris-med);
+
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.metricaDot {
+  width: 7px;
+  height: 7px;
+
+  background: #ff8800;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(255, 136, 0, 0.08);
+}
+
+.metricaNumero {
+  display: block;
+
+  margin-bottom: 0.25rem;
+
+  color: #ff7900;
+
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metricaFecha {
+  font-size: 1.45rem;
+}
+
+.metricaCard p {
+  margin: 0;
+
+  color: #8a9099;
+
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+/* =========================
+   CONTENEDOR TABLA
+========================= */
+
+.tableSection {
+  width: 100%;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e8ecf1;
+  border-radius: 14px;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 5px 18px rgba(32, 40, 50, 0.045);
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 76px;
+
+  padding: 1.1rem 1.4rem;
+
+  border-bottom: 1px solid #edf0f3;
+}
+
+.tableHeader h2 {
+  margin: 0 0 0.2rem;
+
+  color: var(--gris-dark);
+
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tableHeader p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+/* =========================
+   TABLA
+========================= */
+
+.tablaSesiones {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+.tablaSesiones table {
+  width: 100%;
+  min-width: 900px;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+/* Columnas */
+
+.tablaSesiones th:nth-child(1) {
+  width: 15%;
+}
+
+.tablaSesiones th:nth-child(2) {
+  width: 14%;
+}
+
+.tablaSesiones th:nth-child(3) {
+  width: 27%;
+}
+
+.tablaSesiones th:nth-child(4) {
+  width: 24%;
+}
+
+.tablaSesiones th:nth-child(5) {
+  width: 20%;
+}
+
+/* =========================
+   HEADER DE TABLA
+========================= */
+
+.tablaSesiones thead {
+  background: #fafbfc;
+}
+
+.tablaSesiones thead th {
+  padding: 0.8rem 1.25rem;
+
+  color: #7c838d;
+
+  border-bottom: 1px solid #e9edf1;
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  letter-spacing: 0.025em;
+
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.tablaSesiones thead th:first-child {
+  padding-left: 1.4rem;
+}
+
+.accionHeader {
+  padding-right: 1.4rem !important;
+
+  text-align: right !important;
+}
+
+/* =========================
+   FILAS
+========================= */
+
+.tablaSesiones tbody tr {
+  transition:
+    background 0.16s ease;
+}
+
+.tablaSesiones tbody tr:hover {
+  background: #fcfcfd;
+}
+
+.tablaSesiones tbody td {
+  min-height: 68px;
+
+  padding: 0.9rem 1.25rem;
+
+  color: #41464d;
+
+  border-bottom: 1px solid #f0f2f4;
+
+  font-size: 0.78rem;
+
   vertical-align: middle;
-  color: #333;
 }
 
-.tablaPacientes th,
-.tablaPacientes td {
-  border-bottom: 1px solid #f1f1f1;
+.tablaSesiones tbody td:first-child {
+  padding-left: 1.4rem;
 }
 
-.tablaPacientes tbody tr:nth-child(even) {
-  background: #faf5f6;
+.tablaSesiones tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.tablaPacientes tbody tr:hover {
-  background: #ffe0bd;
-  transition: 0.2s ease;
+/* =========================
+   FECHA
+========================= */
+
+.fecha {
+  color: #626870;
+
+  font-size: 0.75rem;
+  font-weight: 450;
 }
 
-.tablaPacientes td > * {
+/* =========================
+   TEST
+========================= */
+
+.testBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  min-width: 62px;
+
+  padding: 0.3rem 0.55rem;
+
+  color: #a6570b;
+  background: #fff4e6;
+
+  border: 1px solid #ffe3c4;
+  border-radius: 7px;
+
+  font-size: 0.65rem;
+  font-weight: 750;
+
+  letter-spacing: 0.03em;
+}
+
+/* =========================
+   PACIENTE
+========================= */
+
+.pacienteCell {
+  display: flex;
+  align-items: center;
+
+  gap: 0.75rem;
+}
+
+.pacienteAvatar {
+  display: flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  color: #b95a00;
+  background: #fff3e6;
+
+  border: 1px solid #ffe2c4;
+  border-radius: 50%;
+
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.pacienteInfo {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 0.12rem;
+}
+
+.pacienteInfo strong {
+  overflow: hidden;
+
+  color: #34383e;
+
+  font-size: 0.79rem;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pacienteInfo span {
+  color: #969ca4;
+
+  font-size: 0.63rem;
+}
+
+/* =========================
+   OBSERVACIONES
+========================= */
+
+.observacionButton {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.5rem;
+
+  padding: 0.45rem 0.65rem;
+
+  color: #7b8087;
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 0.69rem;
+  font-weight: 600;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.observacionButton:hover {
+  color: #d56700;
+  background: #fff9f3;
+
+  border-color: #ffe0bf;
+}
+
+.actionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 22px;
+  height: 22px;
+
+  color: #a86416;
+  background: #fff1df;
+
+  border-radius: 50%;
+
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.observacionGuardada {
+  color: #48715c;
+}
+
+.observacionGuardada .actionIcon {
+  color: #357557;
+  background: #eaf7f0;
+}
+
+/* =========================
+   DESCARGAR
+========================= */
+
+.accionCell {
+  padding-right: 1.4rem !important;
+
+  text-align: right;
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 112px;
+
+  gap: 0.55rem;
+
+  padding: 0.55rem 0.8rem;
+
+  color: #3d2a20;
+  background: transparent;
+
+  border: 1px solid #e2e4e7;
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 0.69rem;
+  font-weight: 600;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.downloadButton:hover {
+  color: #e96d00;
+  background: #fffaf5;
+
+  border-color: #ffd7b2;
+
+  transform: translateY(-1px);
+}
+
+.downloadIcon {
+  font-size: 0.95rem;
+  font-weight: 700;
+
+  transition: transform 0.16s ease;
+}
+
+.downloadButton:hover
+  .downloadIcon {
+  transform: translateY(2px);
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.emptyState {
+  padding: 4rem 1rem !important;
+
+  text-align: center;
+}
+
+.emptyState strong,
+.emptyState span {
+  display: block;
+}
+
+.emptyState strong {
+  margin-bottom: 0.3rem;
+
+  color: #484d54;
+
+  font-size: 0.85rem;
+}
+
+.emptyState span {
+  color: var(--font-color);
+
+  font-size: 0.7rem;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 60vh;
+
+  gap: 0.8rem;
+}
+
+.loading p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: 0.8rem;
+}
+
+.loadingIndicator {
+  width: 24px;
+  height: 24px;
+
+  border: 2px solid #f0f1f3;
+  border-top-color: #ff7900;
+  border-radius: 50%;
+
+  animation:
+    spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modalOverlay {
+  width: 100%;
+}
+
+.modalContent {
+  width: 100%;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .pageHeader {
+    align-items: flex-start;
+  }
+
+  .metricasGrid {
+    grid-template-columns:
+      repeat(3, 1fr);
+  }
+
+  .metricaCard {
+    min-height: 115px;
+
+    padding: 1rem;
+  }
+
+  .metricaFecha {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .pageHeader {
+    flex-direction: column;
+
+    gap: 1rem;
+  }
+
+  .headerAction {
+    width: 100%;
+  }
+
+  .headerAction > * {
+    width: 100%;
+  }
+
+  .metricasGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricaCard {
+    min-height: auto;
+  }
+
+  .tableHeader {
+    padding: 1rem;
+  }
 }

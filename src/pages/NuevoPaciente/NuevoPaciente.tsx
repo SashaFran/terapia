@@ -13,23 +13,28 @@ import BotonPersonalizado from "../../components/Boton/Boton";
 const TESTS_DISPONIBLES = [
   {
     id: "k10",
-    nombre: "Escala K10",
+    nombre: "K-10",
+    descripcion: "Escala Kessler",
   },
   {
     id: "bfq",
-    nombre: "Personalidad BFQ",
+    nombre: "BFQ",
+    descripcion: "Personalidad",
   },
   {
     id: "zulliger",
-    nombre: "Láminas Zulliger",
+    nombre: "Zulliger",
+    descripcion: "Técnica proyectiva",
   },
   {
     id: "bender",
-    nombre: "Test de Bender",
+    nombre: "Bender",
+    descripcion: "Evaluación visomotora",
   },
   {
     id: "raven",
-    nombre: "Raven Abreviado",
+    nombre: "Raven",
+    descripcion: "Matrices progresivas",
   },
 ];
 
@@ -58,6 +63,10 @@ export default function NuevoPaciente({
   const [loading, setLoading] =
     useState(false);
 
+  /* =======================================================
+     FORMULARIO
+  ======================================================= */
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -78,6 +87,10 @@ export default function NuevoPaciente({
         : [...prev, testId],
     );
   };
+
+  /* =======================================================
+     GUARDAR
+  ======================================================= */
 
   const guardarPaciente = async (
     e: React.FormEvent,
@@ -112,9 +125,11 @@ export default function NuevoPaciente({
         return;
       }
 
-      if (testsSeleccionados.length === 0) {
+      if (
+        testsSeleccionados.length === 0
+      ) {
         alert(
-          "Asigná al menos un test 🧠",
+          "Asigná al menos un test.",
         );
 
         return;
@@ -149,7 +164,9 @@ export default function NuevoPaciente({
         0,
       );
 
-      if (fechaInicio < hoyArgentina) {
+      if (
+        fechaInicio < hoyArgentina
+      ) {
         alert(
           "La fecha no puede ser anterior a hoy (hora de Argentina)",
         );
@@ -202,190 +219,387 @@ Guardá las credenciales para entregárselas manualmente.`,
       console.error(error);
 
       alert(
-        mensajeErrorPaciente(error),
+        mensajeErrorPaciente(
+          error,
+        ),
       );
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div>
-      <div className={styles.nav}>
-      </div>
+  /* =======================================================
+     DATOS DERIVADOS
+  ======================================================= */
 
-      <form
-        className={styles.form}
-        onSubmit={guardarPaciente}
+  const dniLimpio =
+    formData.dni.replace(
+      /\D/g,
+      "",
+    );
+
+  const passwordPreview =
+    dniLimpio.length >= 6
+      ? dniLimpio.slice(-6)
+      : null;
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
+  return (
+    <form
+      className={styles.form}
+      onSubmit={guardarPaciente}
+    >
+      {/* ===============================================
+          DATOS DEL PACIENTE
+      =============================================== */}
+
+      <section
+        className={styles.section}
       >
         <div
-          className={styles.inputGroup}
+          className={
+            styles.sectionHeader
+          }
         >
-          <div className="container">
-            <div
+          <div>
+            <h3>
+              Datos del paciente
+            </h3>
+
+            <p>
+              Completá la información
+              necesaria para crear su
+              acceso.
+            </p>
+          </div>
+
+          <span
+            className={
+              styles.accessBadge
+            }
+          >
+            Acceso por 24 h
+          </span>
+        </div>
+
+        <div
+          className={
+            styles.fieldsGrid
+          }
+        >
+          {/* NOMBRE */}
+
+          <div
+            className={
+              styles.fieldCard
+            }
+          >
+            <label htmlFor="nombre">
+              Nombre completo
+            </label>
+
+            <input
+              type="text"
+              name="nombre"
+              id="nombre"
+              placeholder="Ej. Sasha Franchini"
+              value={
+                formData.nombre
+              }
+              onChange={
+                handleChange
+              }
+              required
+              disabled={loading}
+            />
+
+            <span
               className={
-                styles.container
+                styles.fieldHelp
               }
             >
-              <label
-                htmlFor="nombre"
-                className="paddingHorizontal"
-              >
-                Nombre completo:{" "}
-              </label>
+              Nombre y apellido del
+              paciente.
+            </span>
+          </div>
 
-              <input
-                type="text"
-                name="nombre"
-                id="nombre"
-                placeholder="Nombre completo"
-                value={formData.nombre}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          {/* DNI */}
 
+          <div
+            className={
+              styles.fieldCard
+            }
+          >
             <div
               className={
-                styles.container
+                styles.labelRow
               }
             >
-              <label
-                htmlFor="dni"
-                className="paddingHorizontal"
-              >
-                DNI:{" "}
+              <label htmlFor="dni">
+                DNI
               </label>
 
-              <div className="row">
-                <input
-                  type="text"
-                  name="dni"
-                  id="dni"
-                  placeholder="DNI"
-                  value={formData.dni}
-                  onChange={handleChange}
-                  required
-                />
-
-                {formData.dni
-                  .replace(/\D/g, "")
-                  .length >= 6 && (
-                  <small>
-                    🔑 Contraseña:{" "}
-                    <strong>
-                      {formData.dni
-                        .replace(
-                          /\D/g,
-                          "",
-                        )
-                        .slice(-6)}
-                    </strong>
-                  </small>
-                )}
-              </div>
+              {passwordPreview && (
+                <span
+                  className={
+                    styles.passwordBadge
+                  }
+                >
+                  Clave:{" "}
+                  {passwordPreview}
+                </span>
+              )}
             </div>
 
-            <div
+            <input
+              type="text"
+              name="dni"
+              id="dni"
+              inputMode="numeric"
+              placeholder="Ej. 40123456"
+              value={formData.dni}
+              onChange={
+                handleChange
+              }
+              required
+              disabled={loading}
+            />
+
+            <span
               className={
-                styles.container
+                styles.fieldHelp
               }
             >
-              <label
-                htmlFor="contacto"
-                className="paddingHorizontal"
-              >
-                Email:{" "}
-              </label>
+              Se utilizará para el
+              acceso del paciente.
+            </span>
+          </div>
 
-              <input
-                type="email"
-                name="contacto"
-                id="contacto"
-                placeholder="paciente@email.com"
-                value={
-                  formData.contacto
-                }
-                onChange={handleChange}
-                required
-              />
-            </div>
+          {/* EMAIL */}
 
+          <div
+            className={
+              styles.fieldCard
+            }
+          >
+            <label htmlFor="contacto">
+              Email
+            </label>
+
+            <input
+              type="email"
+              name="contacto"
+              id="contacto"
+              placeholder="paciente@email.com"
+              value={
+                formData.contacto
+              }
+              onChange={
+                handleChange
+              }
+              required
+              disabled={loading}
+            />
+
+            <span
+              className={
+                styles.fieldHelp
+              }
+            >
+              Recibirá las
+              credenciales y los
+              datos de acceso.
+            </span>
+          </div>
+
+          {/* FECHA */}
+
+          <div
+            className={
+              styles.fieldCard
+            }
+          >
             <div
               className={
-                styles.container
+                styles.labelRow
               }
             >
               <label
                 htmlFor="fechaIngreso"
-                className="paddingHorizontal"
               >
-                Fecha de acceso:{" "}
+                Fecha de acceso
               </label>
 
-              <input
-                type="date"
-                name="fechaIngreso"
-                id="fechaIngreso"
-                value={
-                  formData.fechaIngreso
+              <span
+                className={
+                  styles.durationBadge
                 }
-                onChange={handleChange}
-                required
-              />
-
-              {formData.fechaIngreso && (
-                <small>
-                  El acceso se habilitará
-                  en esta fecha y tendrá
-                  una vigencia de 24 horas.
-                </small>
-              )}
+              >
+                24h
+              </span>
             </div>
+
+            <input
+              type="date"
+              name="fechaIngreso"
+              id="fechaIngreso"
+              value={
+                formData.fechaIngreso
+              }
+              onChange={
+                handleChange
+              }
+              required
+              disabled={loading}
+            />
+
+            <span
+              className={
+                styles.fieldHelp
+              }
+            >
+              El acceso comenzará a
+              las 00:00 de la fecha
+              seleccionada.
+            </span>
           </div>
+        </div>
+      </section>
+
+      {/* ===============================================
+          TESTS
+      =============================================== */}
+
+      <section
+        className={styles.section}
+      >
+        <div
+          className={
+            styles.sectionHeader
+          }
+        >
+          <div>
+            <h3>
+              Tests asignados
+            </h3>
+
+            <p>
+              Seleccioná las
+              evaluaciones que tendrá
+              disponibles el
+              paciente.
+            </p>
+          </div>
+
+          <span
+            className={
+              styles.testCounter
+            }
+          >
+            {
+              testsSeleccionados.length
+            }{" "}
+            de{" "}
+            {
+              TESTS_DISPONIBLES.length
+            }{" "}
+            seleccionados
+          </span>
         </div>
 
         <div
-          className={styles.inputGroup}
+          className={
+            styles.testsGrid
+          }
         >
-          <h2>
-            Asignación de Tests
-          </h2>
+          {TESTS_DISPONIBLES.map(
+            (test) => {
+              const selected =
+                testsSeleccionados.includes(
+                  test.id,
+                );
 
-          <div
-            className={
-              styles.testsCheckboxes
-            }
-          >
-            {TESTS_DISPONIBLES.map(
-              (test) => (
-                <label key={test.id}>
-                  <input
-                    type="checkbox"
-                    checked={testsSeleccionados.includes(
+              return (
+                <button
+                  key={test.id}
+                  type="button"
+                  className={`${styles.testCard} ${
+                    selected
+                      ? styles.testCardSelected
+                      : ""
+                  }`}
+                  onClick={() =>
+                    toggleTest(
                       test.id,
-                    )}
-                    onChange={() =>
-                      toggleTest(
-                        test.id,
-                      )
+                    )
+                  }
+                  disabled={loading}
+                  aria-pressed={
+                    selected
+                  }
+                >
+                  <div
+                    className={
+                      styles.testCardTop
                     }
-                  />
+                  >
+                    <strong>
+                      {test.nombre}
+                    </strong>
 
-                  {test.nombre}
-                </label>
-              ),
-            )}
-          </div>
+                    <span
+                      className={`${styles.checkCircle} ${
+                        selected
+                          ? styles.checkCircleSelected
+                          : ""
+                      }`}
+                    >
+                      {selected
+                        ? "✓"
+                        : ""}
+                    </span>
+                  </div>
+                </button>
+              );
+            },
+          )}
         </div>
+      </section>
 
-        <div className="nav">
+      {/* ===============================================
+          FOOTER
+      =============================================== */}
+
+      <footer
+        className={
+          styles.formFooter
+        }
+      >
+        <p
+          className={
+            styles.footerHint
+          }
+        >
+          Al crear el paciente se
+          generarán sus credenciales
+          y se intentarán enviar por
+          email.
+        </p>
+
+        <div
+          className={
+            styles.actions
+          }
+        >
           <BotonPersonalizado
-            variant="danger"
+            variant="secondary"
             onClick={() => {
               if (
                 confirm(
-                  "¿Cancelar?",
+                  "¿Cancelar la creación del paciente?",
                 )
               ) {
                 cerrar();
@@ -398,15 +612,16 @@ Guardá las credenciales para entregárselas manualmente.`,
 
           <BotonPersonalizado
             type="submit"
+            variant="primary"
             disabled={loading}
-            tooltip="Registrar al paciente con todos los tests seleccionados."
+            tooltip="Registrar al paciente con los tests seleccionados."
           >
             {loading
               ? "Creando..."
               : "Crear paciente"}
           </BotonPersonalizado>
         </div>
-      </form>
-    </div>
+      </footer>
+    </form>
   );
 }

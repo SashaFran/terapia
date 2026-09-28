@@ -1,1008 +1,972 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { db } from "../../firebase/firebase.js";
+
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
   query,
-  updateDoc,
   where,
 } from "firebase/firestore";
-import {
-  eliminarPaciente,
-  mensajeErrorPaciente,
-} from "../../firebase/pacientes";
 
-import Tooltip from "@mui/material/Tooltip";
-
-import BotonPersonalizado from "../../components/Boton/Boton.tsx";
-import ObservacionesModal from "../../components/Modal/ObservacionesModal.tsx";
-import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal.tsx";
-import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal.tsx";
-import Modal from "../../components/Modal/Modal";
-
+import { db } from "../../firebase/firebase";
 import styles from "./PacientePerfil.module.css";
-import guardadoIcono from "../../assets/Icons/guardado.svg";
-import editar from "../../assets/Icons/pen.svg";
-import borrar from "../../assets/Icons/trash.svg";
 
-import { generarPdfResultado } from "../../utils/generarPdfResultado";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-import JSZip from "jszip";
+import BotonPersonalizado from "../../components/Boton/Boton";
+import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal";
+import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal";
 
-interface Resultado {
-  id: string;
-  fecha?: any;
-  testId?: string;
-  nivel?: string;
-  pacienteId?: string;
-  observacionesIniciales?: string;
-  archivoCaptura?: string;
-}
+import { eliminarPaciente } from "../../firebase/pacientes";
+import { generarExcelPaciente } from "../../utils/generarExcelPaciente";
+import { generarZipPaciente } from "../../utils/generarZipPaciente";
+
+/* =========================================================
+   TIPOS
+========================================================= */
 
 interface Paciente {
-  id?: string;
-  activo: boolean;
-  dni: string;
+  id: string;
   nombre: string;
-  archivodni: string;
-  fechaFinAcceso: any;
-  fechaInicioAcceso: any;
+  dni: string;
+  activo?: boolean;
+  archivodni?: string;
+  dni_public_id?: string;
+  fechaInicioAcceso?: any;
+  fechaFinAcceso?: any;
+  createdAt?: any;
 }
 
 interface Asignacion {
   id: string;
   testId: string;
-  estado: "pendiente" | "completado" | "abandono";
+  estado: string;
   fechaAsignacion?: any;
   fechaCompletado?: any;
 }
 
+interface Resultado {
+  id: string;
+  pacienteId?: string;
+  testId?: string;
+  fecha?: any;
+  observacionesIniciales?: string;
+  archivoCaptura?: string;
+  [key: string]: any;
+}
+
+type EstadoVisual =
+  | "abandono"
+  | "pendiente"
+  | "vencido"
+  | "inactivo"
+  | "sin-asignar"
+  | "completado"
+  | "activo";
+
+interface EstadoPaciente {
+  label: string;
+  tipo: EstadoVisual;
+}
+
+/* =========================================================
+   COMPONENTE
+========================================================= */
+
 export default function PacientePerfil() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [patient, setPatient] = useState<Paciente | null>(null);
-  const [resultados, setResultados] = useState<Resultado[]>([]);
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
-  const [tableData, setTableData] = useState<Resultado[]>([]);
+  const [resultados, setResultados] = useState<Resultado[]>([]);
 
-  const [selectedResultado, setSelectedResultado] =
-    useState<Resultado | null>(null);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [dniModalOpen, setDniModalOpen] = useState(false);
 
-  const [confirmData, setConfirmData] = useState<any>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [confirmData, setConfirmData] = useState<{
+    titulo: string;
+    mensaje: string;
+    warning?: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+
   const [loadingConfirm, setLoadingConfirm] = useState(false);
 
-  const abrirConfirm = (config: any) => {
-    setConfirmData(config);
+  /* =========================================================
+     UTILIDADES
+  ========================================================= */
+
+  const convertirFecha = (fecha: any): Date | null => {
+    if (!fecha) return null;
+
+    if (typeof fecha.toDate === "function") {
+      return fecha.toDate();
+    }
+
+    if (typeof fecha.seconds === "number") {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    const date = new Date(fecha);
+
+    return Number.isNaN(date.getTime()) ? null : date;
   };
 
-  useEffect(() => {
-    if (!id) return;
+  const formatearFecha = (fecha: any): string => {
+    const date = convertirFecha(fecha);
 
-    localStorage.setItem("pacienteId", id);
+    if (!date) return "N/A";
 
-    const loadData = async () => {
-      try {
-        const pacienteSnap = await getDoc(doc(db, "pacientes", id));
+    return date.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
-        if (pacienteSnap.exists()) {
-          setPatient({
-            id: pacienteSnap.id,
-            ...pacienteSnap.data(),
-          } as unknown as Paciente);
-        }
+  const formatearNombreTest = (testId?: string) => {
+    if (!testId) return "—";
 
-        const resSnap = await getDocs(
-          query(
-            collection(db, "resultados"),
-            where("pacienteId", "==", id),
-          ),
-        );
-
-        setResultados(
-          resSnap.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-          })) as Resultado[],
-        );
-
-        const asignSnap = await getDocs(
-          query(
-            collection(db, "asignaciones"),
-            where("pacienteId", "==", id),
-          ),
-        );
-
-        setAsignaciones(
-          asignSnap.docs.map((d) => ({
-            id: d.id,
-            ...(d.data() as Omit<Asignacion, "id">),
-          })) as Asignacion[],
-        );
-      } catch (error) {
-        console.error("Error cargando paciente:", error);
-      }
+    const nombres: Record<string, string> = {
+      k10: "K-10",
+      bfq: "BFQ",
+      zulliger: "Zulliger",
+      bender: "Bender",
+      raven: "Raven",
     };
 
-    void loadData();
-  }, [id]);
-
-  useEffect(() => {
-    if (!patient?.id) return;
-
-    const ahora = new Date();
-
-    let fin: Date | null = null;
-
-    if (patient.fechaFinAcceso) {
-      fin = patient.fechaFinAcceso.toDate
-        ? patient.fechaFinAcceso.toDate()
-        : new Date(patient.fechaFinAcceso);
-    }
-
-    if (fin && ahora > fin && patient.activo === true) {
-      const actualizarEstado = async () => {
-        try {
-          await updateDoc(doc(db, "pacientes", patient.id!), {
-            activo: false,
-          });
-
-          setPatient((prev) =>
-            prev ? { ...prev, activo: false } : prev,
-          );
-        } catch (error) {
-          console.error("Error auto-expirando paciente:", error);
-        }
-      };
-
-      void actualizarEstado();
-    }
-  }, [patient]);
-
-  useEffect(() => {
-    const data = resultados.map((r) => ({
-      ...r,
-      observacionesIniciales: r.observacionesIniciales || "—",
-    }));
-
-    data.sort(
-      (a, b) =>
-        (b.fecha?.toDate?.()?.getTime?.() || 0) -
-        (a.fecha?.toDate?.()?.getTime?.() || 0),
-    );
-
-    setTableData(data);
-  }, [resultados]);
-
-  const formatearFecha = (timestamp: any) => {
-    if (!timestamp) return "N/A";
-
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString("es-AR");
-    }
-
-    return new Date(timestamp).toLocaleDateString("es-AR");
+    return nombres[testId.toLowerCase()] || testId.toUpperCase();
   };
 
-  const getEstadoPaciente = () => {
-    if (!patient) return "—";
+  /* =========================================================
+     CARGA DE DATOS
+  ========================================================= */
+
+  const cargarPaciente = async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+
+      const pacienteRef = doc(db, "pacientes", id);
+      const pacienteSnap = await getDoc(pacienteRef);
+
+      if (!pacienteSnap.exists()) {
+        setPatient(null);
+        return;
+      }
+
+      setPatient({
+        id: pacienteSnap.id,
+        ...pacienteSnap.data(),
+      } as Paciente);
+
+      const asignacionesQuery = query(
+        collection(db, "asignaciones"),
+        where("pacienteId", "==", id),
+      );
+
+      const asignacionesSnap = await getDocs(asignacionesQuery);
+
+      const asignacionesData = asignacionesSnap.docs.map(
+        (documento) => ({
+          id: documento.id,
+          ...documento.data(),
+        }),
+      ) as Asignacion[];
+
+      setAsignaciones(asignacionesData);
+
+      const resultadosQuery = query(
+        collection(db, "resultados"),
+        where("pacienteId", "==", id),
+      );
+
+      const resultadosSnap = await getDocs(resultadosQuery);
+
+      const resultadosData = resultadosSnap.docs.map(
+        (documento) => ({
+          id: documento.id,
+          ...documento.data(),
+        }),
+      ) as Resultado[];
+
+      setResultados(resultadosData);
+    } catch (error) {
+      console.error("Error al cargar paciente:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void cargarPaciente();
+  }, [id]);
+
+  /* =========================================================
+     ESTADO DEL PACIENTE
+  ========================================================= */
+
+  const getEstadoPaciente = (): EstadoPaciente => {
+    if (!patient) {
+      return {
+        label: "Sin información",
+        tipo: "inactivo",
+      };
+    }
 
     const ahora = new Date();
 
-    let fin: Date | null = null;
+    const inicio = convertirFecha(patient.fechaInicioAcceso);
+    const fin = convertirFecha(patient.fechaFinAcceso);
 
-    if (patient.fechaFinAcceso) {
-      fin = patient.fechaFinAcceso.toDate
-        ? patient.fechaFinAcceso.toDate()
-        : new Date(patient.fechaFinAcceso);
+    if (
+      asignaciones.some(
+        (asignacion) => asignacion.estado === "abandono",
+      )
+    ) {
+      return {
+        label: "Abandono",
+        tipo: "abandono",
+      };
     }
 
-    if (asignaciones.some((a) => a.estado === "abandono")) {
-      return "⚠️ Abandono";
+    if (inicio && ahora < inicio) {
+      return {
+        label: "Pendiente",
+        tipo: "pendiente",
+      };
     }
 
-    if (fin && ahora > fin) {
-      return "⛔ Expirado";
+    if (fin && ahora >= fin) {
+      return {
+        label: "Vencido",
+        tipo: "vencido",
+      };
     }
 
     if (patient.activo === false) {
-      return "⛔ Inactivo";
+      return {
+        label: "Inactivo",
+        tipo: "inactivo",
+      };
     }
 
     if (asignaciones.length === 0) {
-      return "🟢 Sin asignar";
+      return {
+        label: "Sin asignar",
+        tipo: "sin-asignar",
+      };
     }
 
     const completados = asignaciones.filter(
-      (a) => a.estado === "completado",
+      (asignacion) => asignacion.estado === "completado",
     ).length;
 
-    return asignaciones.length === completados
-      ? "✔️ Completado"
-      : "🟢 Activo";
-  };
-
-  const descargarIndividual = async (resultado: Resultado) => {
-    await generarPdfResultado({
-      pacienteNombre: patient?.nombre,
-      resultado,
-      fotoDNI: patient?.archivodni,
-      fotoCaptura: resultado.archivoCaptura,
-    });
-  };
-
-  const descargarZip = async () => {
-    if (!patient) return;
-
-    const zip = new JSZip();
-
-    for (const resultado of tableData) {
-      try {
-        const blob = await generarPdfResultado({
-          pacienteNombre: patient.nombre,
-          devolverBlob: true,
-          resultado,
-          fotoDNI: patient.archivodni,
-          fotoCaptura: resultado.archivoCaptura,
-        });
-
-        if (blob instanceof Blob) {
-          const nombreArchivo =
-            `${patient.nombre}_${resultado.testId}_${formatearFecha(
-              resultado.fecha,
-            ).replace(/\//g, "-")}.pdf`;
-
-          zip.file(nombreArchivo, blob);
-        }
-      } catch (error) {
-        console.error(
-          "Error generando PDF para ZIP:",
-          resultado.id,
-          error,
-        );
-      }
+    if (asignaciones.length === completados) {
+      return {
+        label: "Completado",
+        tipo: "completado",
+      };
     }
 
-    const contenidoZip = await zip.generateAsync({
-      type: "blob",
-    });
-
-    saveAs(
-      contenidoZip,
-      `reportes_${patient.nombre}.zip`,
-    );
+    return {
+      label: "Activo",
+      tipo: "activo",
+    };
   };
 
-  const exportarExcel = () => {
-    const data = asignaciones.map((a) => ({
-      Test: a.testId,
-      Estado: a.estado,
-      Asignado: formatearFecha(a.fechaAsignacion),
-      Completado: formatearFecha(a.fechaCompletado),
-    }));
+  /* =========================================================
+     CONFIRMACIÓN
+  ========================================================= */
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      wb,
-      ws,
-      "Tests",
-    );
-
-    saveAs(
-      new Blob([
-        XLSX.write(wb, {
-          bookType: "xlsx",
-          type: "array",
-        }),
-      ]),
-      `tests_${patient?.nombre}.xlsx`,
-    );
+  const abrirConfirm = (data: {
+    titulo: string;
+    mensaje: string;
+    warning?: string;
+    onConfirm: () => Promise<void>;
+  }) => {
+    setConfirmData(data);
+    setConfirmOpen(true);
   };
 
-  const handleOpenModal = (resultado: Resultado) => {
-    setSelectedResultado(resultado);
-    setIsModalOpen(true);
+  const cerrarConfirm = () => {
+    if (loadingConfirm) return;
+
+    setConfirmOpen(false);
+    setConfirmData(null);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedResultado(null);
-  };
-
-  const handleSuccessfulSave = (
-    resultadoId: string,
-    nuevasObservaciones: string,
-  ) => {
-    setResultados((prev) =>
-      prev.map((resultado) =>
-        resultado.id === resultadoId
-          ? {
-              ...resultado,
-              observacionesIniciales: nuevasObservaciones,
-            }
-          : resultado,
-      ),
-    );
-
-    setIsModalOpen(false);
-  };
-
-  const handleGuardarConfig = async (datosActualizados: any) => {
-    if (!id) return;
-
-    await updateDoc(
-      doc(db, "pacientes", id),
-      {
-        activo: datosActualizados.activo,
-        fechaFinAcceso:
-          datosActualizados.fechaFinAcceso,
-      },
-    );
-
-    const asignSnap = await getDocs(
-      query(
-        collection(db, "asignaciones"),
-        where("pacienteId", "==", id),
-      ),
-    );
-
-    const actuales = asignSnap.docs.map((d) => ({
-      id: d.id,
-      testId: d.data().testId,
-    }));
-
-    const nuevos =
-      datosActualizados.testsSeleccionados.filter(
-        (test: string) =>
-          !actuales.some(
-            (asignacion) =>
-              asignacion.testId === test,
-          ),
-      );
-
-    const eliminados = actuales.filter(
-      (asignacion) =>
-        !datosActualizados.testsSeleccionados.includes(
-          asignacion.testId,
-        ),
-    );
-
-    await Promise.all(
-      nuevos.map((testId: string) =>
-        addDoc(
-          collection(db, "asignaciones"),
-          {
-            pacienteId: id,
-            testId,
-            estado: "pendiente",
-            fechaAsignacion: new Date(),
-          },
-        ),
-      ),
-    );
-
-    await Promise.all(
-      eliminados.map((asignacion) =>
-        deleteDoc(
-          doc(
-            db,
-            "asignaciones",
-            asignacion.id,
-          ),
-        ),
-      ),
-    );
-
-    const nuevoSnap = await getDocs(
-      query(
-        collection(db, "asignaciones"),
-        where("pacienteId", "==", id),
-      ),
-    );
-
-    setAsignaciones(
-      nuevoSnap.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<
-          Asignacion,
-          "id"
-        >),
-      })) as Asignacion[],
-    );
-
-    setPatient((prev) =>
-      prev
-        ? {
-            ...prev,
-            activo: datosActualizados.activo,
-            fechaFinAcceso:
-              datosActualizados.fechaFinAcceso,
-          }
-        : prev,
-    );
-  };
-
-  const handleEliminarPaciente = async () => {
-    if (!id) return;
-
-    setLoadingConfirm(true);
+  const ejecutarConfirmacion = async () => {
+    if (!confirmData) return;
 
     try {
-      await eliminarPaciente({
-        pacienteId: id,
-      });
+      setLoadingConfirm(true);
 
+      await confirmData.onConfirm();
+
+      setConfirmOpen(false);
       setConfirmData(null);
-      navigate("/admin/pacientes");
     } catch (error) {
-      console.error(
-        "Error eliminando paciente:",
-        error,
-      );
-
-      alert(mensajeErrorPaciente(error));
+      console.error("Error al ejecutar acción:", error);
     } finally {
       setLoadingConfirm(false);
     }
   };
+
+  /* =========================================================
+     ELIMINAR ASIGNACIÓN
+  ========================================================= */
 
   const handleEliminarAsignacion = async (
     asignacion: Asignacion,
   ) => {
-    if (!id) return;
+    abrirConfirm({
+      titulo: "Eliminar test asignado",
 
-    setLoadingConfirm(true);
+      mensaje: `¿Eliminar ${formatearNombreTest(
+        asignacion.testId,
+      )} de este paciente?`,
 
-    try {
-      const resultadosDelTest = await getDocs(
-        query(
-          collection(db, "resultados"),
-          where("pacienteId", "==", id),
-          where("testId", "==", asignacion.testId),
-        ),
-      );
+      warning: "Esta acción eliminará la asignación del test.",
 
-      await deleteDoc(
-        doc(
-          db,
-          "asignaciones",
-          asignacion.id,
-        ),
-      );
+      onConfirm: async () => {
+        await deleteDoc(
+          doc(db, "asignaciones", asignacion.id),
+        );
 
-      await Promise.all(
-        resultadosDelTest.docs.map((resultado) =>
-          deleteDoc(
-            doc(
-              db,
-              "resultados",
-              resultado.id,
-            ),
-          ),
-        ),
-      );
-
-      setAsignaciones((prev) =>
-        prev.filter(
-          (item) =>
-            item.id !== asignacion.id,
-        ),
-      );
-
-      setResultados((prev) =>
-        prev.filter(
-          (resultado) =>
-            resultado.testId !==
-            asignacion.testId,
-        ),
-      );
-    } catch (error) {
-      console.error(
-        "Error eliminando asignación:",
-        error,
-      );
-
-      alert(
-        "No se pudo eliminar la asignación.",
-      );
-    } finally {
-      setLoadingConfirm(false);
-      setConfirmData(null);
-    }
+        setAsignaciones((prev) =>
+          prev.filter((item) => item.id !== asignacion.id),
+        );
+      },
+    });
   };
+
+  /* =========================================================
+     ELIMINAR RESULTADO
+  ========================================================= */
 
   const handleEliminarResultado = async (
     resultado: Resultado,
   ) => {
-    try {
-      await deleteDoc(
-        doc(
-          db,
-          "resultados",
-          resultado.id,
-        ),
-      );
+    abrirConfirm({
+      titulo: "Eliminar evaluación",
 
-      setResultados((prev) =>
-        prev.filter(
-          (item) =>
-            item.id !== resultado.id,
-        ),
+      mensaje: `¿Eliminar la evaluación ${formatearNombreTest(
+        resultado.testId,
+      )}?`,
+
+      warning:
+        "El resultado guardado dejará de estar disponible.",
+
+      onConfirm: async () => {
+        await deleteDoc(
+          doc(db, "resultados", resultado.id),
+        );
+
+        setResultados((prev) =>
+          prev.filter((item) => item.id !== resultado.id),
+        );
+      },
+    });
+  };
+
+  /* =========================================================
+     ELIMINAR PACIENTE
+  ========================================================= */
+
+  const handleEliminarPaciente = async () => {
+    if (!patient) return;
+
+    await eliminarPaciente({
+      pacienteId: patient.id,
+    });
+
+    navigate("/admin/pacientes", {
+      replace: true,
+    });
+  };
+
+  /* =========================================================
+     ACTUALIZACIÓN DESDE MODAL
+  ========================================================= */
+
+  const handlePacienteActualizado = (data: any) => {
+    setPatient((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        activo: data.activo ?? prev.activo,
+        fechaFinAcceso:
+          data.fechaFinAcceso ?? prev.fechaFinAcceso,
+      };
+    });
+
+    void cargarPaciente();
+  };
+
+  /* =========================================================
+     DESCARGAS
+  ========================================================= */
+
+  const handleExcel = () => {
+    if (!patient) return;
+
+    try {
+      generarExcelPaciente(
+        patient,
+        asignaciones,
+        resultados,
       );
     } catch (error) {
-      console.error(
-        "Error borrando resultado:",
-        error,
-      );
-
-      alert(
-        "No se pudo borrar el resultado.",
-      );
+      console.error("Error al generar Excel:", error);
     }
   };
 
-  if (!patient) {
-    return <h2>Cargando...</h2>;
-  }
+  const handleZip = async () => {
+    if (!patient) return;
 
-  return (
-    <div className={styles.layout}>
+    try {
+      await generarZipPaciente(
+        patient,
+        resultados,
+      );
+    } catch (error) {
+      console.error("Error al generar ZIP:", error);
+    }
+  };
+
+  /* =========================================================
+     LOADING
+  ========================================================= */
+  if (loading) {
+    return (
+      <div className={styles.loading}>
         <div
-          className={`card ${styles.cardPaciente}`}
-        >
-          <div>
-          <h2>{patient.nombre}</h2>
-          
-          <aside className={styles.sidebar}>
-            <p>
-              <strong>DNI:</strong>{" "}
-              {patient.dni}
-            </p>
-
-            <p>
-              <strong>Estado:</strong>{" "}
-              {getEstadoPaciente()}
-            </p>
-
-            <p>
-              <strong>Acceso:</strong>{" "}
-              {formatearFecha(
-                patient.fechaInicioAcceso,
-              )}{" "}
-              →{" "}
-              {formatearFecha(
-                patient.fechaFinAcceso,
-              )}
-            </p>
-          </aside>
-</div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent:
-                "space-between",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <BotonPersonalizado
-              variant="secondary"
-              onClick={() =>
-                setDniModalOpen(true)
-              }
-              disabled={false}
-            >
-              DNI
-            </BotonPersonalizado>
-
-            <BotonPersonalizado
-              variant="primary"
-              onClick={() =>
-                setIsConfigOpen(true)
-              }
-              tooltip="Cambiar la fecha de acceso y los tests asignados."
-              disabled={false}
-            >
-              Modificar acceso
-            </BotonPersonalizado>
-          
-
-          <BotonPersonalizado
-            variant="danger"
-            tooltip="Eliminar el perfil, su cuenta de acceso y sus evaluaciones."
-            onClick={() =>
-              abrirConfirm({
-                titulo:
-                  "Eliminar paciente",
-                mensaje: `¿Eliminar a ${patient.nombre}?`,
-                warning:
-                  "Se eliminarán también sus asignaciones y evaluaciones.",
-                onConfirm:
-                  handleEliminarPaciente,
-              })
-            }
-            disabled={loadingConfirm}
-          >
-            Borrar paciente
-          </BotonPersonalizado>
-        </div></div>
-
-      <div className={styles.container}>
-        <div
-          className={styles.bloqueTabla}
-        >
-          <div className={styles.nav}>
-            <h3>Tests asignados</h3>
-
-            <BotonPersonalizado
-              variant="secondary"
-              onClick={exportarExcel}
-              disabled={false}
-            >
-              Excel
-            </BotonPersonalizado>
-          </div>
-
-          <div className="scrollbar">
-            <div className="tablaPacientes">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Test</th>
-                    <th>Estado</th>
-                    <th>Asignado</th>
-                    <th>Completado</th>
-                    <th>Borrar</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {asignaciones.map(
-                    (asignacion) => (
-                      <tr
-                        key={
-                          asignacion.id
-                        }
-                      >
-                        <td>
-                          {asignacion.testId?.toUpperCase()}
-                        </td>
-
-                        <td>
-                          {
-                            asignacion.estado
-                          }
-                        </td>
-
-                        <td>
-                          {formatearFecha(
-                            asignacion.fechaAsignacion,
-                          )}
-                        </td>
-
-                        <td>
-                          {formatearFecha(
-                            asignacion.fechaCompletado,
-                          )}
-                        </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            aria-label="Eliminar asignación"
-                            onClick={() =>
-                              abrirConfirm(
-                                {
-                                  titulo:
-                                    "Eliminar asignación",
-                                  mensaje: `¿Eliminar ${asignacion.testId}?`,
-                                  warning:
-                                    "También se eliminarán los resultados asociados a este test.",
-                                  onConfirm:
-                                    () =>
-                                      handleEliminarAsignacion(
-                                        asignacion,
-                                      ),
-                                },
-                              )
-                            }
-                          >
-                            <img
-                              src={
-                                borrar
-                              }
-                              alt=""
-                            />
-                          </button>
-                        </td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={styles.bloqueTabla}
-        >
-          <div className={styles.nav}>
-            <h3>Evaluaciones</h3>
-
-            <BotonPersonalizado
-              variant="secondary"
-              onClick={descargarZip}
-              tooltip="Descargar los informes PDF de todas las evaluaciones en un ZIP."
-              disabled={false}
-            >
-              Descargar archivos
-            </BotonPersonalizado>
-          </div>
-
-          <div className="scrollbar">
-            <div className="tablaPacientes">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Test</th>
-                    <th>Comentario</th>
-                    <th>PDF</th>
-                    <th>Borrar</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {tableData.map(
-                    (resultado) => (
-                      <tr
-                        key={
-                          resultado.id
-                        }
-                      >
-                        <td>
-                          {formatearFecha(
-                            resultado.fecha,
-                          )}
-                        </td>
-
-                        <td>
-                          {
-                            resultado.testId
-                          }
-                        </td>
-
-                        <td>
-                          <Tooltip
-                            title="Agregar o editar observaciones"
-                            arrow
-                          >
-                            <button
-                              type="button"
-                              aria-label="Editar observaciones"
-                              onClick={() =>
-                                handleOpenModal(
-                                  resultado,
-                                )
-                              }
-                            >
-                              <img
-                                src={
-                                  editar
-                                }
-                                alt=""
-                              />
-                            </button>
-                          </Tooltip>
-                        </td>
-
-                        <td>
-                          <Tooltip
-                            title="Descargar el informe de esta evaluación"
-                            arrow
-                          >
-                            <button
-                              type="button"
-                              aria-label="Descargar PDF"
-                              onClick={() =>
-                                descargarIndividual(
-                                  resultado,
-                                )
-                              }
-                            >
-                              <img
-                                src={
-                                  guardadoIcono
-                                }
-                                alt=""
-                              />
-                            </button>
-                          </Tooltip>
-                        </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            aria-label="Eliminar resultado"
-                            onClick={() =>
-                              abrirConfirm(
-                                {
-                                  titulo:
-                                    "Eliminar evaluación",
-                                  mensaje:
-                                    "¿Eliminar este resultado de evaluación?",
-                                  warning:
-                                    "Esta acción no se puede deshacer.",
-                                  onConfirm:
-                                    async () => {
-                                      await handleEliminarResultado(
-                                        resultado,
-                                      );
-
-                                      setConfirmData(
-                                        null,
-                                      );
-                                    },
-                                },
-                              )
-                            }
-                          >
-                            <img
-                              src={
-                                borrar
-                              }
-                              alt=""
-                            />
-                          </button>
-                        </td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {isConfigOpen && (
-        <EditarPacienteModal
-          abierto={isConfigOpen}
-          paciente={patient}
-          asignacionesActuales={asignaciones.map(
-            (a) => a.testId,
-          )}
-          onCerrar={() =>
-            setIsConfigOpen(false)
-          }
-          onGuardar={
-            handleGuardarConfig
+          className={
+            styles.loadingIndicator
           }
         />
+
+        <p>Cargando paciente...</p>
+      </div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <div className={styles.loading}>
+        Paciente no encontrado.
+      </div>
+    );
+  }
+
+  /* =========================================================
+     DATOS DERIVADOS
+  ========================================================= */
+
+  const estadoPaciente = getEstadoPaciente();
+
+  const testsCompletados = asignaciones.filter(
+    (asignacion) => asignacion.estado === "completado",
+  ).length;
+
+  const tieneDni = Boolean(patient.archivodni);
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
+  return (
+    <div className={styles.container}>
+      {/* =====================================================
+          ENCABEZADO
+      ===================================================== */}
+
+      <header className={styles.pageHeader}>
+        <div className={styles.heading}>
+          <p className={styles.eyebrow}>
+            Perfil del paciente
+          </p>
+
+          <div className={styles.titleRow}>
+            <h1>{patient.nombre}</h1>
+          </div>
+
+          <p className={styles.pageDescription}>
+            DNI {patient.dni} · Administrá su acceso,
+            documentación y evaluaciones.
+          </p>
+        </div>
+
+        <div className={styles.headerActions}>
+          <BotonPersonalizado
+            variant="secondary"
+            onClick={() => setDniModalOpen(true)}
+            tooltip={
+              tieneDni
+                ? "Consultar la documentación cargada por el paciente."
+                : "El paciente todavía no cargó su DNI."
+            }
+            disabled={false}
+          >
+            {tieneDni ? "Ver DNI" : "DNI pendiente"}
+          </BotonPersonalizado>
+
+          <BotonPersonalizado
+            variant="primary"
+            onClick={() => setIsConfigOpen(true)}
+            tooltip="Cambiar la fecha de acceso y los tests asignados."
+            disabled={false}
+          >
+            Modificar acceso
+          </BotonPersonalizado>
+        </div>
+      </header>
+
+      {/* =====================================================
+          MÉTRICAS
+      ===================================================== */}
+
+      <section className={styles.metricsGrid}>
+        <article className={styles.metricCard}>
+          <span className={styles.metricDot} />
+
+          <p className={styles.metricTitle}>
+            Estado
+          </p>
+
+          <div className={styles.metricMain}>
+            <span
+              className={`${styles.statusBadge} ${
+                estadoPaciente.tipo === "activo" ||
+                estadoPaciente.tipo === "completado"
+                  ? styles.statusSuccess
+                  : estadoPaciente.tipo === "pendiente" ||
+                      estadoPaciente.tipo === "sin-asignar"
+                    ? styles.statusWarning
+                    : styles.statusDanger
+              }`}
+            >
+              <span className={styles.statusIndicator} />
+              {estadoPaciente.label}
+            </span>
+          </div>
+
+          <p className={styles.metricCaption}>
+            Estado actual del acceso
+          </p>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span className={styles.metricDot} />
+
+          <p className={styles.metricTitle}>
+            Evaluaciones
+          </p>
+
+          <div className={styles.metricNumber}>
+            {testsCompletados}
+            <span> / {asignaciones.length}</span>
+          </div>
+
+          <p className={styles.metricCaption}>
+            Tests completados
+          </p>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span className={styles.metricDot} />
+
+          <p className={styles.metricTitle}>
+            Período de acceso
+          </p>
+
+          <div className={styles.accessDates}>
+            <strong>
+              {formatearFecha(patient.fechaInicioAcceso)}
+            </strong>
+
+            <span className={styles.dateArrow}>→</span>
+
+            <strong>
+              {formatearFecha(patient.fechaFinAcceso)}
+            </strong>
+          </div>
+
+          <p className={styles.metricCaption}>
+            Período habilitado para el paciente
+          </p>
+        </article>
+      </section>
+
+      {/* =====================================================
+          TESTS ASIGNADOS
+      ===================================================== */}
+
+      <section className={styles.dataCard}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2>Tests asignados</h2>
+
+            <p>
+              {asignaciones.length === 1
+                ? "1 evaluación asignada"
+                : `${asignaciones.length} evaluaciones asignadas`}
+            </p>
+          </div>
+
+          <BotonPersonalizado
+            variant="secondary"
+            onClick={handleExcel}
+            tooltip="Descargar los datos del paciente en formato Excel."
+            disabled={asignaciones.length === 0}
+          >
+            Exportar Excel
+          </BotonPersonalizado>
+        </div>
+
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Estado</th>
+                <th>Asignado</th>
+                <th>Completado</th>
+                <th className={styles.actionHeader}>
+                  Acción
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {asignaciones.length > 0 ? (
+                asignaciones.map((asignacion) => (
+                  <tr key={asignacion.id}>
+                    <td>
+                      <strong className={styles.testName}>
+                        {formatearNombreTest(
+                          asignacion.testId,
+                        )}
+                      </strong>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`${styles.tableStatus} ${
+                          asignacion.estado === "completado"
+                            ? styles.tableStatusCompleted
+                            : asignacion.estado === "abandono"
+                              ? styles.tableStatusDanger
+                              : styles.tableStatusPending
+                        }`}
+                      >
+                        <span />
+                        {asignacion.estado}
+                      </span>
+                    </td>
+
+                    <td>
+                      {formatearFecha(
+                        asignacion.fechaAsignacion,
+                      )}
+                    </td>
+
+                    <td>
+                      {asignacion.fechaCompletado
+                        ? formatearFecha(
+                            asignacion.fechaCompletado,
+                          )
+                        : "—"}
+                    </td>
+
+                    <td className={styles.actionCell}>
+                      <button
+                        type="button"
+                        className={`text-button`}
+                        onClick={() =>
+                          void handleEliminarAsignacion(
+                            asignacion,
+                          )
+                        }
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className={styles.emptyTable}
+                  >
+                    No hay tests asignados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* =====================================================
+          EVALUACIONES
+      ===================================================== */}
+
+      <section className={styles.dataCard}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2>Evaluaciones</h2>
+
+            <p>
+              {resultados.length === 0
+                ? "Todavía no hay resultados completados"
+                : resultados.length === 1
+                  ? "1 resultado disponible"
+                  : `${resultados.length} resultados disponibles`}
+            </p>
+          </div>
+
+          <BotonPersonalizado
+            variant="secondary"
+            onClick={() => void handleZip()}
+            tooltip="Descargar los informes disponibles del paciente."
+            disabled={resultados.length === 0}
+          >
+            Descargar archivos
+          </BotonPersonalizado>
+        </div>
+
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Test</th>
+                <th>Comentario</th>
+                <th>Archivo</th>
+                <th className={styles.actionHeader}>
+                  Acción
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {resultados.length > 0 ? (
+                resultados.map((resultado) => (
+                  <tr key={resultado.id}>
+                    <td>
+                      {formatearFecha(resultado.fecha)}
+                    </td>
+
+                    <td>
+                      <strong className={styles.testName}>
+                        {formatearNombreTest(
+                          resultado.testId,
+                        )}
+                      </strong>
+                    </td>
+
+                    <td className={styles.commentCell}>
+                      {resultado.observacionesIniciales ||
+                        "Sin comentarios"}
+                    </td>
+
+                    <td>
+                      {resultado.archivoCaptura ? (
+                        <a
+                          href={resultado.archivoCaptura}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={styles.fileLink}
+                        >
+                          Ver archivo →
+                        </a>
+                      ) : (
+                        <span className={styles.muted}>
+                          —
+                        </span>
+                      )}
+                    </td>
+
+                    <td className={styles.actionCell}>
+                      <button
+                        type="button"
+                        className={`text-button`}
+                        onClick={() =>
+                          void handleEliminarResultado(
+                            resultado,
+                          )
+                        }
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className={styles.emptyTable}
+                  >
+                    Todavía no hay evaluaciones
+                    completadas.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* =====================================================
+          ZONA DE PELIGRO
+      ===================================================== */}
+
+      <section className={styles.dangerZone}>
+        <div>
+          <h3>Eliminar paciente</h3>
+
+          <p>
+            Elimina el perfil junto con sus asignaciones y
+            evaluaciones.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className={styles.deletePatient}
+          onClick={() =>
+            abrirConfirm({
+              titulo: "Eliminar paciente",
+              mensaje: `¿Eliminar a ${patient.nombre}?`,
+              warning:
+                "Se eliminarán también sus asignaciones y evaluaciones.",
+              onConfirm: handleEliminarPaciente,
+            })
+          }
+          disabled={loadingConfirm}
+        >
+          Eliminar paciente
+        </button>
+      </section>
+
+      {/* =====================================================
+          MODIFICAR PACIENTE
+      ===================================================== */}
+
+      <EditarPacienteModal
+        abierto={isConfigOpen}
+        onCerrar={() => setIsConfigOpen(false)}
+        onGuardar={handlePacienteActualizado}
+        paciente={patient}
+        asignacionesActuales={asignaciones.map(
+          (asignacion) => asignacion.testId,
+        )}
+      />
+
+      {/* =====================================================
+          DNI
+      ===================================================== */}
+
+      {dniModalOpen && (
+        <div
+          className={styles.modalBackdrop}
+          onClick={() => setDniModalOpen(false)}
+        >
+          <div
+            className={styles.dniModal}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.dniModalHeader}>
+              <div>
+                <p className={styles.modalEyebrow}>
+                  Documentación
+                </p>
+
+                <h2>DNI del paciente</h2>
+
+                <p className={styles.modalSubtitle}>
+                  {patient.nombre}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className={styles.closeModal}
+                onClick={() => setDniModalOpen(false)}
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+
+            {patient.archivodni ? (
+              <>
+                <div className={styles.documentStatus}>
+                  <span
+                    className={`${styles.statusIndicator} ${styles.documentStatusDot}`}
+                  />
+
+                  Documento disponible
+                </div>
+
+                <div className={styles.dniPreview}>
+                  <img
+                    src={patient.archivodni}
+                    alt={`DNI de ${patient.nombre}`}
+                  />
+                </div>
+
+                <a
+                  href={patient.archivodni}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.openDocument}
+                >
+                  Abrir documento en otra pestaña →
+                </a>
+              </>
+            ) : (
+              <div className={styles.noDocument}>
+                <span className={styles.noDocumentIcon}>
+                  —
+                </span>
+
+                <strong>DNI pendiente</strong>
+
+                <p>
+                  El paciente todavía no cargó su documento.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
+
+      {/* =====================================================
+          CONFIRMACIÓN
+      ===================================================== */}
 
       {confirmData && (
         <ConfirmModal
-          abierto={true}
-          onCerrar={() =>
-            setConfirmData(null)
-          }
-          titulo={
-            confirmData.titulo
-          }
-          mensaje={
-            confirmData.mensaje
-          }
-          warning={
-            confirmData.warning
-          }
-          onConfirm={
-            confirmData.onConfirm
-          }
-          loading={
-            loadingConfirm
-          }
+          abierto={confirmOpen}
+          titulo={confirmData.titulo}
+          mensaje={confirmData.mensaje}
+          warning={confirmData.warning}
+          loading={loadingConfirm}
+          onCerrar={cerrarConfirm}
+          onConfirm={() => void ejecutarConfirmacion()}
         />
-      )}
-
-      <ObservacionesModal
-        abierto={isModalOpen}
-        onCerrar={handleCloseModal}
-        sesion={selectedResultado}
-        onGuardarExitoso={
-          handleSuccessfulSave
-        }
-      />
-
-      {dniModalOpen && (
-        <Modal
-          abierto={dniModalOpen}
-          onCerrar={() =>
-            setDniModalOpen(false)
-          }
-          titulo="Estado del DNI"
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent:
-                "space-evenly",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <div>
-              <p>
-                <strong>
-                  DNI cargado:
-                </strong>{" "}
-                {patient.archivodni
-                  ? "✔ Sí"
-                  : "✖ No"}
-              </p>
-
-              {patient.archivodni && (
-                <img
-                  src={
-                    patient.archivodni
-                  }
-                  alt="Foto DNI"
-                  style={{
-                    maxWidth: "12%",
-                    marginTop: 8,
-                  }}
-                />
-              )}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent:
-                "space-between",
-              gap: 8,
-              marginTop: 16,
-            }}
-          >
-            <BotonPersonalizado
-              variant="primary"
-              disabled={false}
-              onClick={() => {
-                setDniModalOpen(false);
-                navigate("/app/tests");
-              }}
-            >
-              Ir a Tests
-            </BotonPersonalizado>
-
-            <BotonPersonalizado
-              variant="secondary"
-              onClick={() =>
-                setDniModalOpen(false)
-              }
-              disabled={false}
-            >
-              Cerrar
-            </BotonPersonalizado>
-          </div>
-        </Modal>
       )}
     </div>
   );

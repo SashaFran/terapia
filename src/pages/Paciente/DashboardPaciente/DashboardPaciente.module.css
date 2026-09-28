@@ -1,81 +1,437 @@
 .container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
   color: var(--font-color);
 }
 
-.tablaPacientes {
-  width: var(--width-complete);
-  background: white;
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid #eef1f6;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.06);
-  text-align: justify;
-  display: flex;
-  flex-direction: column;
+/* =========================
+   BIENVENIDA
+========================= */
+
+.welcome {
+  margin-bottom: 2rem;
 }
 
-.nav {
+.eyebrow,
+.sectionLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ff7900;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.welcome h1 {
+  margin: 0;
+  color: var(--gris-dark);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.wave {
+  display: inline-block;
+  margin-left: 0.65rem;
+  font-size: 0.8em;
+}
+
+.welcome > p {
+  max-width: 650px;
+  margin: 0.75rem 0 0;
+  color: var(--gris-med);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* =========================
+   RESUMEN
+========================= */
+
+.summaryCard {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) 1px minmax(350px, 1.2fr);
+  gap: 3rem;
+  align-items: stretch;
+
+  padding: 2.25rem;
+
+  background: #ffffff;
+  border: 1px solid #edf0f4;
+  border-radius: 22px;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 12px 35px rgba(32, 40, 50, 0.06);
+}
+
+.accessInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.accessSubtitle {
+  margin: 0;
+  color: var(--gris-med);
+  font-size: 0.9rem;
+}
+
+.deadline {
+  margin-top: 0.35rem;
+  color: #ff7900;
+  font-size: var(--font-size-h1);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.deadlineTime {
+  margin: 0.55rem 0 0;
+  color: var(--gris-med);
+  font-size: 0.9rem;
+}
+
+.dni {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  width: fit-content;
+
+  margin-top: 1.75rem;
+  padding: 0.65rem 0.9rem;
+
+  background: #f7f8fa;
+  border-radius: 10px;
+}
+
+.dni span {
+  color: var(--gris-med);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.dni strong {
+  color: var(--gris-dark);
+  font-size: 0.9rem;
+}
+
+.divider {
+  width: 1px;
+  height: 100%;
+  background: #eceff3;
+}
+
+/* =========================
+   PROGRESO
+========================= */
+
+.progressInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.progressHeader h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.progressHeader p {
+  margin: 0.5rem 0 0;
+  color: var(--gris-med);
+  font-size: 0.9rem;
+}
+
+.percentage {
+  color: #ff7900;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 10px;
+
+  margin-top: 1.5rem;
+
+  overflow: hidden;
+
+  background: #f0f1f3;
+  border-radius: 999px;
+}
+
+.progressBar {
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    #ffad00 0%,
+    #ff7900 50%,
+    #ff4438 100%
+  );
+
+  border-radius: inherit;
+
+  transition: width 0.4s ease;
+}
+
+.progressMessage {
+  max-width: 550px;
+  margin: 1rem 0 0;
+
+  color: var(--gris-med);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* =========================
+   INSTRUCCIONES
+========================= */
+
+.instructions {
+  margin-top: 3.5rem;
+}
+
+.instructionsHeader {
+  max-width: 650px;
+  margin-bottom: 1.5rem;
+}
+
+.instructionsHeader h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+  font-size: 1.75rem;
+}
+
+.instructionsHeader p {
+  margin: 0.6rem 0 0;
+
+  color: var(--gris-med);
+  line-height: 1.6;
+}
+
+.instructionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-.centerAlign {
-  text-align: center;
-}
-
-.navCards {
+.instruction {
   display: flex;
-  gap: 2rem;
-  margin: 0.5rem 0;
+  gap: 1rem;
+
+  padding: 1.4rem;
+
+  background: #ffffff;
+  border: 1px solid #edf0f4;
+  border-radius: 16px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.cardTitle {
-  color: var(--gris-med);
-  font-weight: 500;
-  margin: 0 0 0.5rem 0;
+.instruction:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 25px rgba(32, 40, 50, 0.06);
 }
 
-.cardResult {
-  font-size: 24px;
-  font-weight: 700;
+.icon {
+  display: flex;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  color: #ff7900;
+  background: #fff5eb;
+  border-radius: 12px;
+
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.instruction h3 {
+  margin: 0 0 0.35rem;
+
   color: var(--gris-dark);
-  margin: 0;
+  font-size: 0.95rem;
 }
 
-tbody button {
-  color: #1b263b;
-  border: none;
-  background-color: transparent;
-  padding: 0.6em 0;
+.instruction p {
+  margin: 0;
+
+  color: var(--gris-med);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* =========================
+   ACCIONES
+========================= */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+
+  margin-top: 2rem;
+  padding: 2rem;
+
+  background: #ffffff;
+  border: 1px solid #edf0f4;
+  border-radius: 18px;
+}
+
+.actionsText {
+  max-width: 600px;
+}
+
+.actionsText h2 {
+  margin: 0;
+
+  color: var(--gris-dark);
+  font-size: 1.3rem;
+}
+
+.actionsText p {
+  margin: 0.45rem 0 0;
+
+  color: var(--gris-med);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .buttonContainer {
   display: flex;
-  justify-content: space-evenly;
-  gap: 1rem;
+  flex-shrink: 0;
+  gap: 0.75rem;
 }
 
-.sidebar p {
-  font-size: var(--font-size-small);
-  margin: 1rem 0;
+/* =========================
+   LOADING
+========================= */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 400px;
+
+  color: var(--gris-med);
 }
+
+.loadingCircle {
+  width: 34px;
+  height: 34px;
+
+  border: 3px solid #eeeeee;
+  border-top-color: #ff7900;
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
 
 @media (max-width: 900px) {
-  .buttonContainer {
+  .container {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .summaryCard {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .instructionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .buttonContainer {
+    width: 100%;
+  }
+
+  .buttonContainer > * {
+    flex: 1;
   }
 }
 
 @media (max-width: 600px) {
-  .cardTitle {
-    font-size: 1rem;
+  .container {
+    padding: 1.5rem 1rem 2.5rem;
   }
 
-  .cardResult {
-    font-size: 20px;
+  .welcome {
+    margin-bottom: 1.5rem;
+  }
+
+  .welcome h1 {
+    font-size: 2rem;
+  }
+
+  .summaryCard {
+    padding: 1.5rem;
+    border-radius: 18px;
+  }
+
+  .deadline {
+    font-size: 2.2rem;
+  }
+
+  .instructions {
+    margin-top: 2.5rem;
+  }
+
+  .instruction {
+    padding: 1.15rem;
+  }
+
+  .actions {
+    padding: 1.5rem;
   }
 
   .buttonContainer {
-    gap: 0.75rem;
+    flex-direction: column;
   }
 }

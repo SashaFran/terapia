@@ -1,27 +1,73 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { isPacienteAuthenticated, getPacienteSession } from "../utils/pacienteSession";
+import {
+  isPacienteAuthenticated,
+  getPacienteSession,
+} from "../utils/pacienteSession";
 
-export default function PrivatePacienteRoute({ children }: any) {
-  // Validar que exista la sesión del paciente y que sea válida
+function convertirFecha(fecha: any): Date | null {
+  if (!fecha) return null;
+
+  if (typeof fecha.toDate === "function") {
+    return fecha.toDate();
+  }
+
+  if (typeof fecha.seconds === "number") {
+    return new Date(fecha.seconds * 1000);
+  }
+
+  const date = new Date(fecha);
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
+}
+
+export default function PrivatePacienteRoute() {
   if (!isPacienteAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
-  // Validar que el paciente aún esté activo (no expirado)
   const paciente = getPacienteSession();
-  if (paciente) {
-    const ahora = new Date();
-    const fin = paciente.fechaFinAcceso?.seconds
-      ? new Date(paciente.fechaFinAcceso.seconds * 1000)
-      : paciente.fechaFinAcceso ? new Date(paciente.fechaFinAcceso) : null;
 
-    if (fin && ahora > fin) {
-      // Si la sesión expiró, limpiar y redirigir
-      localStorage.removeItem("paciente");
-      localStorage.removeItem("pacienteId");
-      localStorage.removeItem("rol");
-      return <Navigate to="/login" replace />;
-    }
+  if (!paciente) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const ahora = new Date();
+
+  const inicio = convertirFecha(
+    paciente.fechaInicioAcceso,
+  );
+
+  const fin = convertirFecha(
+    paciente.fechaFinAcceso,
+  );
+
+  // Todavía no comenzó el período de acceso.
+  if (inicio && ahora < inicio) {
+    localStorage.removeItem("paciente");
+    localStorage.removeItem("pacienteId");
+    localStorage.removeItem("rol");
+
+    return <Navigate to="/login" replace />;
+  }
+
+  // Ya terminó el período de acceso.
+  if (fin && ahora >= fin) {
+    localStorage.removeItem("paciente");
+    localStorage.removeItem("pacienteId");
+    localStorage.removeItem("rol");
+
+    return <Navigate to="/login" replace />;
+  }
+
+  // Paciente desactivado manualmente.
+  if (paciente.activo === false) {
+    localStorage.removeItem("paciente");
+    localStorage.removeItem("pacienteId");
+    localStorage.removeItem("rol");
+
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
