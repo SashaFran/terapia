@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   addDoc,
@@ -63,6 +63,124 @@ interface Props {
 }
 
 /* =========================================================
+   FECHAS
+========================================================= */
+
+function convertirFecha(fecha: any): Date | null {
+  if (!fecha) return null;
+
+  if (typeof fecha.toDate === "function") {
+    return fecha.toDate();
+  }
+
+  if (typeof fecha.seconds === "number") {
+    return new Date(fecha.seconds * 1000);
+  }
+
+  const date = new Date(fecha);
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
+}
+
+/*
+ * Convierte una fecha Date a YYYY-MM-DD usando
+ * componentes LOCALES.
+ *
+ * Evitamos toISOString() para no introducir
+ * desplazamientos por UTC.
+ */
+function fechaParaInput(fecha: Date): string {
+  const year = fecha.getFullYear();
+
+  const month = String(
+    fecha.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    fecha.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+/*
+ * Convierte YYYY-MM-DD a una fecha local
+ * exactamente a las 09:00.
+ */
+function crearInicioAcceso(
+  fecha: string,
+): Date | null {
+  const partes = fecha
+    .split("-")
+    .map(Number);
+
+  if (
+    partes.length !== 3 ||
+    partes.some((parte) =>
+      Number.isNaN(parte),
+    )
+  ) {
+    return null;
+  }
+
+  const [year, month, day] = partes;
+
+  const date = new Date(
+    year,
+    month - 1,
+    day,
+    9,
+    0,
+    0,
+    0,
+  );
+
+  /*
+   * Validamos también que JS no haya normalizado
+   * silenciosamente una fecha inválida.
+   */
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+/*
+ * El vencimiento es exactamente 24 horas
+ * después del inicio.
+ */
+function calcularFinAcceso(
+  inicio: Date,
+): Date {
+  return new Date(
+    inicio.getTime() +
+      24 * 60 * 60 * 1000,
+  );
+}
+
+function formatearFechaHora(
+  fecha: Date | null,
+): string {
+  if (!fecha) return "—";
+
+  return fecha.toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+/* =========================================================
    COMPONENTE
 ========================================================= */
 
@@ -73,12 +191,23 @@ export default function EditarPacienteModal({
   paciente,
   asignacionesActuales = [],
 }: Props) {
-  const [activo, setActivo] = useState(true);
-  const [fechaFin, setFechaFin] = useState("");
-  const [testsSeleccionados, setTestsSeleccionados] =
-    useState<string[]>([]);
+  const [activo, setActivo] =
+    useState(true);
 
-  const [guardando, setGuardando] = useState(false);
+  /*
+   * Ahora guardamos la FECHA DE INGRESO,
+   * no la fecha de vencimiento.
+   */
+  const [fechaIngreso, setFechaIngreso] =
+    useState("");
+
+  const [
+    testsSeleccionados,
+    setTestsSeleccionados,
+  ] = useState<string[]>([]);
+
+  const [guardando, setGuardando] =
+    useState(false);
 
   /* =======================================================
      CARGAR DATOS
@@ -87,30 +216,60 @@ export default function EditarPacienteModal({
   useEffect(() => {
     if (!abierto || !paciente) return;
 
-    setActivo(paciente.activo);
-    setTestsSeleccionados(asignacionesActuales);
+    setActivo(
+      paciente.activo !== false,
+    );
 
-    if (paciente.fechaFinAcceso) {
-      const date = paciente.fechaFinAcceso.toDate
-        ? paciente.fechaFinAcceso.toDate()
-        : new Date(paciente.fechaFinAcceso);
+    setTestsSeleccionados(
+      asignacionesActuales,
+    );
 
-      const year = date.getFullYear();
+    /*
+     * Si ya existe fecha de inicio, mostramos
+     * ese mismo día en el input.
+     */
+    const inicioActual = convertirFecha(
+      paciente.fechaInicioAcceso,
+    );
 
-      const month = String(
-        date.getMonth() + 1,
-      ).padStart(2, "0");
-
-      const day = String(
-        date.getDate(),
-      ).padStart(2, "0");
-
-      setFechaFin(
-        `${year}-${month}-${day}`,
+    if (inicioActual) {
+      setFechaIngreso(
+        fechaParaInput(inicioActual),
       );
-    } else {
-      setFechaFin("");
+
+      return;
     }
+
+    /*
+     * Compatibilidad con pacientes antiguos:
+     *
+     * si por algún motivo sólo existe fechaFinAcceso,
+     * inferimos el inicio restando 24 horas.
+     */
+    const finActual = convertirFecha(
+      paciente.fechaFinAcceso,
+    );
+
+    if (finActual) {
+      const inicioInferido = new Date(
+        finActual.getTime() -
+          24 * 60 * 60 * 1000,
+      );
+
+      setFechaIngreso(
+        fechaParaInput(inicioInferido),
+      );
+
+      return;
+    }
+
+    /*
+     * Si no hay ninguna fecha registrada,
+     * proponemos hoy.
+     */
+    setFechaIngreso(
+      fechaParaInput(new Date()),
+    );
   }, [
     abierto,
     paciente,
@@ -124,35 +283,52 @@ export default function EditarPacienteModal({
   useEffect(() => {
     if (!abierto || !paciente) return;
 
-    try {
-      const previoActivo = paciente.activo;
-
-      if (!previoActivo && activo) {
-        const ahora = new Date();
-
-        const fin = new Date(
-          ahora.getTime() +
-            24 * 60 * 60 * 1000,
-        );
-
-        const year = fin.getFullYear();
-
-        const month = String(
-          fin.getMonth() + 1,
-        ).padStart(2, "0");
-
-        const day = String(
-          fin.getDate(),
-        ).padStart(2, "0");
-
-        setFechaFin(
-          `${year}-${month}-${day}`,
-        );
-      }
-    } catch {
-      // No hacemos nada.
+    /*
+     * Si estaba inactivo y el administrador
+     * lo reactiva, proponemos hoy como nueva
+     * fecha de ingreso.
+     *
+     * El inicio será hoy a las 09:00 y el
+     * vencimiento mañana a las 09:00.
+     *
+     * El admin igualmente puede cambiar el día
+     * antes de guardar.
+     */
+    if (
+      paciente.activo === false &&
+      activo
+    ) {
+      setFechaIngreso(
+        fechaParaInput(new Date()),
+      );
     }
   }, [activo, abierto, paciente]);
+
+  /* =======================================================
+     FECHAS DERIVADAS
+  ======================================================= */
+
+  const fechaInicioCalculada =
+    useMemo(() => {
+      if (!fechaIngreso) {
+        return null;
+      }
+
+      return crearInicioAcceso(
+        fechaIngreso,
+      );
+    }, [fechaIngreso]);
+
+  const fechaFinCalculada =
+    useMemo(() => {
+      if (!fechaInicioCalculada) {
+        return null;
+      }
+
+      return calcularFinAcceso(
+        fechaInicioCalculada,
+      );
+    }, [fechaInicioCalculada]);
 
   /* =======================================================
      TOGGLE TEST
@@ -164,33 +340,11 @@ export default function EditarPacienteModal({
     setTestsSeleccionados((prev) =>
       prev.includes(testId)
         ? prev.filter(
-            (test) => test !== testId,
+            (test) =>
+              test !== testId,
           )
         : [...prev, testId],
     );
-  };
-
-  /* =======================================================
-     FECHA MÍNIMA
-  ======================================================= */
-
-  const obtenerFechaMinima = () => {
-    if (!paciente?.fechaInicioAcceso) {
-      return undefined;
-    }
-
-    const inicio =
-      paciente.fechaInicioAcceso.toDate
-        ? paciente.fechaInicioAcceso.toDate()
-        : new Date(
-            paciente.fechaInicioAcceso,
-          );
-
-    return new Date(
-      inicio.getTime(),
-    )
-      .toISOString()
-      .slice(0, 10);
   };
 
   /* =======================================================
@@ -207,51 +361,32 @@ export default function EditarPacienteModal({
         return;
       }
 
-      if (!fechaFin) {
+      if (!fechaIngreso) {
         alert(
-          "Seleccioná una fecha límite de acceso.",
+          "Seleccioná una fecha de ingreso.",
         );
 
         return;
       }
 
-      try {
-        setGuardando(true);
-
-        const dateObj = new Date(
-          fechaFin.replace(/-/g, "/"),
+      const inicio =
+        crearInicioAcceso(
+          fechaIngreso,
         );
 
-        const inicio =
-          paciente?.fechaInicioAcceso
-            ?.toDate
-            ? paciente.fechaInicioAcceso.toDate()
-            : new Date(
-                paciente?.fechaInicioAcceso,
-              );
+      if (!inicio) {
+        alert(
+          "La fecha de ingreso no es válida.",
+        );
 
-        if (
-          inicio instanceof Date &&
-          !Number.isNaN(
-            inicio.getTime(),
-          )
-        ) {
-          const maxFin = new Date(
-            inicio.getTime() +
-              24 * 60 * 60 * 1000,
-          );
+        return;
+      }
 
-          if (
-            dateObj.getTime() >
-            maxFin.getTime()
-          ) {
-            alert(
-              "La fecha de fin no puede superar las 24 horas desde la fecha de inicio.",
-            );
+      const fin =
+        calcularFinAcceso(inicio);
 
-            return;
-          }
-        }
+      try {
+        setGuardando(true);
 
         /* -------------------------
            PACIENTE
@@ -267,7 +402,17 @@ export default function EditarPacienteModal({
           pacienteRef,
           {
             activo,
-            fechaFinAcceso: dateObj,
+
+            /*
+             * Siempre guardamos las dos fechas
+             * juntas para mantener una ventana
+             * exacta de 24 horas.
+             */
+            fechaInicioAcceso:
+              inicio,
+
+            fechaFinAcceso:
+              fin,
           },
         );
 
@@ -294,6 +439,7 @@ export default function EditarPacienteModal({
           asignacionesSnap.docs.map(
             (documento) => ({
               id: documento.id,
+
               testId:
                 documento.data()
                   .testId,
@@ -365,11 +511,17 @@ export default function EditarPacienteModal({
           ...borrar,
         ]);
 
+        /*
+         * Informamos al perfil AMBAS fechas.
+         */
         onGuardar({
           activo,
 
+          fechaInicioAcceso:
+            inicio,
+
           fechaFinAcceso:
-            dateObj,
+            fin,
 
           testsSeleccionados,
         });
@@ -578,7 +730,7 @@ export default function EditarPacienteModal({
               </p>
             </div>
 
-            {/* FECHA */}
+            {/* FECHA DE INGRESO */}
 
             <div
               className={
@@ -596,12 +748,11 @@ export default function EditarPacienteModal({
                       styles.settingLabel
                     }
                   >
-                    Fecha límite
+                    Fecha de ingreso
                   </span>
 
                   <strong>
-                    Vencimiento del
-                    acceso
+                    Inicio del acceso
                   </strong>
                 </div>
 
@@ -621,14 +772,17 @@ export default function EditarPacienteModal({
               >
                 <input
                   type="date"
-                  value={fechaFin}
-                  onChange={(event) =>
-                    setFechaFin(
+                  value={
+                    fechaIngreso
+                  }
+                  onChange={(
+                    event,
+                  ) =>
+                    setFechaIngreso(
                       event.target
                         .value,
                     )
                   }
-                  min={obtenerFechaMinima()}
                   disabled={
                     guardando
                   }
@@ -640,11 +794,27 @@ export default function EditarPacienteModal({
                   styles.settingHelp
                 }
               >
-                El acceso no puede
-                superar las 24 horas
-                desde la fecha de
-                inicio.
+                El acceso comienza a
+                las 09:00 y permanece
+                habilitado durante 24
+                horas.
               </p>
+
+              {fechaFinCalculada && (
+                <p
+                  className={
+                    styles.settingHelp
+                  }
+                >
+                  <strong>
+                    Vencimiento
+                    automático:
+                  </strong>{" "}
+                  {formatearFechaHora(
+                    fechaFinCalculada,
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -802,7 +972,8 @@ export default function EditarPacienteModal({
                 manejarGuardar
               }
               disabled={
-                guardando
+                guardando ||
+                !fechaIngreso
               }
             >
               {guardando

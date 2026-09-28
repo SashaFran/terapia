@@ -396,20 +396,29 @@ export default function PacientePerfil() {
      ACTUALIZACIÓN DESDE MODAL
   ========================================================= */
 
-  const handlePacienteActualizado = (data: any) => {
-    setPatient((prev) => {
-      if (!prev) return prev;
+const handlePacienteActualizado = (data: any) => {
+  setPatient((prev) => {
+    if (!prev) return prev;
 
-      return {
-        ...prev,
-        activo: data.activo ?? prev.activo,
-        fechaFinAcceso:
-          data.fechaFinAcceso ?? prev.fechaFinAcceso,
-      };
-    });
+    return {
+      ...prev,
 
-    void cargarPaciente();
-  };
+      activo:
+        data.activo ??
+        prev.activo,
+
+      fechaInicioAcceso:
+        data.fechaInicioAcceso ??
+        prev.fechaInicioAcceso,
+
+      fechaFinAcceso:
+        data.fechaFinAcceso ??
+        prev.fechaFinAcceso,
+    };
+  });
+
+  void cargarPaciente();
+};
 
   /* =========================================================
      DESCARGAS
