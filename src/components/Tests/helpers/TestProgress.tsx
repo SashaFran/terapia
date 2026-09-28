@@ -27,7 +27,7 @@ export default function TestProgress({
     );
 
     elemento?.scrollIntoView({
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       block: "center",
     });
   };
@@ -120,8 +120,7 @@ export default function TestProgress({
         <span className={styles.legendDot} />
 
         <p>
-          Las láminas respondidas se marcarán
-          automáticamente.
+          Las respuestas completadas se marcarán automáticamente. Seleccione un número para revisarlas.
         </p>
       </div>
     </aside>

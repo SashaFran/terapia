@@ -1,11 +1,11 @@
+import TestProgress from "../helpers/TestProgress";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BENDER_TEST } from "../../../data/tests/bender_test";
 import RotatableImage from "./RotatableImage";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "./TestBender.module.css";
-import Modal from "../../Modal/Modal";
-import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import relojStyle from "../helpers/countdown.module.css";
 import { useTestEngine } from "../helpers/useTestEngine";
 
@@ -61,59 +61,33 @@ export default function TestBender({ onFinish, userId }: Props) {
   };
 
   if (!engine.started) {
-    return (
-      <Modal
-        abierto={true}
-        onCerrar={() => {}}
-        titulo="Instrucciones - Test Bender"
-      >
-        <div style={{ marginBottom: "15px" }}>
-          <p>
-            En esta prueba, se encontrarán distintas láminas. Para cada una de ellas, deberá escribir en cada renglón lo que ve u opina respecto de dicha lámina, así como también qué siente o piensa al verla.
-          </p>
-          <p>
-            Tiene <strong>30 minutos</strong> para completar el test y se realizarán capturas a través de la cámara para verificar su identidad.
-            <br />
-            <strong>Importante:</strong> Es necesario que acepte o no podrá ser evaluado.
-          </p>
-        </div>
-        <ConsentimientoCamara changeStatus={setCanStart} />
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-          }}
-        >
-          <BotonPersonalizado
-            variant="primary"
-            onClick={engine.start}
-            disabled={!canStart}
-          >
-            Comenzar Evaluación
-          </BotonPersonalizado>
-        </div>
-      </Modal>
-    );
+    return <TestIntroModal nombre="Test Bender" descripcion="Observe las láminas y escriba su respuesta"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={false} instrucciones={[{ titulo: "Observe cada lámina", texto: <p>Mire cada imagen con atención.</p> },
+{ titulo: "Escriba su respuesta", texto: <p>Describa qué ve y qué siente o piensa al observarla. Puede revisar lo escrito antes de finalizar.</p> }]} />;
   }
 
   return (
-    <div className={`container scrollbar`}>
+    <div className={styles.page}>
       {engine.feedback}
-      <div className={`nav`}>
-        <h2>{BENDER_TEST.nombre}</h2>
-        <div className={timerClass}>
+      <header className={styles.header}>
+        <div><h1>{BENDER_TEST.nombre}</h1><p>Observe cada lámina y escriba qué ve, siente o piensa al verla.</p></div>
+        <div aria-label="Tiempo restante" className={timerClass}>
           {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
         </div>
-      </div>
+      </header>
       {engine.CameraComponent && <engine.CameraComponent />}
 
+      <div className={styles.workspace}>
+      <TestProgress total={respuestas.length} completadas={respuestas.map(r => Boolean(r.trim()))} />
       <div className={styles.container}>
         {BENDER_TEST.imagenes.map((img, i) => (
-          <div key={i} className={styles.containerImg}>
+          <div key={i} id={`test-item-${i}`} className={styles.containerImg}>
+            <h2>Lámina {i + 1}</h2>
             <RotatableImage src={img} />
+            <label htmlFor={`bender-${i}`}>Su respuesta para la lámina {i + 1}</label>
             <textarea
+              id={`bender-${i}`}
               disabled={engine.inputLocked}
               placeholder="¿Qué ves en esta lámina? ¿Qué sientes o piensas al verla?"
               value={respuestas[i]}
@@ -130,6 +104,7 @@ export default function TestBender({ onFinish, userId }: Props) {
         >
           {enviando ? "Enviando..." : "Finalizar Test"}
         </BotonPersonalizado>
+      </div>
       </div>
     </div>
   );

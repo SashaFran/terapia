@@ -39,7 +39,7 @@
 .eyebrow {
   margin: 0 0 0.45rem;
 
-  color: var(--naranja2);
+  color: var(--accent-text);
 
   font-size: var(--font-size-small);
   font-weight: var(--font-bold);
@@ -201,7 +201,7 @@
 
   overflow: hidden;
 
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
 
@@ -247,9 +247,9 @@
 .navigatorHeader p {
   margin: 0 0 0.2rem;
 
-  color: var(--naranja2);
+  color: var(--accent-text);
 
-  font-size: 0.65rem;
+  font-size: var(--font-size-small);
   font-weight: var(--font-bold);
 
   letter-spacing: 0.08em;
@@ -284,7 +284,7 @@
 
   border-radius: var(--radius);
 
-  font-size: 0.65rem;
+  font-size: var(--font-size-small);
   font-weight: var(--font-bold);
 
   place-items: center;
@@ -329,7 +329,7 @@
 
   color: var(--gris-med);
 
-  font-size: 0.65rem;
+  font-size: var(--font-size-small);
 
   line-height: 1.4;
 }
@@ -366,14 +366,14 @@
   padding: 0;
 
   color: var(--gris-med);
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
 
   border-radius: 7px;
 
   font-family: var(--font-family-body);
-  font-size: 0.63rem;
+  font-size: var(--font-size-small);
   font-weight: var(--font-regular);
 
   cursor: pointer;
@@ -401,7 +401,7 @@
 ========================================================= */
 
 .questionIndexAnswered {
-  color: var(--verde);
+  color: var(--success-text);
 
   background:
     color-mix(
@@ -482,7 +482,7 @@
 
   color: var(--gris-med);
 
-  font-size: 0.6rem;
+  font-size: var(--font-size-small);
 }
 
 .navigatorLegend i {
@@ -524,7 +524,7 @@
 
   padding: 2.5rem;
 
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
 
@@ -568,7 +568,7 @@
 }
 
 .questionNumber {
-  color: var(--naranja2);
+  color: var(--accent-text);
 
   font-size: var(--font-size-small);
   font-weight: var(--font-bold);
@@ -585,7 +585,7 @@
 
   gap: 0.4rem;
 
-  color: var(--verde);
+  color: var(--success-text);
 
   font-size: var(--font-size-small);
   font-weight: var(--font-bold);
@@ -657,7 +657,7 @@
   box-sizing: border-box;
 
   color: var(--gris-dark);
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris);
 
@@ -706,7 +706,7 @@
 
   box-sizing: border-box;
 
-  background: white;
+  background: var(--surface);
 
   border: 1px solid var(--gris-med);
 
@@ -738,7 +738,7 @@
 .optionSelected {
   background: var(--gris-bg);
 
-  border-color: var(--naranja2);
+  border-color: var(--accent-text);
 
   box-shadow:
     0 0 0 2px
@@ -750,7 +750,7 @@
 }
 
 .optionSelected .radioVisual {
-  border-color: var(--naranja2);
+  border-color: var(--accent-text);
 }
 
 .optionSelected .radioVisual > span {
@@ -847,7 +847,7 @@
 .backButton:hover:not(:disabled) {
   color: var(--font-color);
 
-  background: white;
+  background: var(--surface);
 
   border-color: var(--gris);
 }
@@ -1071,3 +1071,15 @@
     transform: none;
   }
 }
+/* Shared root tokens for readable answers and keyboard navigation. */
+.page { composes: page from "../TestShared.module.css"; }
+.optionLabel, .subtitle { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
+.option:has(input:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+.optionSelected { border-color: var(--action-bg); background: var(--beige); }
+.optionSelected .radioVisual { border-color: var(--action-bg); }
+.optionSelected .radioVisual > span { background: var(--action-bg); }
+.questionIndex { min-width: var(--control-height); min-height: var(--control-height); height: auto; }
+.questionGrid { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
+.questionIndexCurrent, .nextButton { color: var(--on-action); background: var(--action-bg); }
+.backButton, .nextButton { font-size: var(--font-size-regular); }
+@media (max-width: 600px) { .navigation { display: flex; flex-wrap: wrap; justify-content: space-between; } }

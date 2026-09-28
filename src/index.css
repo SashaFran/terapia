@@ -8,14 +8,28 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --radius: 8px;
 
+  /* Shared assessment tokens: decorative orange, readable burgundy actions. */
+  --surface: #ffffff;
+  --surface-muted: var(--gris-bg);
+  --text-muted: var(--gris-med);
+  --accent-text: #934300;
+  --action-bg: var(--bordo);
+  --action-hover: var(--bordo-light);
+  --on-action: #ffffff;
+  --success-text: #17683b;
+  --focus-color: var(--opuesto);
+  --control-border: #777b80;
+  --control-height: 44px;
+  --line-height-body: 1.6;
+  --test-max-width: 1180px;
+  --test-padding: clamp(1rem, 3vw, 2rem);
   --naranja: #ffb000;
   --naranja2: #ff8800;
   --rojo: #ff3c2a;
   --gris-bg: #f5f6fa;
   --gris: #d8dce3;
-  --gris-med: #868b90;
+  --gris-med: #595f66;
   --gris-dark: #2c2c2c;
   --verde: #28c66f;
   --radius: 16px;
@@ -30,7 +44,7 @@
   --opuesto-light: #7c4dff;
 
   --font-size-regular: 1rem;
-  --font-size-small: 0.75rem;
+  --font-size-small: 0.875rem;
   --font-size-h1: 2rem;
   --font-size-h2: 1.5rem;
   --font-size-h3: 1.125rem;
@@ -398,4 +412,19 @@ select:focus {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Global reading and interaction defaults, inherited by each test module. */
+*, *::before, *::after { box-sizing: border-box; }
+body { color: var(--font-color); background: var(--surface-muted); line-height: var(--line-height-body); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { min-height: var(--control-height); height: auto; white-space: normal; }
+:is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1; }
+input[type="radio"], input[type="checkbox"] { accent-color: var(--action-bg); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }

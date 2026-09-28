@@ -1,10 +1,9 @@
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { K10_TEST } from "../../../data/tests/k10";
 import BotonPersonalizado from "../../Boton/Boton";
 import styles from "../TestK10/Testk10.module.css";
-import Modal from "../../Modal/Modal";
-import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 import relojStyle from "../helpers/countdown.module.css";
 import { useTestEngine } from "../helpers/useTestEngine";
 
@@ -16,6 +15,7 @@ type Props = {
 export default function TestK10({ onFinish, userId }: Props) {
   const navigate = useNavigate();
 
+  const [preguntaActual, setPreguntaActual] = useState(0);
   const [canStart, setCanStart] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [respuestas, setRespuestas] = useState<number[]>(
@@ -77,110 +77,61 @@ export default function TestK10({ onFinish, userId }: Props) {
   const incompleto = respuestas.some((r) => r === 0);
 
   if (!engine.started) {
-    return (
-      <Modal abierto={true} onCerrar={() => {}} titulo="">
-        <div>
-          <strong>Bienvenido/a.</strong>{" "}
-          <p>
-            {" "}
-            Antes de comenzar, por favor lea atentamente las siguientes
-            indicaciones para asegurar un resultado preciso:
-          </p>
-          <ol>
-            <li>
-              <strong>El objetivo:</strong>
-              <li>
-                Este cuestionario consta de 10 preguntas sobre cómo se ha
-                sentido en los últimos 30 días.
-              </li>
-            </li>
-            <li>
-              <strong>Cómo responder:</strong>
-              <li>
-                Para cada frase, seleccione la opción que mejor describa la
-                frecuencia de ese sentimiento (desde "Nunca" hasta "Siempre").
-                <li>
-                  No piense demasiado sus respuestas; la primera impresión suele
-                  ser la más honesta. Responda según su estado real en el último
-                  mes, no cómo se siente habitualmente.
-                </li>
-              </li>
-            </li>
-            <li className="padding">
-              Tiene <strong>30 minutos</strong> para completar el test y se
-              realizarán capturas a traves de la camara para verificar su
-              identidad.
-              <br />
-              <strong>Importante:</strong> Es necesario que acepte o no podra
-              ser evaluado.
-            </li>
-          </ol>
-        </div>
-
-        <ConsentimientoCamara changeStatus={setCanStart} />
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-          }}
-        >
-          <BotonPersonalizado
-            variant="primary"
-            onClick={engine.start}
-            disabled={!canStart || !resolvedUserId}
-          >
-            Comenzar Evaluación
-          </BotonPersonalizado>
-        </div>
-      </Modal>
-    );
+    return <TestIntroModal nombre="Cuestionario K10" descripcion="Cómo se ha sentido en los últimos 30 días"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={!resolvedUserId} instrucciones={[{ titulo: "Piense en el último mes", texto: <p>Este cuestionario contiene 10 preguntas. Responda según cómo se ha sentido durante los últimos 30 días.</p> },
+{ titulo: "Seleccione una respuesta", texto: <p>Elija la frecuencia que mejor describa su experiencia. Puede volver a las preguntas anteriores para revisar sus respuestas.</p> }]} />;
   }
 
+  const respondidas = respuestas.filter(Boolean).length;
+  const ultima = preguntaActual === K10_TEST.preguntas.length - 1;
   return (
-    <div className={`container scrollbar`}>
+    <main className={styles.page}>
       {engine.feedback}
-      <div className={styles.nav}>
-        <h2>{K10_TEST.nombre}</h2>
-        <div className={timerClass}>
-          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
-        </div>
-      </div>
       {engine.CameraComponent && <engine.CameraComponent />}
-
-      <div className={styles.testContainer}>
-        {K10_TEST.preguntas.map((pregunta, i) => (
-          <div key={i} className={styles.testCard}>
-            <p>
-              <strong>{i + 1}.</strong> {pregunta}
-            </p>
-
-            <div className={styles.testCardItems}>
-              {K10_TEST.opciones.map((op) => (
+      <header className={styles.header}>
+        <div><h1>{K10_TEST.nombre}</h1><p>Piense en los últimos 30 días y seleccione una respuesta para cada pregunta.</p></div>
+        <div><span>Tiempo restante</span><div className={timerClass}>{engine.minutes}:{String(engine.seconds).padStart(2, "0")}</div></div>
+      </header>
+      <p role="status">{respondidas} de {respuestas.length} preguntas respondidas</p>
+      <progress className={styles.progress} aria-label="Preguntas respondidas" value={respondidas} max={respuestas.length} />
+      <div className={styles.workspace}>
+        <nav className={styles.navigator} aria-label="Preguntas del K10">
+          <h2>Preguntas</h2>
+          <div className={styles.questionGrid}>{respuestas.map((r, i) => (
+            <button key={i} type="button" disabled={engine.inputLocked} onClick={() => setPreguntaActual(i)}
+              aria-current={i === preguntaActual ? "step" : undefined}
+              aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : "pendiente"}`}>
+              {i + 1}{r ? " ✓" : ""}
+            </button>
+          ))}</div>
+          <p>✓ Respondida. Puede volver a revisar cualquier pregunta.</p>
+        </nav>
+        <section className={styles.content}>
+          <fieldset className={styles.testCard} disabled={engine.inputLocked}>
+            <legend>Pregunta {preguntaActual + 1} de {respuestas.length}</legend>
+            <h2 id="k10-question">{K10_TEST.preguntas[preguntaActual]}</h2>
+            <div className={styles.testCardItems} role="radiogroup" aria-labelledby="k10-question">
+              {K10_TEST.opciones.map(op => (
                 <label key={op.valor}>
-                  <input
-                    type="radio"
-                    disabled={engine.inputLocked}
-                    name={`pregunta-${i}`}
-                    checked={respuestas[i] === op.valor}
-                    onChange={() => responder(i, op.valor)}
-                  />
+                  <input type="radio" name={`k10-${preguntaActual}`} value={op.valor}
+                    checked={respuestas[preguntaActual] === op.valor} onChange={() => responder(preguntaActual, op.valor)} />
                   {op.label}
                 </label>
               ))}
             </div>
+          </fieldset>
+          <div className={styles.navigation}>
+            <BotonPersonalizado variant="secondary" disabled={preguntaActual === 0 || engine.inputLocked}
+              onClick={() => setPreguntaActual(i => i - 1)}>Anterior</BotonPersonalizado>
+            {ultima ? <BotonPersonalizado variant="primary" disabled={incompleto || enviando || engine.inputLocked} onClick={calcularResultado}>
+              {enviando ? "Guardando..." : "Finalizar test"}
+            </BotonPersonalizado> : <BotonPersonalizado variant="primary" disabled={!respuestas[preguntaActual] || engine.inputLocked}
+              onClick={() => setPreguntaActual(i => i + 1)}>Siguiente</BotonPersonalizado>}
           </div>
-        ))}
-
-        <BotonPersonalizado
-          variant="primary"
-          disabled={incompleto || enviando || engine.inputLocked}
-          onClick={calcularResultado}
-        >
-          {enviando ? "Guardando..." : "Finalizar test"}
-        </BotonPersonalizado>
+          <p>{ultima && incompleto ? "Responda las preguntas pendientes para finalizar." : "Puede cambiar su respuesta antes de finalizar."}</p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

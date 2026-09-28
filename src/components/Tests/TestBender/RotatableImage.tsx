@@ -15,6 +15,7 @@ export default function RotatableImage({ src }: Props) {
   return (
     <img
       src={src}
+      alt="Lámina de Bender"
       onMouseMove={(e) => e.buttons === 1 && handleDrag(e)}
       className={styles.img}
       style={{
