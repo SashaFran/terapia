@@ -1,0 +1,294 @@
+.card {
+  position: sticky;
+  top: 5.5rem;
+
+  width: var(--width-complete);
+
+  padding: 1rem;
+
+  box-sizing: border-box;
+
+  background: white;
+
+  border: 1px solid var(--gris);
+  border-radius: var(--radius);
+
+  box-shadow: var(--shadow);
+
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 3px;
+
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 0.25rem;
+
+  color: var(--naranja2);
+
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+.header h3 {
+  margin: 0;
+
+  color: var(--font-color);
+
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-bold);
+}
+
+.counter {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 44px;
+
+  padding: 0.3rem 0.55rem;
+
+  color: var(--gris-med);
+  background: var(--gris-bg);
+
+  border: 1px solid var(--gris);
+  border-radius: 999px;
+
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
+}
+
+/* =========================
+   PROGRESS BAR
+========================= */
+
+.progressTrack {
+  width: var(--width-complete);
+  height: 5px;
+
+  margin-top: 1rem;
+
+  overflow: hidden;
+
+  background: var(--gris);
+
+  border-radius: 999px;
+}
+
+.progressFill {
+  height: var(--heigh-complete);
+
+  background: var(--verde);
+
+  border-radius: inherit;
+
+  transition: width 0.25s ease;
+}
+
+.summary {
+  margin: 0.5rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+  line-height: 1.4;
+}
+
+/* =========================
+   ITEMS
+========================= */
+
+.items {
+  display: flex;
+  gap: 0.5rem;
+
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.item {
+  display: flex;
+  flex: 1;
+  min-height: 42px;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.35rem;
+
+  padding: 0.5rem;
+
+  color: var(--gris-med);
+  background: white;
+
+  border: 1px solid var(--gris);
+  border-radius: calc(var(--radius) / 2);
+
+  outline: none;
+
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.item:hover {
+  color: var(--font-color);
+
+  border-color: var(--naranja2);
+
+  box-shadow: var(--shadow);
+
+  transform: translateY(-1px);
+}
+
+.itemNumber {
+  line-height: 1;
+  font-size: var(--font-size-small);
+}
+
+.completed {
+  color: var(--verde);
+  background: color-mix(
+    in srgb,
+    var(--verde) 7%,
+    white
+  );
+
+  border-color: color-mix(
+    in srgb,
+    var(--verde) 35%,
+    white
+  );
+}
+
+.completed:hover {
+  color: var(--verde);
+
+  border-color: var(--verde);
+}
+
+.check {
+  display: inline-flex;
+
+  width: 16px;
+  height: 16px;
+
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  background: var(--verde);
+
+  border-radius: 50%;
+
+  font-size: 0.6rem;
+}
+
+.pending {
+  color: var(--gris-med);
+}
+
+/* =========================
+   LEGEND
+========================= */
+
+.legend {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 0.45rem;
+
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+
+  border-top: 1px solid var(--gris);
+}
+
+.legendDot {
+  flex: 0 0 auto;
+
+  width: 6px;
+  height: 6px;
+
+  margin-top: 0.3rem;
+
+  background: var(--verde);
+
+  border-radius: 50%;
+}
+
+.legend p {
+  margin: 0;
+
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+  line-height: 1.4;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+  .card {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill,
+  .item {
+    transition: none;
+  }
+
+  .item:hover {
+    transform: none;
+  }
+}

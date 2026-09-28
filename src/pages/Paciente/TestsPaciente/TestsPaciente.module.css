@@ -25,7 +25,7 @@
 
   color: #ff7900;
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-h3);
   font-weight: 800;
   letter-spacing: 0.14em;
 }
@@ -307,7 +307,7 @@
 
   border-radius: 10px;
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-h3);
   font-weight: 800;
 }
 

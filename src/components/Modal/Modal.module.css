@@ -58,10 +58,16 @@
 
   border-radius: 14px 14px 0 0;
 }
-
+.scrollbar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: #f2e9e2 #f1f1f1;
+  scrollbar-width: thin;
+  display: block;
+}
 .modalHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 
   gap: 1.5rem;
@@ -104,40 +110,24 @@
 
   color: #858a91;
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-small);
   line-height: 1.45;
 }
 
 .closeButton {
-  display: grid;
+display: grid;
   flex: 0 0 auto;
-
   width: 32px;
   height: 32px;
-
-  padding: 0;
-
   color: #858a90;
   background: #f7f8f9;
-
   border: 1px solid #e9ebee;
-  border-radius: 50%;
-
-  font-family: inherit;
-  font-size: 1.15rem;
-  font-weight: 400;
-
-  line-height: 1;
-
   cursor: pointer;
-
-  place-items: center;
-
-  transition:
-    color 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease,
-    transform 0.16s ease;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  align-content: center;
+}
+.closeButton p{
+  margin: 0;
 }
 
 .closeButton:hover {

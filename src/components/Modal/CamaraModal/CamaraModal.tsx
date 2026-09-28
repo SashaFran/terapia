@@ -1,39 +1,114 @@
-import React, { useState } from 'react';
+import { useState } from "react";
+
 import styles from "./CamaraModal.module.css";
 
-const ConsentimientoCamara = ({  changeStatus }) => {
-  const [isChecked, setIsChecked] = useState(false);
+type Props = {
+  changeStatus: (accepted: boolean) => void;
+};
 
-  const handleCheckboxChange = (e) => {
-    setIsChecked(e.target.checked);
-    changeStatus(e.target.checked);
+export default function ConsentimientoCamara({
+  changeStatus,
+}: Props) {
+  const [isChecked, setIsChecked] =
+    useState(false);
+
+  const handleCheckboxChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const checked = e.target.checked;
+
+    setIsChecked(checked);
+    changeStatus(checked);
   };
 
   return (
-    <div className={styles.aviso}>
-      <h4 className={styles.avisoTitle}>Aviso de Verificación de Identidad</h4>
-      <p>
-        Para garantizar la integridad del test, el sistema tomará fotografías aleatorias 
-        a través de su cámara web. Estas imágenes se procesarán únicamente para 
-        fines de validación de identidad.
-      </p>
-      <ul style={{ paddingLeft: '20px' }}>
-        <li>Las fotos se eliminarán automáticamente al finalizar la revisión.</li>
-        <li>No se compartirá su imagen con terceros.</li>
-        <li>Cumplimos con la normativa <strong>GDPR</strong> de protección de datos.</li>
-      </ul>
-      
-      <label className={styles.checkbox}>
-        <input 
-          type="checkbox" 
-          checked={isChecked} 
-          onChange={handleCheckboxChange} 
+    <section className={styles.consent}>
+      <div className={styles.header}>
+        <div>
+          <span className={styles.eyebrow}>
+            Verificación de identidad
+          </span>
+
+          <h3>Monitoreo fotográfico</h3>
+
+          <p>
+            Durante la evaluación se podrán realizar
+            capturas mediante la cámara del dispositivo
+            para validar la identidad del participante.
+          </p>
+        </div>
+
+        <span
+          className={styles.cameraMark}
+          aria-hidden="true"
+        >
+          ID
+        </span>
+      </div>
+
+      <div className={styles.details}>
+        <div className={styles.detail}>
+          <span className={styles.check}>✓</span>
+
+          <p>
+            Las imágenes se utilizarán exclusivamente
+            para la verificación de identidad asociada
+            a esta evaluación.
+          </p>
+        </div>
+
+        <div className={styles.detail}>
+          <span className={styles.check}>✓</span>
+
+          <p>
+            Las capturas no forman parte de las
+            respuestas del test.
+          </p>
+        </div>
+
+        <div className={styles.detail}>
+          <span className={styles.check}>✓</span>
+
+          <p>
+            El acceso a la cámara se solicitará al
+            comenzar la evaluación.
+          </p>
+        </div>
+      </div>
+
+      <label
+        className={`${styles.acceptance} ${
+          isChecked
+            ? styles.acceptanceChecked
+            : ""
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={handleCheckboxChange}
           className={styles.checkboxInput}
         />
-        Entiendo y acepto el monitoreo fotográfico.
-      </label>
-    </div>
-  );
-};
 
-export default ConsentimientoCamara;
+        <span
+          className={styles.customCheckbox}
+          aria-hidden="true"
+        >
+          {isChecked ? "✓" : ""}
+        </span>
+
+        <span className={styles.acceptanceCopy}>
+          <strong>
+            Entiendo y acepto el monitoreo
+            fotográfico.
+          </strong>
+
+          <small>
+            Este consentimiento es necesario para
+            iniciar la evaluación.
+          </small>
+        </span>
+      </label>
+    </section>
+  );
+}

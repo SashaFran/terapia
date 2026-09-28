@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
+
 import BotonPersonalizado from "../../Boton/Boton";
-import styles from "../TestK10/Testk10.module.css";
-import Modal from "../../Modal/Modal";
-import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
-import relojStyle from "../helpers/countdown.module.css";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+
+import styles from "./TestBFQ.module.css";
+
 import { useTestEngine } from "../helpers/useTestEngine";
 
 type ResultadoBFQ = {
@@ -23,40 +25,50 @@ type ResultadoBFQ = {
 
 type Props = {
   onFinish: (resultado: ResultadoBFQ) => void | Promise<void>;
-  userId: string | number; // ID necesario para el monitoreo
+  userId: string | number;
 };
 
-export default function TestBFQ({ onFinish, userId }: Props) {
+export default function TestBFQ({
+  onFinish,
+  userId,
+}: Props) {
   const navigate = useNavigate();
+
   const [canStart, setCanStart] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [preguntaActual, setPreguntaActual] = useState(0);
+
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(BFQ_TEST.preguntas.length).fill(0),
   );
 
-  const [enviando, setEnviando] = useState(false);
+  const totalPreguntas = BFQ_TEST.preguntas.length;
+
+  /* =======================================================
+     TEST ENGINE
+  ======================================================= */
+
   const engine = useTestEngine({
     userId,
+
     testId: "bfq",
+
     timeLimitMs: 30 * 60 * 1000,
+
     getResult: () => obtenerResultado(),
+
     onFinish: async (data) => {
       await onFinish(data);
-      navigate("/app/tests", { replace: true });
+
+      navigate("/app/tests", {
+        replace: true,
+      });
     },
   });
 
-  const tiempoRestante = engine.minutes * 60 + engine.seconds;
-  let timerClass = relojStyle.timer;
-  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
-  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
-
-  const responder = (index: number, valor: number) => {
-    setRespuestas((prev) => {
-      const copia = [...prev];
-      copia[index] = valor;
-      return copia;
-    });
-  };
+  /* =======================================================
+     RESULTADOS
+  ======================================================= */
 
   const dimensionesMap = {
     extraversion: [0, 5],
@@ -67,124 +79,597 @@ export default function TestBFQ({ onFinish, userId }: Props) {
   };
 
   const calcularDimension = (indices: number[]) =>
-    indices.reduce((acc, i) => acc + (respuestas[i] || 0), 0);
+    indices.reduce(
+      (acc, i) => acc + (respuestas[i] || 0),
+      0,
+    );
 
   const obtenerResultado = () => {
     const resultado = {
-      extraversion: calcularDimension(dimensionesMap.extraversion),
-      amabilidad: calcularDimension(dimensionesMap.amabilidad),
-      responsabilidad: calcularDimension(dimensionesMap.responsabilidad),
-      neuroticismo: calcularDimension(dimensionesMap.neuroticismo),
-      apertura: calcularDimension(dimensionesMap.apertura),
+      extraversion: calcularDimension(
+        dimensionesMap.extraversion,
+      ),
+
+      amabilidad: calcularDimension(
+        dimensionesMap.amabilidad,
+      ),
+
+      responsabilidad: calcularDimension(
+        dimensionesMap.responsabilidad,
+      ),
+
+      neuroticismo: calcularDimension(
+        dimensionesMap.neuroticismo,
+      ),
+
+      apertura: calcularDimension(
+        dimensionesMap.apertura,
+      ),
     };
+
     return {
-      dimensiones: resultado, respuestas, metodo: "BFQ", nivel: "Perfil Big Five",
-      score: Object.values(resultado).reduce((acc, val) => acc + val, 0),
+      dimensiones: resultado,
+      respuestas,
+      metodo: "BFQ",
+      nivel: "Perfil Big Five",
+
+      score: Object.values(resultado).reduce(
+        (acc, val) => acc + val,
+        0,
+      ),
     };
   };
 
+  /* =======================================================
+     RESPONDER
+  ======================================================= */
+
+  const responder = (
+    index: number,
+    valor: number,
+  ) => {
+    setRespuestas((prev) => {
+      const copia = [...prev];
+
+      copia[index] = valor;
+
+      return copia;
+    });
+  };
+
+  /* =======================================================
+     NAVEGACIÓN
+  ======================================================= */
+
+  const irAnterior = () => {
+    if (preguntaActual === 0) return;
+
+    setPreguntaActual((prev) => prev - 1);
+  };
+
+  const irSiguiente = () => {
+    if (
+      respuestas[preguntaActual] === 0 ||
+      preguntaActual >= totalPreguntas - 1
+    ) {
+      return;
+    }
+
+    setPreguntaActual((prev) => prev + 1);
+  };
+
+  const irAPregunta = (index: number) => {
+    if (engine.inputLocked) return;
+
+    setPreguntaActual(index);
+  };
+
+  /* =======================================================
+     FINALIZAR
+  ======================================================= */
+
+  const incompleto = respuestas.some(
+    (respuesta) => respuesta === 0,
+  );
+
   const calcularResultado = async () => {
-    if (!engine.started || enviando) return;
+    if (
+      !engine.started ||
+      enviando ||
+      incompleto
+    ) {
+      return;
+    }
+
     setEnviando(true);
 
     try {
-      await engine.submit(obtenerResultado());
+      await engine.submit(
+        obtenerResultado(),
+      );
     } catch (error) {
-      console.error("Error al finalizar:", error);
+      console.error(
+        "Error al finalizar:",
+        error,
+      );
+
       setEnviando(false);
     }
   };
 
-  const incompleto = respuestas.some((r) => r === 0);
+  /* =======================================================
+     SCROLL AL CAMBIAR DE PREGUNTA
+  ======================================================= */
+
+  useEffect(() => {
+    if (!engine.started) return;
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [preguntaActual, engine.started]);
+
+  /* =======================================================
+     INTRODUCCIÓN
+  ======================================================= */
 
   if (!engine.started) {
     return (
-      <Modal
-        abierto={true}
-        onCerrar={() => {}}
-        titulo="Instrucciones - Test BFQ"
-      >
-        <div style={{ marginBottom: "15px" }}>
-          <li>
-           A continuación encontrará una serie de frases sobre formas de pensar, sentir o actuar. Mire atentamente cada una y marque la opción que mejor describa su forma de ser.
-          </li>
-          <li className="padding">
-            Tiene <strong>30 minutos</strong> para completar el test y se realizarán capturas a traves de la camara para verificar su identidad.
-            <br />
-            <strong>Importante:</strong> Es necesario que acepte o no podra ser evaluado.
-          </li>
-        </div>
-        <ConsentimientoCamara changeStatus={setCanStart} />
+      <TestIntroModal
+        nombre="Test BFQ"
+        descripcion="Evaluación de rasgos de personalidad"
+        duracion="30 minutos"
+        canStart={canStart}
+        onConsentChange={setCanStart}
+        onStart={engine.start}
+        instrucciones={[
+          {
+            titulo: "Lea cada afirmación",
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-          }}
-        >
-          <BotonPersonalizado
-            variant="primary"
-            onClick={engine.start}
-            disabled={!canStart}
-          >
-            Comenzar Evaluación
-          </BotonPersonalizado>
-        </div>
-      </Modal>
+            texto: (
+              <p>
+                Durante la evaluación se
+                presentarán distintas frases
+                relacionadas con formas de pensar,
+                sentir o actuar.
+              </p>
+            ),
+          },
+
+          {
+            titulo: "Seleccione una respuesta",
+
+            texto: (
+              <p>
+                En cada afirmación, elija la opción
+                que mejor describa su forma habitual
+                de ser.
+              </p>
+            ),
+          },
+
+          {
+            titulo: "Responda con naturalidad",
+
+            texto: (
+              <p>
+                No existen respuestas correctas o
+                incorrectas. Procure responder de
+                manera espontánea y sincera.
+              </p>
+            ),
+          },
+        ]}
+      />
     );
   }
 
-  return (
-    <div className={`container scrollbar`}>
-      {engine.feedback}
-      <div className={`nav`}>
-        <h2>{BFQ_TEST.nombre}</h2>
-        <div className={timerClass}>
-          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
-        </div>
-      </div>
-      {engine.CameraComponent && <engine.CameraComponent />}
+  /* =======================================================
+     DATOS DE LA PREGUNTA ACTUAL
+  ======================================================= */
 
-      <div className={styles.testContainer}>
-        {BFQ_TEST.preguntas.map((pregunta, i) => (
-          <div key={i} className={styles.testCard}>
-            <p>
-              <strong>{i + 1}.</strong> {pregunta}
-            </p>
-            <div className={styles.testCardItems}>
-              {BFQ_TEST.opciones.map((op) => (
-                <label
-                  key={op.valor}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    disabled={engine.inputLocked}
-                    name={`pregunta-${i}`}
-                    checked={respuestas[i] === op.valor}
-                    onChange={() => responder(i, op.valor)}
-                    style={{ marginRight: "8px" }}
-                  />
-                  {op.label}
-                </label>
-              ))}
+  const pregunta =
+    BFQ_TEST.preguntas[preguntaActual];
+
+  const respuestaActual =
+    respuestas[preguntaActual];
+
+  const respondidas =
+    respuestas.filter(
+      (respuesta) => respuesta !== 0,
+    ).length;
+
+  const porcentaje =
+    (respondidas / totalPreguntas) * 100;
+
+  const esPrimera =
+    preguntaActual === 0;
+
+  const esUltima =
+    preguntaActual ===
+    totalPreguntas - 1;
+
+  /* =======================================================
+     TEST
+  ======================================================= */
+
+  return (
+    <main className={styles.page}>
+      {engine.feedback}
+
+      {engine.CameraComponent && (
+        <engine.CameraComponent />
+      )}
+
+      {/* ===================================================
+          CABECERA
+      =================================================== */}
+
+      <header className={styles.header}>
+        <div className={styles.headerCopy}>
+          <p className={styles.eyebrow}>
+            Evaluación en curso
+          </p>
+
+          <h1>
+            Escala de Personalidad BFQ
+          </h1>
+
+          <p className={styles.subtitle}>
+            Seleccione la opción que mejor describa
+            su forma habitual de pensar, sentir o
+            actuar.
+          </p>
+        </div>
+
+        <div className={styles.timer}>
+          <span>Tiempo restante</span>
+
+          <strong>
+            {engine.minutes}:
+            {String(
+              engine.seconds,
+            ).padStart(2, "0")}
+          </strong>
+        </div>
+      </header>
+
+      {/* ===================================================
+          PROGRESO GENERAL
+      =================================================== */}
+
+      <section className={styles.progressSection}>
+        <div className={styles.progressMeta}>
+          <span>
+            Pregunta {preguntaActual + 1} de{" "}
+            {totalPreguntas}
+          </span>
+
+          <span>
+            {respondidas} respondidas
+          </span>
+        </div>
+
+        <div
+          className={styles.progressTrack}
+          aria-label={`${respondidas} de ${totalPreguntas} preguntas respondidas`}
+        >
+          <div
+            className={styles.progressFill}
+            style={{
+              width: `${porcentaje}%`,
+            }}
+          />
+        </div>
+      </section>
+
+      {/* ===================================================
+          LAYOUT PRINCIPAL
+      =================================================== */}
+
+      <div className={styles.testLayout}>
+        {/* =================================================
+            NAVEGADOR DE PREGUNTAS
+        ================================================= */}
+
+        <aside className={styles.questionNavigator}>
+          <div className={styles.navigatorHeader}>
+            <div>
+              <p>Evaluación</p>
+
+              <h2>Preguntas</h2>
+            </div>
+
+            <span className={styles.navigatorCount}>
+              {respondidas}/{totalPreguntas}
+            </span>
+          </div>
+
+          <div className={styles.navigatorProgress}>
+            <div
+              style={{
+                width: `${porcentaje}%`,
+              }}
+            />
+          </div>
+
+          <p className={styles.navigatorStatus}>
+            {respondidas} de {totalPreguntas} respondidas
+          </p>
+
+          {/* ===============================================
+              NÚMEROS
+          =============================================== */}
+
+          <div className={styles.questionGrid}>
+            {respuestas.map(
+              (respuesta, index) => {
+                const respondida =
+                  respuesta !== 0;
+
+                const actual =
+                  index === preguntaActual;
+
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() =>
+                      irAPregunta(index)
+                    }
+                    disabled={
+                      engine.inputLocked
+                    }
+                    className={[
+                      styles.questionIndex,
+
+                      respondida
+                        ? styles.questionIndexAnswered
+                        : "",
+
+                      actual
+                        ? styles.questionIndexCurrent
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    aria-label={`Ir a la pregunta ${
+                      index + 1
+                    }${
+                      respondida
+                        ? ", respondida"
+                        : ", pendiente"
+                    }`}
+                    aria-current={
+                      actual
+                        ? "step"
+                        : undefined
+                    }
+                    title={
+                      respondida
+                        ? `Pregunta ${
+                            index + 1
+                          } · Respondida`
+                        : `Pregunta ${
+                            index + 1
+                          } · Pendiente`
+                    }
+                  >
+                    {String(
+                      index + 1,
+                    ).padStart(2, "0")}
+                  </button>
+                );
+              },
+            )}
+          </div>
+
+          {/* ===============================================
+              LEYENDA
+          =============================================== */}
+
+          <div className={styles.navigatorLegend}>
+            <span>
+              <i
+                className={
+                  styles.legendAnswered
+                }
+              />
+
+              Respondida
+            </span>
+
+            <span>
+              <i
+                className={
+                  styles.legendCurrent
+                }
+              />
+
+              Actual
+            </span>
+          </div>
+        </aside>
+
+        {/* =================================================
+            PREGUNTA ACTUAL
+        ================================================= */}
+
+        <section className={styles.questionArea}>
+          <div className={styles.questionCard}>
+            <div className={styles.questionHeader}>
+              <span className={styles.questionNumber}>
+                Pregunta{" "}
+                {String(
+                  preguntaActual + 1,
+                ).padStart(2, "0")}
+              </span>
+
+              {respuestaActual !== 0 && (
+                <span className={styles.answered}>
+                  <span />
+
+                  Respondida
+                </span>
+              )}
+            </div>
+
+            <h2 className={styles.question}>
+              {pregunta}
+            </h2>
+
+            {/* =============================================
+                OPCIONES
+            ============================================= */}
+
+            <div
+              className={styles.options}
+              role="radiogroup"
+              aria-label={`Pregunta ${
+                preguntaActual + 1
+              }`}
+            >
+              {BFQ_TEST.opciones.map(
+                (op) => {
+                  const seleccionada =
+                    respuestaActual ===
+                    op.valor;
+
+                  return (
+                    <label
+                      key={op.valor}
+                      className={`${
+                        styles.option
+                      } ${
+                        seleccionada
+                          ? styles.optionSelected
+                          : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`pregunta-${preguntaActual}`}
+                        value={op.valor}
+                        checked={
+                          seleccionada
+                        }
+                        disabled={
+                          engine.inputLocked
+                        }
+                        onChange={() =>
+                          responder(
+                            preguntaActual,
+                            op.valor,
+                          )
+                        }
+                      />
+
+                      <span
+                        className={
+                          styles.radioVisual
+                        }
+                        aria-hidden="true"
+                      >
+                        <span />
+                      </span>
+
+                      <span
+                        className={
+                          styles.optionLabel
+                        }
+                      >
+                        {op.label}
+                      </span>
+                    </label>
+                  );
+                },
+              )}
             </div>
           </div>
-        ))}
 
-        <BotonPersonalizado
-          variant="primary"
-          disabled={incompleto || enviando || engine.inputLocked}
-          onClick={calcularResultado}
-        >
-          {enviando ? "Guardando..." : "Finalizar test"}
-        </BotonPersonalizado>
+          {/* ===============================================
+              NAVEGACIÓN INFERIOR
+          =============================================== */}
+
+          <div className={styles.navigation}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={irAnterior}
+              disabled={
+                esPrimera ||
+                engine.inputLocked
+              }
+            >
+              <span aria-hidden="true">
+                ←
+              </span>
+
+              Anterior
+            </button>
+
+            <div className={styles.navigationStatus}>
+              <span>
+                {preguntaActual + 1}
+              </span>
+
+              <span>/</span>
+
+              <span>
+                {totalPreguntas}
+              </span>
+            </div>
+
+            {!esUltima ? (
+              <button
+                type="button"
+                className={styles.nextButton}
+                onClick={irSiguiente}
+                disabled={
+                  respuestaActual === 0 ||
+                  engine.inputLocked
+                }
+              >
+                Siguiente
+
+                <span aria-hidden="true">
+                  →
+                </span>
+              </button>
+            ) : (
+              <div
+                className={
+                  styles.finishButton
+                }
+              >
+                <BotonPersonalizado
+                  variant="primary"
+                  disabled={
+                    incompleto ||
+                    enviando ||
+                    engine.inputLocked
+                  }
+                  onClick={
+                    calcularResultado
+                  }
+                >
+                  {enviando
+                    ? "Guardando..."
+                    : "Finalizar evaluación"}
+                </BotonPersonalizado>
+              </div>
+            )}
+          </div>
+
+          <p className={styles.helper}>
+            Puede volver a las preguntas
+            anteriores para modificar sus
+            respuestas antes de finalizar la
+            evaluación.
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

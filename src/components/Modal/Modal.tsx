@@ -45,7 +45,7 @@ export default function Modal({
       role="presentation"
     >
       <div
-        className={styles.modalContent}
+        className={`${styles.scrollbar} ${styles.modalContent}`}
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -73,13 +73,13 @@ export default function Modal({
             aria-label="Cerrar"
             title="Cerrar"
           >
-            ×
+            <p>x</p>
           </button>
         </div>
 
         <div className={styles.divider} />
 
-        <div className={styles.modalBody}>
+        <div className={`${styles.modalBody}`}>
           {children}
         </div>
       </div>

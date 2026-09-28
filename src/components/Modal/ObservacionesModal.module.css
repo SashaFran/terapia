@@ -23,7 +23,7 @@
 .labelRow label {
   color: #42474d;
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-h3);
   font-weight: 700;
 }
 

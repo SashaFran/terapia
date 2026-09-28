@@ -1,20 +1,293 @@
-.aviso{
-    padding: 15px;
-    background-color: rgb(249, 249, 249);
-    border-radius: 8px;
-    border: 1px solid rgb(221, 221, 221);
-    font-size: 0.9em;
-    margin: 1.5rem 0;
+.consent {
+  overflow: hidden;
+  border: 1px solid #e5e7e9;
+  border-radius: 10px;
 }
-.avisoTitle{
-    margin: 0;
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: 1rem;
+
+  border-bottom: 1px solid #e9ebed;
 }
-.checkbox{
-    display: flex; 
-    align-items: center; 
-    cursor: pointer;
-    font-weight: bold;
+
+.header > div {
+  min-width: 0;
 }
-.checkboxInput{
-    margin-right: 10px;
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 0.3rem;
+
+  color: #9b8a7c;
+
+  font-size: 0.52rem;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h3 {
+  margin: 0;
+
+  color: #4a4643;
+
+  font-size: var(--font-size-h3);
+  font-weight: 750;
+}
+
+.header p {
+  max-width: 650px;
+
+  margin: 0.35rem 0 0;
+
+  color: #898e93;
+
+  font-size: 0.58rem;
+
+  line-height: 1.5;
+}
+
+.cameraMark {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  width: 31px;
+  height: 31px;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #e67532;
+  background: #fff7f1;
+
+  border: 1px solid #f3ddcf;
+  border-radius: 8px;
+
+  font-size: 0.52rem;
+  font-weight: 850;
+
+  letter-spacing: 0.03em;
+}
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+.details {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 0;
+
+  padding: 0.85rem 1rem;
+}
+
+.detail {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 0.45rem;
+
+  padding: 0 0.75rem;
+}
+
+.detail:first-child {
+  padding-left: 0;
+}
+
+.detail:last-child {
+  padding-right: 0;
+}
+
+.detail + .detail {
+  border-left: 1px solid #e9ebed;
+}
+
+.check {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  width: 17px;
+  height: 17px;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 1px;
+
+  color: #3e9c70;
+  background: #eff9f4;
+
+  border: 1px solid #d2ecdf;
+  border-radius: 50%;
+
+  font-size: 0.48rem;
+  font-weight: 800;
+}
+
+.detail p {
+  margin: 0;
+
+  color: var(--font-color);
+
+  font-size: var(--font-size-small);
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   ACCEPTANCE
+========================================================= */
+
+.acceptance {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.7rem;
+
+  margin: 0 1rem 1rem;
+
+  padding: 0.8rem;
+
+  background: #ffffff;
+
+  border: 1px solid #e0e3e5;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.acceptance:hover {
+  border-color: #efc6aa;
+}
+
+.acceptanceChecked {
+  background: #fffaf6;
+
+  border-color: #f1bd99;
+
+  box-shadow:
+    0 0 0 3px rgba(239, 123, 50, 0.04);
+}
+
+.checkboxInput {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.customCheckbox {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+
+  width: 20px;
+  height: 20px;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  background: #ffffff;
+
+  border: 1px solid #cfd3d6;
+  border-radius: 5px;
+
+  font-size: 0.55rem;
+  font-weight: 800;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.acceptanceChecked .customCheckbox {
+  background:
+    linear-gradient(
+      135deg,
+      #ffad16,
+      #ff7130
+    );
+
+  border-color: #f28a37;
+}
+
+.acceptanceCopy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.12rem;
+}
+
+.acceptanceCopy strong {
+  color: #5c5753;
+
+  font-size: var(--font-size-small);
+  font-weight: 700;
+}
+
+.acceptanceCopy small {
+color: var(--gris-dark);
+  font-size: var(--font-size-small);
+  line-height: 1.4;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+  .details {
+    grid-template-columns: 1fr;
+
+    gap: 0.65rem;
+  }
+
+  .detail,
+  .detail:first-child,
+  .detail:last-child {
+    padding: 0;
+  }
+
+  .detail + .detail {
+    padding-top: 0.65rem;
+
+    border-top: 1px solid #e9ebed;
+    border-left: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acceptance,
+  .customCheckbox {
+    transition: none;
+  }
 }
