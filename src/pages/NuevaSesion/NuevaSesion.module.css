@@ -43,7 +43,7 @@
 
   color: #3c4146;
 
-  font-size: 0.78rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 }
 
@@ -91,7 +91,7 @@
 
   border: 1px solid #f7e3c5;
 
-  font-size: 0.57rem;
+font-size: var(--font-size-xsmall);
 }
 
 .testCounter {
@@ -113,7 +113,7 @@
 
   border: 1px solid #e9ebed;
 
-  font-size: 0.54rem;
+  font-size: var(--font-size-xsmall);
 }
 
 .selectedBadge {
@@ -212,7 +212,7 @@
   outline: none;
 
   font-family: inherit;
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
 
   transition:
     border-color 0.16s ease,

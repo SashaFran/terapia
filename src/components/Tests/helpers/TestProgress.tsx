@@ -104,14 +104,14 @@ export default function TestProgress({
                   )}
                 </span>
 
-                {completa && (
+{/*                 {completa && (
                   <span
                     className={styles.check}
                     aria-hidden="true"
                   >
                     ✓
                   </span>
-                )}
+                )} */}
               </button>
             );
           },

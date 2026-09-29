@@ -16,7 +16,6 @@
   color: var(--font-color);
 }
 
-
 /* =========================================================
    HEADER
 ========================================================= */
@@ -75,7 +74,6 @@
   line-height: 1.55;
 }
 
-
 /* =========================================================
    TIMER
 ========================================================= */
@@ -110,7 +108,6 @@
 
   line-height: 1;
 }
-
 
 /* =========================================================
    GENERAL PROGRESS
@@ -155,19 +152,17 @@
 .progressFill {
   height: var(--heigh-complete);
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--naranja),
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
 
   border-radius: inherit;
 
   transition: width 0.3s ease;
 }
-
 
 /* =========================================================
    MAIN TEST LAYOUT
@@ -186,7 +181,6 @@
 
   margin-top: 3rem;
 }
-
 
 /* =========================================================
    QUESTION NAVIGATOR
@@ -223,15 +217,13 @@
 
   height: 3px;
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--naranja),
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
 }
-
 
 /* =========================================================
    NAVIGATOR HEADER
@@ -292,7 +284,6 @@
   place-items: center;
 }
 
-
 /* =========================================================
    NAVIGATOR PROGRESS
 ========================================================= */
@@ -313,13 +304,12 @@
 .navigatorProgress > div {
   height: var(--heigh-complete);
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--naranja),
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
 
   border-radius: inherit;
 
@@ -336,27 +326,38 @@
   line-height: 1.4;
 }
 
-
 /* =========================================================
    QUESTION GRID
 ========================================================= */
 
 .questionGrid {
   display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 4px;
+}
 
-  grid-template-columns:
-    repeat(4, 1fr);
+.questionGrid button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.5rem;
+  background: var(--surface-muted);
+  color: var(--font-color);
+  border: 1px solid var(--control-border);
+  border-radius: calc(var(--radius) / 2);
+}
 
-  gap: 0.4rem;
+.questionGrid button[aria-current] {
+  background: var(--action-bg);
+  color: var(--on-action);
+}
 
-  max-height: 320px;
-
-  margin-top: 1rem;
-  padding-right: 0.25rem;
-
-  overflow-y: auto;
-
-  scrollbar-width: thin;
+.questionGrid button[aria-label*="respondida"] {
+  background: var(--success-text);
+  color: var(--on-action);
+  border-color: var(--success-text);
+  font-weight: var(--font-bold);
 }
 
 .questionIndex {
@@ -397,7 +398,6 @@
   transform: translateY(-1px);
 }
 
-
 /* =========================================================
    ANSWERED QUESTION
 ========================================================= */
@@ -405,23 +405,12 @@
 .questionIndexAnswered {
   color: var(--success-text);
 
-  background:
-    color-mix(
-      in srgb,
-      var(--verde) 7%,
-      white
-    );
+  background: color-mix(in srgb, var(--verde) 7%, white);
 
-  border-color:
-    color-mix(
-      in srgb,
-      var(--verde) 30%,
-      var(--gris)
-    );
+  border-color: color-mix(in srgb, var(--verde) 30%, var(--gris));
 
   font-weight: var(--font-bold);
 }
-
 
 /* =========================================================
    CURRENT QUESTION
@@ -430,24 +419,13 @@
 .questionIndexCurrent {
   color: white;
 
-  background:
-    linear-gradient(
-      135deg,
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(135deg, var(--naranja2), var(--rojo));
 
   border-color: transparent;
 
   font-weight: var(--font-bold);
 
-  box-shadow:
-    0 4px 10px
-    color-mix(
-      in srgb,
-      var(--naranja2) 18%,
-      transparent
-    );
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--naranja2) 18%, transparent);
 }
 
 .questionIndexCurrent:hover:not(:disabled) {
@@ -457,7 +435,6 @@
 
   transform: none;
 }
-
 
 /* =========================================================
    NAVIGATOR LEGEND
@@ -502,7 +479,6 @@
   background: var(--naranja2);
 }
 
-
 /* =========================================================
    QUESTION AREA
 ========================================================= */
@@ -510,10 +486,12 @@
 .questionArea {
   width: var(--width-complete);
   min-width: 0;
-
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: var(--heigh-complete);
 }
-
 
 /* =========================================================
    QUESTION CARD
@@ -521,18 +499,16 @@
 
 .questionCard {
   position: relative;
-
   overflow: hidden;
-
-  padding: 2.5rem;
-
+  padding: 1rem;
   background: var(--surface);
-
   border: 1px solid var(--gris);
-
   border-radius: var(--radius);
-
   box-shadow: var(--shadow);
+  height: var(--heigh-complete);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .questionCard::before {
@@ -546,15 +522,13 @@
 
   height: 3px;
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--naranja),
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
 }
-
 
 /* =========================================================
    QUESTION HEADER
@@ -602,7 +576,6 @@
   border-radius: 50%;
 }
 
-
 /* =========================================================
    QUESTION
 ========================================================= */
@@ -615,18 +588,13 @@
   color: var(--font-color);
 
   font-family: var(--font-family-body);
-  font-size: clamp(
-    1.3rem,
-    2.5vw,
-    1.75rem
-  );
+  font-size: clamp(1.3rem, 2.5vw, 1.75rem);
   font-weight: var(--font-bold);
 
   line-height: 1.45;
 
   text-align: center;
 }
-
 
 /* =========================================================
    OPTIONS
@@ -635,8 +603,7 @@
 .options {
   display: grid;
 
-  grid-template-columns:
-    repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 
   gap: 0.7rem;
 }
@@ -693,7 +660,6 @@
   pointer-events: none;
 }
 
-
 /* =========================================================
    RADIO
 ========================================================= */
@@ -732,7 +698,6 @@
   transition: background 0.16s ease;
 }
 
-
 /* =========================================================
    SELECTED OPTION
 ========================================================= */
@@ -742,13 +707,7 @@
 
   border-color: var(--accent-text);
 
-  box-shadow:
-    0 0 0 2px
-    color-mix(
-      in srgb,
-      var(--naranja2) 12%,
-      transparent
-    );
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--naranja2) 12%, transparent);
 }
 
 .optionSelected .radioVisual {
@@ -772,7 +731,6 @@
   line-height: 1.35;
 }
 
-
 /* =========================================================
    DISABLED
 ========================================================= */
@@ -782,7 +740,6 @@
 
   cursor: not-allowed;
 }
-
 
 /* =========================================================
    BOTTOM NAVIGATION
@@ -802,7 +759,6 @@
 
   margin-top: 1.5rem;
 }
-
 
 /* =========================================================
    BACK / NEXT
@@ -859,13 +815,12 @@
 
   color: white;
 
-  background:
-    linear-gradient(
-      90deg,
-      var(--naranja),
-      var(--naranja2),
-      var(--rojo)
-    );
+  background: linear-gradient(
+    90deg,
+    var(--naranja),
+    var(--naranja2),
+    var(--rojo)
+  );
 
   border: none;
 }
@@ -882,7 +837,6 @@
 
   transform: none;
 }
-
 
 /* =========================================================
    NAVIGATION STATUS
@@ -906,7 +860,6 @@
   font-weight: var(--font-bold);
 }
 
-
 /* =========================================================
    FINISH
 ========================================================= */
@@ -916,7 +869,6 @@
 
   justify-self: end;
 }
-
 
 /* =========================================================
    HELPER
@@ -934,7 +886,6 @@
   text-align: center;
 }
 
-
 /* =========================================================
    TABLET
 ========================================================= */
@@ -951,8 +902,7 @@
   }
 
   .questionGrid {
-    grid-template-columns:
-      repeat(10, 1fr);
+    grid-template-columns: repeat(10, 1fr);
 
     max-height: 105px;
   }
@@ -988,7 +938,6 @@
   }
 }
 
-
 /* =========================================================
    MOBILE
 ========================================================= */
@@ -1019,8 +968,7 @@
   }
 
   .questionGrid {
-    grid-template-columns:
-      repeat(7, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
 
   .questionCard {
@@ -1028,9 +976,7 @@
   }
 
   .question {
-    margin:
-      1.8rem auto
-      2rem;
+    margin: 1.8rem auto 2rem;
 
     text-align: left;
   }
@@ -1050,7 +996,6 @@
     justify-self: end;
   }
 }
-
 
 /* =========================================================
    REDUCED MOTION
@@ -1074,29 +1019,114 @@
   }
 }
 /* Shared root tokens for readable answers and keyboard navigation. */
-.optionLabel, .subtitle { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
-.option:has(input:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-.optionSelected { border-color: var(--action-bg); background: var(--beige); }
-.optionSelected .radioVisual { border-color: var(--action-bg); }
-.optionSelected .radioVisual > span { background: var(--action-bg); }
-.questionIndex { min-width: var(--control-height); min-height: var(--control-height); height: auto; }
-.questionGrid { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
-.questionIndexCurrent, .nextButton { color: var(--on-action); background: var(--action-bg); }
-.backButton, .nextButton { font-size: var(--font-size-regular); }
-.header h1 { font-size: var(--font-size-h1); }
-.question { font-size: var(--question-font-size); }
-.timer { composes: timer from "../TestShared.module.css"; }
-.timer strong { font: inherit; }
-.options .option { margin: 0; font-weight: var(--font-regular); }
-.questionGrid { padding: 4px; }
-.questionIndex { display: flex; gap: .25rem; border-color: var(--control-border); }
-.questionIndexAnswered { background: var(--surface-success); border-color: var(--success-text); }
-.questionIndexCurrent { border: 2px solid var(--action-bg); background: var(--action-bg); color: var(--on-action); }
-.options .optionSelected { background: var(--surface-selected); border-color: var(--action-bg); }
-.questionIndexCurrent:hover:not(:disabled) { color: var(--on-action); }
-.legendCurrent { background: var(--action-bg); }
-.nextButton:hover:not(:disabled) { background: var(--action-hover); }
-.backButton:disabled, .nextButton:disabled { opacity: 1; color: var(--text-muted); background: var(--surface-muted); }
-.questionHeader, .progressMeta { flex-wrap: wrap; }
-.helper { font-size: var(--font-size-regular); }
-@media (max-width: 600px) { .navigation { display: flex; flex-wrap: wrap; justify-content: space-between; } }
+.optionLabel,
+.subtitle {
+  font-size: var(--font-size-regular);
+  line-height: var(--line-height-body);
+  text-wrap: balance;
+}
+.option:has(input:focus-visible) {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+.optionSelected {
+  border-color: var(--action-bg);
+  background: var(--beige);
+}
+.optionSelected .radioVisual {
+  border-color: var(--action-bg);
+}
+.optionSelected .radioVisual > span {
+  background: var(--action-bg);
+}
+.questionIndex {
+  min-width: var(--control-height);
+  min-height: var(--control-height);
+  height: auto;
+}
+.questionGrid {
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+}
+.questionIndexCurrent,
+.nextButton {
+   background: linear-gradient(90deg,rgba(255, 176, 0, 1) 0%, rgba(255, 60, 42, 1) 50%);
+    color: white;
+    flex: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(168, 74, 84, 0.2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+.backButton,
+.nextButton {
+  font-size: var(--font-size-regular);
+}
+.header h1 {
+  font-size: var(--font-size-h1);
+}
+.question {
+  font-size: var(--question-font-size);
+}
+.timer {
+  composes: timer from "../TestShared.module.css";
+}
+.timer strong {
+  font: inherit;
+}
+.options .option {
+  margin: 0;
+  font-weight: var(--font-regular);
+}
+.questionGrid {
+  padding: 4px;
+}
+.questionIndex {
+  display: flex;
+  gap: 0.25rem;
+  border-color: var(--control-border);
+}
+.questionIndexAnswered {
+  background: var(--surface-success);
+  border-color: var(--success-text);
+}
+.questionIndexCurrent {
+  border: 2px solid var(--action-bg);
+  background: var(--action-bg);
+  color: var(--on-action);
+}
+.options .optionSelected {
+  background: var(--surface-selected);
+  border-color: var(--action-bg);
+}
+.questionIndexCurrent:hover:not(:disabled) {
+  color: var(--on-action);
+}
+.legendCurrent {
+  background: var(--action-bg);
+}
+.nextButton:hover:not(:disabled) {
+  background: var(--action-hover);
+}
+.backButton:disabled,
+.nextButton:disabled {
+  opacity: 1;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+}
+.questionHeader,
+.progressMeta {
+  flex-wrap: wrap;
+}
+.helper {
+  font-size: var(--font-size-regular);
+}
+@media (max-width: 600px) {
+  .navigation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}

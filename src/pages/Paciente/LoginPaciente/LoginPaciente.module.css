@@ -280,7 +280,7 @@
 .fieldHelp {
   color: #a1a5aa;
 
-  font-size: 0.54rem;
+  font-size: var(--font-size-xsmall);
 
   line-height: 1.4;
 }
@@ -379,7 +379,7 @@
 
   color: #a1a6ab;
 
-  font-size: 0.54rem;
+  font-size: var(--font-size-xsmall);
   font-weight: 600;
 
   white-space: nowrap;
@@ -429,7 +429,7 @@
 
   color: #9a9fa4;
 
-  font-size: 0.54rem;
+  font-size: var(--font-size-xsmall);
 
   line-height: 1.4;
 }

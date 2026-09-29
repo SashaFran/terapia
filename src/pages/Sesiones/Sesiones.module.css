@@ -266,7 +266,7 @@
 }
 
 .tablaSesiones th:nth-child(4) {
-  width: 24%;
+  width: 20%;
 }
 
 .tablaSesiones th:nth-child(5) {
@@ -292,8 +292,6 @@
   font-weight: 700;
 
   letter-spacing: 0.025em;
-
-  text-align: left;
   text-transform: uppercase;
 }
 
@@ -301,10 +299,13 @@
   padding-left: 1.4rem;
 }
 
+.tablaSesiones thead th:nth-child(3){
+  text-align: left !important;
+}
 .accionHeader {
   padding-right: 1.4rem !important;
 
-  text-align: right !important;
+  text-align: center !important;
 }
 
 /* =========================
@@ -329,9 +330,10 @@
 
   border-bottom: 1px solid #f0f2f4;
 
-  font-size: 0.78rem;
+  font-size: var(--font-size-small);
 
   vertical-align: middle;
+  text-align: center;
 }
 
 .tablaSesiones tbody td:first-child {
@@ -411,10 +413,11 @@
 .pacienteInfo {
   display: flex;
   flex-direction: column;
-
   min-width: 0;
-
   gap: 0.12rem;
+}
+.pacienteInfo span{
+  font-size: var(--font-size-small);
 }
 
 .pacienteInfo strong {
@@ -429,12 +432,6 @@
   white-space: nowrap;
 }
 
-.pacienteInfo span {
-  color: #969ca4;
-
-  font-size: 0.63rem;
-}
-
 /* =========================
    OBSERVACIONES
 ========================= */
@@ -442,11 +439,8 @@
 .observacionButton {
   display: inline-flex;
   align-items: center;
-
   gap: 0.5rem;
-
   padding: 0.45rem 0.65rem;
-
   color: #7b8087;
   background: transparent;
 
@@ -456,7 +450,7 @@
   cursor: pointer;
 
   font-family: inherit;
-  font-size: 0.69rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 
   transition:
@@ -476,16 +470,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   width: 22px;
   height: 22px;
-
   color: #a86416;
   background: #fff1df;
-
   border-radius: 50%;
-
-  font-size: 0.75rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 }
 

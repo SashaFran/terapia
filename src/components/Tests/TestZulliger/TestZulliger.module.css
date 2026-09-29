@@ -35,7 +35,8 @@
 
 .eyebrow,
 .laminaEyebrow,
-.finishEyebrow {
+.finishEyebrow,
+.orientationEyebrow {
   display: block;
 
   margin-bottom: 0.3rem;
@@ -57,7 +58,7 @@
   color: var(--font-color);
 
   font-family: var(--font-family-header);
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-h1);
   font-weight: var(--font-bold);
 
   line-height: 1.2;
@@ -69,7 +70,7 @@
   color: var(--gris-med);
 
   font-family: var(--font-family-body);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-regular);
 
   line-height: 1.5;
 }
@@ -171,12 +172,13 @@
 
   height: 3px;
 
-  background: linear-gradient(
-    90deg,
-    var(--naranja),
-    var(--naranja2),
-    var(--rojo)
-  );
+  background:
+    linear-gradient(
+      90deg,
+      var(--naranja),
+      var(--naranja2),
+      var(--rojo)
+    );
 
   opacity: 0;
 
@@ -194,11 +196,12 @@
 }
 
 .laminaCompleted {
-  border-color: color-mix(
-    in srgb,
-    var(--verde) 30%,
-    var(--gris)
-  );
+  border-color:
+    color-mix(
+      in srgb,
+      var(--verde) 30%,
+      var(--gris)
+    );
 }
 
 
@@ -227,6 +230,14 @@
   font-family: var(--font-family-body);
   font-size: var(--font-size-regular);
   font-weight: var(--font-bold);
+}
+
+.laminaProgress {
+  display: flex;
+
+  flex: 0 0 auto;
+
+  align-items: center;
 }
 
 
@@ -272,11 +283,12 @@
 .statusCompleted {
   color: var(--success-text);
 
-  background: color-mix(
-    in srgb,
-    var(--verde) 7%,
-    white
-  );
+  background:
+    color-mix(
+      in srgb,
+      var(--verde) 7%,
+      white
+    );
 
   border: 1px solid
     color-mix(
@@ -292,6 +304,116 @@
 
 
 /* =========================================================
+   ORIENTATION HEADER
+========================================================= */
+
+.orientationHeader {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: 1rem 1.25rem 0;
+
+  background: var(--gris-bg);
+}
+
+.orientationHeader > div {
+  min-width: 0;
+}
+
+.orientationHeader strong {
+  display: block;
+
+  color: var(--font-color);
+
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-bold);
+
+  line-height: 1;
+}
+
+.slideCounter {
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
+}
+
+
+/* =========================================================
+   CAROUSEL
+========================================================= */
+
+.carousel {
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    48px;
+
+  align-items: center;
+
+  gap: 0.75rem;
+
+  padding: 1rem 1.25rem 1.25rem;
+
+  background: var(--gris-bg);
+}
+
+.carouselArrow {
+  display: grid;
+
+  width: 44px;
+  height: 44px;
+
+  padding: 0;
+
+  color: var(--font-color);
+  background: var(--surface);
+
+  border: 1px solid var(--gris);
+  border-radius: 50%;
+
+  box-shadow: var(--shadow);
+
+  cursor: pointer;
+
+  font-family: var(--font-family-body);
+  font-size: 2rem;
+  font-weight: var(--font-light);
+
+  line-height: 1;
+
+  place-items: center;
+
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.carouselArrow:hover:not(:disabled) {
+  color: var(--accent-text);
+
+  border-color: var(--accent-text);
+
+  transform: scale(1.04);
+}
+
+.carouselArrow:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
    IMAGE
 ========================================================= */
 
@@ -299,35 +421,255 @@
   display: flex;
 
   width: var(--width-complete);
-  min-height: 340px;
+  min-height: 420px;
 
   align-items: center;
   justify-content: center;
 
-  padding: 1.5rem;
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+.imageFrame {
+  display: flex;
+
+  width: min(
+    var(--width-complete),
+    580px
+  );
+
+  height: 420px;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  padding: 1rem;
 
   box-sizing: border-box;
 
-  background: var(--gris-bg);
+  background: var(--surface);
+
+  border: 1px solid var(--gris);
+  border-radius: var(--radius);
 }
 
-.imageArea > * {
-  max-width: var(--width-complete);
-}
-
-.imageArea img {
+.imageFrame img {
   display: block;
 
   width: auto;
-  max-width: min(
-    var(--width-complete),
-    480px
-  );
+  max-width: 82%;
 
   height: auto;
-  max-height: 430px;
+  max-height: 82%;
 
   object-fit: contain;
+
+  transform-origin: center center;
+
+  transition:
+    transform 0.28s ease;
+}
+
+
+/* =========================================================
+   ORIENTATION NAVIGATION
+========================================================= */
+
+.orientationNav {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 0.65rem;
+
+  padding: 1rem 1.25rem;
+
+  background: var(--surface);
+
+  border-top: 1px solid var(--gris);
+  border-bottom: 1px solid var(--gris);
+}
+
+.orientationButton {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    auto;
+
+  align-items: center;
+  justify-content: center;
+
+  column-gap: 0.45rem;
+  row-gap: 0.15rem;
+
+  min-height: 62px;
+
+  padding: 0.65rem 0.75rem;
+
+  color: var(--gris-med);
+  background: var(--gris-bg);
+
+  border: 1px solid var(--gris);
+  border-radius: calc(
+    var(--radius) / 2
+  );
+
+  cursor: pointer;
+
+  font-family: var(--font-family-body);
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.orientationButton:hover:not(:disabled) {
+  color: var(--font-color);
+
+  background: var(--surface);
+
+  border-color: var(--accent-text);
+
+  transform: translateY(-1px);
+}
+
+.orientationButton strong {
+  font-size: var(--font-size-regular);
+  font-weight: var(--font-bold);
+}
+
+.orientationButton small {
+  grid-column: 1 / -1;
+
+  color: var(--gris-med);
+
+  font-size: 0.65rem;
+  font-weight: var(--font-regular);
+}
+
+.orientationDot {
+  width: 7px;
+  height: 7px;
+
+  background: var(--gris-med);
+
+  border-radius: 50%;
+}
+
+
+/* =========================================================
+   ANSWERED ORIENTATION
+========================================================= */
+
+.orientationButtonAnswered {
+  color: var(--success-text);
+  background: var(--surface-success);
+  border-color: var(--success-text);
+}
+
+.orientationButtonAnswered .orientationDot {
+  background: var(--verde);
+}
+
+.orientationButtonAnswered small {
+  color: var(--success-text);
+  font-weight: var(--font-bold);
+}
+
+
+/* =========================================================
+   ACTIVE ORIENTATION
+========================================================= */
+
+.orientationButtonActive {
+  color: var(--font-color);
+  background: var(--surface);
+  border-color: var(--accent-text);
+
+  box-shadow:
+    0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--naranja2) 10%,
+      transparent
+    );
+}
+
+.orientationButtonActive .orientationDot {
+  background: var(--naranja2);
+}
+
+.orientationButtonActive small {
+  color: var(--accent-text);
+  font-weight: var(--font-bold);
+}
+
+
+/* =========================================================
+   ANSWERED + ACTIVE
+   Respondida conserva el verde aunque sea la vista actual
+========================================================= */
+
+.orientationButtonAnswered.orientationButtonActive {
+  color: var(--success-text);
+  background: var(--surface-success);
+  border-color: var(--success-text);
+
+  box-shadow:
+    0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--verde) 12%,
+      transparent
+    );
+}
+
+.orientationButtonAnswered.orientationButtonActive .orientationDot {
+  background: var(--verde);
+}
+
+.orientationButtonAnswered.orientationButtonActive small {
+  color: var(--success-text);
+}
+
+/* =========================================================
+   ACTIVE ORIENTATION
+========================================================= */
+
+.orientationButtonActive {
+  color: var(--font-color);
+  background: var(--surface);
+
+  border-color: var(--accent-text);
+
+  box-shadow:
+    0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--naranja2) 10%,
+      transparent
+    );
+}
+
+.orientationButtonActive
+.orientationDot {
+  background: var(--naranja2);
+}
+
+.orientationButtonActive
+small {
+  color: var(--accent-text);
+
+  font-weight: var(--font-bold);
 }
 
 
@@ -336,7 +678,7 @@
 ========================================================= */
 
 .answerArea {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 1.25rem;
 
   background: var(--surface);
 }
@@ -344,32 +686,53 @@
 .answerHeader {
   display: flex;
 
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+
+  flex-wrap: wrap;
 
   gap: 1rem;
 
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.answerHeader > div {
+  min-width: 0;
 }
 
 .answerHeader label {
+  display: block;
+
   color: var(--font-color);
 
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-regular);
   font-weight: var(--font-bold);
 }
 
-.answerHeader span {
+.answerHeader > span {
+  flex: 0 0 auto;
+
   color: var(--gris-med);
 
   font-size: var(--font-size-small);
+}
+
+.answerHint {
+  margin: 0.25rem 0 0;
+
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+
+  line-height: 1.45;
 }
 
 .textarea {
   display: block;
 
   width: var(--width-complete);
-  min-height: 120px;
+  height: auto;
+  min-height: 130px;
 
   padding: 0.8rem;
 
@@ -381,16 +744,15 @@
   background: var(--gris-bg);
 
   border: 1px solid var(--control-border);
-  border-radius: calc(
-    var(--radius) / 2
-  );
+  border-radius:
+    calc(var(--radius) / 2);
 
   outline: none;
 
   font-family: var(--font-family-body);
   font-size: var(--font-size-regular);
 
-  line-height: 1.5;
+  line-height: var(--line-height-body);
 
   transition:
     background 0.16s ease,
@@ -423,9 +785,58 @@
 }
 
 .textarea:disabled {
-  opacity: 0.55;
+  opacity: 1;
+
+  color: var(--text-muted);
 
   cursor: not-allowed;
+}
+
+
+/* =========================================================
+   ANSWER FOOTER
+========================================================= */
+
+.answerFooter {
+  display: flex;
+
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 0.4rem;
+
+  margin-top: 0.65rem;
+
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+}
+
+.answerFooter strong {
+  color: var(--font-color);
+
+  font-weight: var(--font-bold);
+}
+
+.savedIndicator {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.35rem;
+
+  color: var(--success-text);
+
+  font-weight: var(--font-bold);
+}
+
+.savedIndicator i {
+  width: 6px;
+  height: 6px;
+
+  background: var(--verde);
+
+  border-radius: 50%;
 }
 
 
@@ -474,6 +885,17 @@
   line-height: 1.45;
 }
 
+.finishSecondary {
+  display: block;
+
+  margin-top: 0.4rem;
+
+  color: var(--gris-med);
+
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
+}
+
 .finishAction {
   display: flex;
 
@@ -503,7 +925,16 @@
   .timeBlock {
     align-items: flex-start;
   }
+
+  .imageArea {
+    min-height: 360px;
+  }
+
+  .imageFrame {
+    height: 360px;
+  }
 }
+
 
 @media (max-width: 600px) {
   .page {
@@ -516,10 +947,45 @@
     flex-direction: column;
   }
 
-  .imageArea {
-    min-height: 250px;
+  .orientationHeader {
+    align-items: flex-start;
 
-    padding: 1rem;
+    flex-direction: column;
+  }
+
+  .carousel {
+    grid-template-columns:
+      38px
+      minmax(0, 1fr)
+      38px;
+
+    gap: 0.35rem;
+
+    padding: 0.75rem;
+  }
+
+  .carouselArrow {
+    width: 36px;
+    height: 36px;
+
+    font-size: 1.5rem;
+  }
+
+  .imageArea {
+    min-height: 280px;
+  }
+
+  .imageFrame {
+    height: 280px;
+
+    padding: 0.5rem;
+  }
+
+  .orientationNav {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    padding: 0.75rem;
   }
 
   .answerArea {
@@ -549,18 +1015,29 @@
 @media (prefers-reduced-motion: reduce) {
   .laminaCard,
   .laminaCard::before,
-  .textarea {
+  .textarea,
+  .carouselArrow,
+  .imageFrame img,
+  .orientationButton {
     transition: none;
   }
 
-  .laminaCard:hover {
+  .laminaCard:hover,
+  .carouselArrow:hover,
+  .orientationButton:hover {
     transform: none;
   }
 }
-.page { composes: page from "../TestShared.module.css"; }
-.testHeader p, .answerHeader label { font-size: var(--font-size-regular); }
 
-.textarea { composes: field from "../TestShared.module.css"; height: auto; line-height: var(--line-height-body); }
-.textarea:disabled { opacity: 1; color: var(--text-muted); }
-.testHeader h1 { font-size: var(--font-size-h1); }
-.answerHeader { flex-wrap: wrap; }
+
+/* =========================================================
+   SHARED
+========================================================= */
+
+.page {
+  composes: page from "../TestShared.module.css";
+}
+
+.textarea {
+  composes: field from "../TestShared.module.css";
+}

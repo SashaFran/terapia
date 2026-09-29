@@ -1,4 +1,3 @@
-import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
 import {
@@ -67,88 +66,53 @@ function limpiarNombreArchivo(
 }
 
 /* =========================================================
-   ZIP
+   DESCARGAR PDF INDIVIDUAL
 ========================================================= */
 
-export async function generarZipPaciente(
+export async function descargarPdfResultado(
   paciente: Paciente,
-  resultados: Resultado[],
+  resultado: Resultado,
 ) {
-  const zip = new JSZip();
+  const blob =
+    await generarPdfResultado({
+      pacienteNombre:
+        paciente.nombre,
 
-  for (
-    const resultado of resultados
-  ) {
-    try {
-      const blob =
-        await generarPdfResultado({
-          pacienteNombre:
-            paciente.nombre,
+      devolverBlob: true,
 
-          devolverBlob: true,
+      resultado,
 
-          resultado,
+      fotoDNI:
+        paciente.archivodni,
 
-          fotoDNI:
-            paciente.archivodni,
-
-          fotoCaptura:
-            resultado.archivoCaptura,
-        });
-
-      if (!(blob instanceof Blob)) {
-        console.error(
-          "No se generó un Blob para el resultado:",
-          resultado.id,
-        );
-
-        continue;
-      }
-
-      const nombrePaciente =
-        limpiarNombreArchivo(
-          paciente.nombre,
-        );
-
-      const nombreTest =
-        limpiarNombreArchivo(
-          resultado.testId ||
-            "evaluacion",
-        );
-
-      const fecha =
-        formatearFecha(
-          resultado.fecha,
-        );
-
-      const nombreArchivo =
-        `${nombrePaciente}_${nombreTest}_${fecha}.pdf`;
-
-      zip.file(
-        nombreArchivo,
-        blob,
-      );
-    } catch (error) {
-      console.error(
-        "Error generando PDF para ZIP:",
-        resultado.id,
-        error,
-      );
-    }
-  }
-
-  const contenidoZip =
-    await zip.generateAsync({
-      type: "blob",
+      fotoCaptura:
+        resultado.archivoCaptura,
     });
+
+  if (!(blob instanceof Blob)) {
+    throw new Error(
+      `No se pudo generar el PDF del resultado ${resultado.id}`,
+    );
+  }
 
   const nombrePaciente =
     limpiarNombreArchivo(
       paciente.nombre,
     );
 
+  const nombreTest =
+    limpiarNombreArchivo(
+      resultado.testId ||
+        "evaluacion",
+    );
+
+  const fecha =
+    formatearFecha(
+      resultado.fecha,
+    );
+
   saveAs(
-    contenidoZip,
-    `reportes_${nombrePaciente}.zip`,
+    blob,
+    `${nombrePaciente}_${nombreTest}_${fecha}.pdf`,
   );
 }

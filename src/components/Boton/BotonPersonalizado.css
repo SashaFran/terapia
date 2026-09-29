@@ -24,7 +24,7 @@ cursor: pointer;
   border: 1px solid rgba(168, 74, 84, 0.2);
   border-radius: 7px;
   font-family: inherit;
-  font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   cursor: pointer;
   transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
@@ -39,7 +39,7 @@ flex: 0 0 auto;
   border: 1px solid rgba(168, 74, 84, 0.2);
   border-radius: 7px;
   font-family: inherit;
-  font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
@@ -61,7 +61,7 @@ flex: 0 0 auto;
   background: transparent;
   border: 0;
   font-family: inherit;
-  font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.16s ease;
@@ -81,7 +81,7 @@ flex: 0 0 auto;
   border: 1px solid rgba(168, 74, 84, 0.2);
   border-radius: 7px;
   font-family: inherit;
-  font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
@@ -96,8 +96,3 @@ flex: 0 0 auto;
   opacity: 0.6;
   cursor: not-allowed;
 }
-/* Shared actions use the root palette with sufficient text contrast. */
-.boton-base { width: auto; min-height: var(--control-height); height: auto; max-width: 100%; white-space: normal; padding: .75rem 1.25rem; line-height: 1.4; }
-.boton-primary { color: var(--on-action); background: var(--action-bg); border-color: var(--action-bg); }
-.boton-primary:hover:not(:disabled) { background: var(--action-hover); }
-.boton-secondary, .text-button { color: var(--bordo); }

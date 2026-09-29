@@ -1,26 +1,120 @@
-.page { composes: page from "../TestShared.module.css"; }
-.header { composes: header from "../TestShared.module.css"; }
-.workspace { composes: workspace from "../TestShared.module.css"; }
-.content { composes: content from "../TestShared.module.css"; }
-.testCard { composes: card from "../TestShared.module.css"; }
-.navigator { composes: card from "../TestShared.module.css"; }
-.testCard { width: 100%; }
-.testCard legend { padding: 0 .5rem; font-weight: var(--font-bold); color: var(--accent-text); }
-.testCard h2 { font: var(--font-bold) var(--font-size-h2)/1.5 var(--font-family-body); }
-.testCardItems { display: grid; gap: .75rem; }
-.testCardItems label { display: flex; align-items: center; gap: 1rem; margin: 0; padding: 1rem; min-height: var(--control-height); border: 1px solid var(--control-border); border-radius: var(--radius); cursor: pointer; font-weight: var(--font-regular); }
-.testCardItems label:has(input:checked) { border-color: var(--action-bg); background: var(--beige); }
-.testCardItems label:has(input:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-.testCardItems input { width: 20px; height: 20px; flex: 0 0 auto; }
-.questionGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: .5rem; }
-.questionGrid button { width: 100%; padding: .5rem; background: var(--surface-muted); color: var(--font-color); border: 1px solid var(--control-border); border-radius: calc(var(--radius) / 2); }
-.questionGrid button[aria-current] { background: var(--action-bg); color: var(--on-action); }
-.progress { width: 100%; accent-color: var(--action-bg); margin-bottom: 1.5rem; }
-.navigation { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+.page {
+  composes: page from "../TestShared.module.css";
+}
+.header {
+  composes: header from "../TestShared.module.css";
+}
+.workspace {
+  composes: workspace from "../TestShared.module.css";
+}
+.content {
+  composes: content from "../TestShared.module.css";
+}
+.testCard {
+  composes: card from "../TestShared.module.css";
+}
+.navigator {
+  composes: card from "../TestShared.module.css";
+}
+.testCard {
+  width: 100%;
+}
+.testCard legend {
+  padding: 0 0.5rem;
+  font-weight: var(--font-bold);
+  color: var(--accent-text);
+}
+.testCard h2 {
+  font: var(--font-bold) var(--font-size-h2)/1.5 var(--font-family-body);
+}
+.testCardItems {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.testCardItems label{
+      display: grid;
+  gap: .75rem;
+}
+.testCardItems label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  min-height: var(--control-height);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: var(--font-regular);
+}
+.testCardItems label:has(input:checked) {
+  border-color: var(--action-bg);
+  background: var(--beige);
+}
+.testCardItems label:has(input:focus-visible) {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+.testCardItems input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.questionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: 0.5rem;
+}
+.questionGrid button {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--surface-muted);
+  color: var(--font-color);
+  border: 1px solid var(--control-border);
+  border-radius: calc(var(--radius) / 2);
+}
+.questionGrid button[aria-current] {
+  background: var(--action-bg);
+  color: var(--on-action);
+}
+.questionGrid button[aria-label*="respondida"] {
+  background: var(--success-text);
+  color: var(--on-action);
+  border: 1px solid var(--success-text);
+  font-weight: bold;
+}
+.progress {
+  width: 100%;
+  accent-color: linear-gradient( 90deg, #ffad00 0%, #ff7900 50%, #ff4438 100% );
+  margin-bottom: 1.5rem;
+}
+.navigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
 /* Inherit global typography; retain explicit response and keyboard states. */
-.navigator p { color: var(--text-muted); font-size: var(--font-size-small); }
-.testCardItems label:has(input:disabled) { cursor: not-allowed; color: var(--text-muted); background: var(--surface-muted); }
-.testCardItems label:hover:has(input:not(:disabled)) { border-color: var(--action-bg); }
-.testCardItems label:has(input:checked) { background: var(--surface-selected); }
-.questionGrid { padding: 4px; }
-.questionGrid button:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
+.navigator p {
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+.testCardItems label:has(input:disabled) {
+  cursor: not-allowed;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+}
+.testCardItems label:hover:has(input:not(:disabled)) {
+  border-color: var(--action-bg);
+}
+.testCardItems label:has(input:checked) {
+  background: var(--surface-selected);
+}
+.questionGrid {
+  padding: 4px;
+}
+.questionGrid button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}

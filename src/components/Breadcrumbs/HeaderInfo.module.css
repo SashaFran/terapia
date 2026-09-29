@@ -35,8 +35,5 @@ display: flex;
   color: var(--gris);
 }
 span{
-    font-family: var(--font-family-body);
-  font-size: var(--font-size-h2);
-  text-transform: capitalize;
-  font-weight: 20;
+  font-family: var(--font-family-body);
 }

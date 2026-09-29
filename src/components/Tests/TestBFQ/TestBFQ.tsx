@@ -408,69 +408,20 @@ export default function TestBFQ({
               NÚMEROS
           =============================================== */}
 
-          <div className={styles.questionGrid}>
-            {respuestas.map(
-              (respuesta, index) => {
-                const respondida =
-                  respuesta !== 0;
-
-                const actual =
-                  index === preguntaActual;
-
-                return (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() =>
-                      irAPregunta(index)
-                    }
-                    disabled={
-                      engine.inputLocked
-                    }
-                    className={[
-                      styles.questionIndex,
-
-                      respondida
-                        ? styles.questionIndexAnswered
-                        : "",
-
-                      actual
-                        ? styles.questionIndexCurrent
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    aria-label={`Ir a la pregunta ${
-                      index + 1
-                    }${
-                      respondida
-                        ? ", respondida"
-                        : ", pendiente"
-                    }`}
-                    aria-current={
-                      actual
-                        ? "step"
-                        : undefined
-                    }
-                    title={
-                      respondida
-                        ? `Pregunta ${
-                            index + 1
-                          } · Respondida`
-                        : `Pregunta ${
-                            index + 1
-                          } · Pendiente`
-                    }
-                  >
-                    {String(
-                      index + 1,
-                    ).padStart(2, "0")}
-                    {respondida && <span aria-hidden="true">✓</span>}
-                  </button>
-                );
-              },
-            )}
-          </div>
+<div className={styles.questionGrid}>
+  {respuestas.map((r, i) => (
+    <button
+      key={i}
+      type="button"
+      disabled={engine.inputLocked}
+      onClick={() => setPreguntaActual(i)}
+      aria-current={i === preguntaActual ? "step" : undefined}
+      aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : "pendiente"}`}
+    >
+      {i + 1}
+    </button>
+  ))}
+</div>
 
           {/* ===============================================
               LEYENDA

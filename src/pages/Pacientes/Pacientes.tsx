@@ -557,10 +557,6 @@ export default function Dashboard() {
                                     paciente.nombre
                                   }
                                 </strong>
-
-                                <span>
-                                  Paciente
-                                </span>
                               </div>
                             </div>
                           </td>

@@ -110,7 +110,7 @@
 
   color: #555b63;
 
-  font-size: 0.78rem;
+  font-size: var(--font-size-small);
   line-height: 1.45;
 }
 
@@ -257,7 +257,7 @@
 
   color: #9499a0;
 
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
 }
 
 .accessDates {
@@ -418,7 +418,7 @@
 
   letter-spacing: 0.025em;
 
-  text-align: left;
+  text-align: center;
   text-transform: uppercase;
 
   border-bottom: 1px solid #e7e9ec;
@@ -433,7 +433,7 @@
 
   font-size: 0.7rem;
 
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
 
   border-bottom: 1px solid #edf0f2;
@@ -460,7 +460,7 @@
 
 .actionHeader,
 .actionCell {
-  text-align: right !important;
+  text-align: center !important;
 }
 
 
@@ -626,7 +626,7 @@
   border-radius: 7px;
 
   font-family: inherit;
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 
   cursor: pointer;
@@ -879,6 +879,31 @@
   color: #979ca2;
 
   font-size: 0.68rem;
+}
+.fileLink {
+  padding: 0;
+
+  color: var(--accent-text);
+  background: transparent;
+
+  border: 0;
+
+  cursor: pointer;
+
+  font: inherit;
+  font-weight: var(--font-bold);
+
+  text-decoration: none;
+  width: -moz-available;
+}
+
+.fileLink:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.fileLink:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 /* =========================================================
    LOADING

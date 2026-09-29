@@ -543,10 +543,6 @@ export default function Sesiones() {
                                   {paciente?.nombre ||
                                     "Paciente no encontrado"}
                                 </strong>
-
-                                <span>
-                                  Paciente
-                                </span>
                               </div>
                             </div>
                           </td>

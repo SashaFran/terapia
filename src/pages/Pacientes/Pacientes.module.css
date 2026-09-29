@@ -261,7 +261,8 @@
 }
 
 .tablaPacientes th:nth-child(4) {
-  width: 27%;
+  text-align: center !important;
+  width: 17%;
 }
 
 .tablaPacientes th:nth-child(5) {
@@ -287,8 +288,6 @@
   font-weight: 700;
 
   letter-spacing: 0.025em;
-
-  text-align: left;
   text-transform: uppercase;
 }
 
@@ -297,7 +296,7 @@
 }
 
 .accionHeader {
-  text-align: right !important;
+  text-align: center !important;
 
   padding-right: 1.4rem !important;
 }
@@ -324,9 +323,10 @@
 
   border-bottom: 1px solid #f0f2f4;
 
-  font-size: 0.78rem;
+  font-size: var(--font-size-small);
 
   vertical-align: middle;
+  text-align: center;
 }
 
 .tablaPacientes tbody tr:last-child td {
@@ -408,7 +408,7 @@
 
   border-radius: 999px;
 
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
   font-weight: 650;
 
   white-space: nowrap;
@@ -461,8 +461,6 @@
 .testsCell {
   display: flex;
   flex-direction: column;
-
-  width: min(100%, 230px);
 
   gap: 0.45rem;
 }

@@ -51,7 +51,7 @@
 
   color: #92979d;
 
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
   line-height: 1.45;
 }
 
@@ -138,7 +138,7 @@
 .fieldCard label {
   color: #565b61;
 
-  font-size: 0.66rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 }
 
@@ -234,7 +234,7 @@ min-height: 14px;
 
   border-radius: 5px;
 
-  font-size: 0.54rem;
+  font-size: var(--font-size-xsmall);
   font-weight: 700;
 }
 

@@ -36,7 +36,7 @@
 
   color: var(--text-muted);
 
-  font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   font-weight: 800;
 
   letter-spacing: 0.1em;
@@ -93,8 +93,7 @@
 
   border-radius: 50%;
 
-  box-shadow:
-    0 0 0 3px rgba(244, 154, 66, 0.09);
+  box-shadow: 0 0 0 3px rgba(244, 154, 66, 0.09);
 }
 
 /* =========================================================
@@ -226,8 +225,7 @@
   border: 1px solid var(--gris);
   border-radius: 8px;
 
-  box-shadow:
-    0 8px 25px rgba(35, 38, 41, 0.1);
+  box-shadow: 0 8px 25px rgba(35, 38, 41, 0.1);
 
   font-size: var(--font-size-small);
   font-weight: 500;
@@ -265,9 +263,7 @@
   border-right: 1px solid var(--gris);
   border-bottom: 1px solid var(--gris);
 
-  transform:
-    translateY(-4px)
-    rotate(45deg);
+  transform: translateY(-4px) rotate(45deg);
 }
 
 .tooltip:hover .tooltipContent,
@@ -359,7 +355,7 @@
 
   color: var(--text-muted);
 
- font-size: var(--font-size-regular);
+  font-size: var(--font-size-small);
   font-weight: 750;
 }
 
@@ -425,15 +421,13 @@
 .statusDotReady {
   background: var(--gris);
 
-  box-shadow:
-    0 0 0 3px rgba(66, 168, 120, 0.09);
+  box-shadow: 0 0 0 3px rgba(66, 168, 120, 0.09);
 }
 
 .statusDotPending {
   background: var(--gris);
 
-  box-shadow:
-    0 0 0 3px rgba(212, 160, 74, 0.09);
+  box-shadow: 0 0 0 3px rgba(212, 160, 74, 0.09);
 }
 
 .action {
@@ -500,13 +494,48 @@
   }
 }
 /* Global typography and interaction tokens also apply before the test starts. */
-.intro { color: var(--font-color); font: var(--font-size-regular)/var(--line-height-body) var(--font-family-body); }
-.intro :where(h2, h3, h4, p, strong) { overflow-wrap: anywhere; }
-.header h2, .instruction h4, .summaryCard strong, .sectionHeading h3 { color: var(--font-color); }
-.eyebrow, .sectionEyebrow, .instructionNumber { color: var(--accent-text); }
-.headerCopy > p, .instructionText, .summaryCard > p, .summaryCard strong, .sectionHeading > p, .footerInfo p { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
-.sectionHeading h3 { font-size: var(--font-size-h3); }
-.tooltip { width: var(--control-height); height: var(--control-height); border-color: var(--control-border); }
-.tooltip:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
-.statusDotReady { background: var(--success-text); }
-.statusDotPending { background: var(--accent-text); }
+.intro {
+  color: var(--font-color);
+  font: var(--font-size-small)/var(--line-height-body) var(--font-family-body);
+}
+.intro :where(h2, h3, h4, p, strong) {
+  overflow-wrap: anywhere;
+}
+.header h2,
+.instruction h4,
+.summaryCard strong,
+.sectionHeading h3 {
+  color: var(--font-color);
+}
+.eyebrow,
+.sectionEyebrow,
+.instructionNumber {
+  color: var(--naranja2);
+}
+.headerCopy > p,
+.instructionText,
+.summaryCard > p,
+.summaryCard strong,
+.sectionHeading > p,
+.footerInfo p {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+.sectionHeading h3 {
+  font-size: var(--font-size-h3);
+}
+.tooltip {
+  width: var(--control-height);
+  height: var(--control-height);
+  border-color: var(--control-border);
+}
+.tooltip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+.statusDotReady {
+  background: var(--success-text);
+}
+.statusDotPending {
+  background: var(--accent-text);
+}

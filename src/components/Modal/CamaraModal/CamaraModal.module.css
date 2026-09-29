@@ -189,8 +189,7 @@
 
   border-color: var(--gris);
 
-  box-shadow:
-    0 0 0 3px rgba(239, 123, 50, 0.04);
+  box-shadow: 0 0 0 3px rgba(239, 123, 50, 0.04);
 }
 
 .checkboxInput {
@@ -230,12 +229,7 @@
 }
 
 .acceptanceChecked .customCheckbox {
-  background:
-    linear-gradient(
-      135deg,
-      var(--naranja),
-      var(--naranja2)
-    );
+  background: linear-gradient(135deg, var(--naranja), var(--naranja2));
 
   border-color: var(--gris);
 }
@@ -255,7 +249,7 @@
 }
 
 .acceptanceCopy small {
-color: var(--gris-dark);
+  color: var(--gris-dark);
   font-size: var(--font-size-small);
   line-height: 1.4;
 }
@@ -292,14 +286,51 @@ color: var(--gris-dark);
   }
 }
 /* Consent uses the same readable root styles as questionnaire instructions. */
-.consent { color: var(--font-color); font: var(--font-size-regular)/var(--line-height-body) var(--font-family-body); }
-.header p, .detail p, .acceptanceCopy strong { font-size: var(--font-size-regular); line-height: var(--line-height-body); }
-.header h3, .acceptanceCopy strong { color: var(--font-color); }
-.eyebrow, .cameraMark { color: var(--accent-text); }
-.check { color: var(--success-text); }
-.acceptance { min-height: var(--control-height); border-color: var(--control-border); }
-.acceptanceCopy { min-width: 0; overflow-wrap: anywhere; }
-.acceptance:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: -3px; }
-.acceptanceChecked { background: var(--surface-selected); border-color: var(--action-bg); }
-.customCheckbox { color: var(--on-action); border-color: var(--control-border); }
-.acceptanceChecked .customCheckbox { background: var(--action-bg); border-color: var(--action-bg); }
+.consent {
+  color: var(--font-color);
+  font: var(--font-size-small)/var(--line-height-body) var(--font-family-body);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.header p,
+.detail p,
+.acceptanceCopy strong {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+.header h3,
+.acceptanceCopy strong {
+  color: var(--font-color);
+}
+.eyebrow,
+.cameraMark {
+  color: var(--accent-text);
+}
+.check {
+  color: var(--success-text);
+}
+.acceptance {
+  min-height: var(--control-height);
+  border-color: var(--control-border);
+}
+.acceptanceCopy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.acceptance:has(input:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: -3px;
+}
+.acceptanceChecked {
+  background: var(--surface-selected);
+  border-color: var(--action-bg);
+}
+.customCheckbox {
+  color: var(--on-action);
+  border-color: var(--control-border);
+}
+.acceptanceChecked .customCheckbox {
+  background: var(--action-bg);
+  border-color: var(--action-bg);
+}
