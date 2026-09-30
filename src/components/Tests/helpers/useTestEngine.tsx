@@ -1,3 +1,4 @@
+import { accessAction, abandonPatientTest, beginPatientTest, hasPatientAccess } from "../../../utils/patientAccess";
 import { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -32,6 +33,9 @@ export function useTestEngine({
 
   const dataRef = useRef<any>({});
   const startTimeRef = useRef<number>(0);
+  const mountedRef = useRef(true);
+  const startingRef = useRef(false);
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
   const submittingRef = useRef(false);
   const completedRef = useRef(false);
   const pendingRef = useRef<any>(null);
@@ -47,10 +51,18 @@ export function useTestEngine({
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
 
-  const start = () => {
-    if (startTimeRef.current) return;
-    setStarted(true);
-    startTimeRef.current = Date.now();
+  const start = async () => {
+    if (startTimeRef.current || startingRef.current) return;
+    startingRef.current = true;
+    try {
+      if (hasPatientAccess()) {
+        await beginPatientTest(testId);
+        if (!mountedRef.current) { await abandonPatientTest(testId); return; }
+      }
+      if (!mountedRef.current) return;
+      setStarted(true);
+      startTimeRef.current = Date.now();
+    } finally { startingRef.current = false; }
   };
 
   useEffect(() => {
@@ -83,6 +95,12 @@ export function useTestEngine({
 
     const interval = setInterval(async () => {
       if (!userId) return;
+
+      if (hasPatientAccess()) {
+        await accessAction("guardarProgreso", { testId, progreso: getResultRef.current?.() ?? dataRef.current })
+          .catch((error) => console.error("No se pudo guardar el progreso", error));
+        return;
+      }
 
       await setDoc(
         doc(db, "test_progress", `${userId}_${testId}`),

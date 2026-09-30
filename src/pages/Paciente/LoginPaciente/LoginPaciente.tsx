@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
 
-import { db } from "../../../firebase/firebase";
+
+import { loginPatient, hasPatientAccess } from "../../../utils/patientAccess";
+import { mensajeErrorPaciente } from "../../../firebase/pacientes";
 
 import BotonPersonalizado from "../../../components/Boton/Boton";
 
 import styles from "./LoginPaciente.module.css";
 
-import {
-  isPacienteAuthenticated,
-  setPacienteSession,
-} from "../../../utils/pacienteSession";
+
 
 import Logo from "../../../assets/images/logo.svg"
 
@@ -27,37 +18,8 @@ import Logo from "../../../assets/images/logo.svg"
    HELPERS
 ========================================================= */
 
-function convertirFecha(fecha: any): Date | null {
-  if (!fecha) return null;
-
-  if (typeof fecha.toDate === "function") {
-    return fecha.toDate();
-  }
-
-  if (typeof fecha.seconds === "number") {
-    return new Date(fecha.seconds * 1000);
-  }
-
-  const date = new Date(fecha);
-
-  return Number.isNaN(date.getTime())
-    ? null
-    : date;
-}
-
-function formatearFecha(fecha: Date): string {
-  return fecha.toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
-/* =========================================================
-   COMPONENT
-========================================================= */
-
 export default function LoginPaciente() {
+  const [accepted, setAccepted] = useState(false);
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -70,7 +32,7 @@ export default function LoginPaciente() {
   ======================================================= */
 
   useEffect(() => {
-    if (isPacienteAuthenticated()) {
+    if (hasPatientAccess()) {
       navigate("/app/dashboard", {
         replace: true,
       });
@@ -102,213 +64,12 @@ export default function LoginPaciente() {
     setLoading(true);
 
     try {
-      /*
-       * Buscar paciente por DNI
-       */
-
-      const q = query(
-        collection(db, "pacientes"),
-        where("dni", "==", dniLimpio),
-      );
-
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        setError(
-          "No encontramos un acceso asociado a los datos ingresados.",
-        );
-        return;
-      }
-
-      const docPaciente = snap.docs[0];
-      const pacienteData = docPaciente.data();
-
-      /*
-       * Validar contraseña
-       */
-
-      if (pacienteData.password !== password) {
-        setError(
-          "El DNI o la contraseña ingresados no son correctos.",
-        );
-        return;
-      }
-
-      /*
-       * Obtener ventana real de acceso
-       */
-
-      const ahora = new Date();
-
-      const inicio = convertirFecha(
-        pacienteData.fechaInicioAcceso,
-      );
-
-      const fin = convertirFecha(
-        pacienteData.fechaFinAcceso,
-      );
-
-      /*
-       * Todavía no comenzó el acceso
-       */
-
-      if (inicio && ahora < inicio) {
-        setError(
-          `Tu acceso estará habilitado a partir del ${formatearFecha(
-            inicio,
-          )}.`,
-        );
-
-        return;
-      }
-
-      /*
-       * El período ya terminó
-       */
-
-      if (fin && ahora >= fin) {
-        setError(
-          "El período de acceso a tus evaluaciones ha finalizado.",
-        );
-
-        if (pacienteData.activo !== false) {
-          try {
-            await updateDoc(
-              doc(
-                db,
-                "pacientes",
-                docPaciente.id,
-              ),
-              {
-                activo: false,
-              },
-            );
-          } catch (updateError) {
-            console.error(
-              "No se pudo actualizar el estado del paciente:",
-              updateError,
-            );
-          }
-        }
-
-        return;
-      }
-
-      /*
-       * Paciente desactivado manualmente
-       */
-
-      if (pacienteData.activo === false) {
-        setError(
-          "Tu acceso se encuentra deshabilitado.",
-        );
-
-        return;
-      }
-
-      /*
-       * Obtener tests asignados
-       */
-
-      const qAsignaciones = query(
-        collection(db, "asignaciones"),
-        where(
-          "pacienteId",
-          "==",
-          docPaciente.id,
-        ),
-      );
-
-      const snapAsignaciones =
-        await getDocs(qAsignaciones);
-
-      const asignaciones =
-        snapAsignaciones.docs.map((documento) => ({
-          id: documento.id,
-          ...documento.data(),
-        }));
-
-      /*
-       * Comprobar si terminó todo el flujo
-       */
-
-      const total = asignaciones.length;
-
-      const completados =
-        asignaciones.filter(
-          (asignacion: any) =>
-            asignacion.estado === "completado",
-        ).length;
-
-      const testsCompletos =
-        total > 0 &&
-        total === completados;
-
-      const dniCargado =
-        !!pacienteData.archivodni;
-
-      const flujoTerminado =
-        testsCompletos &&
-        dniCargado;
-
-      /*
-       * Si ya terminó evaluaciones + DNI,
-       * no puede volver a entrar.
-       */
-
-      if (flujoTerminado) {
-        setError(
-          "Las evaluaciones asignadas ya fueron completadas.",
-        );
-
-        if (pacienteData.activo !== false) {
-          try {
-            await updateDoc(
-              doc(
-                db,
-                "pacientes",
-                docPaciente.id,
-              ),
-              {
-                activo: false,
-              },
-            );
-          } catch (updateError) {
-            console.error(
-              "No se pudo actualizar el estado del paciente:",
-              updateError,
-            );
-          }
-        }
-
-        return;
-      }
-
-      /*
-       * Login correcto
-       */
-
-      const pacienteLogueado = {
-        id: docPaciente.id,
-        ...pacienteData,
-        flujoTerminado,
-      };
-
-      setPacienteSession(
-        pacienteLogueado,
-        docPaciente.id,
-      );
-
+      if (!accepted) { setError("Debe leer y aceptar las condiciones de acceso antes de ingresar."); return; }
+      await loginPatient(dniLimpio, password);
       navigate("/app/dashboard");
     } catch (loginError) {
-      console.error(
-        "Error al intentar ingresar:",
-        loginError,
-      );
-
-      setError(
-        "No pudimos iniciar tu sesión. Intentá nuevamente.",
-      );
+      const code = (loginError as { code?: string }).code;
+      setError(code?.startsWith("auth/") ? "No se pudo ingresar. Verifique su DNI y contraseña o contacte a administración." : mensajeErrorPaciente(loginError));
     } finally {
       setLoading(false);
     }
@@ -436,12 +197,18 @@ export default function LoginPaciente() {
           {/* BOTÓN PRINCIPAL */}
 
           <div className={styles.primaryAction}>
-            <BotonPersonalizado
+            <section className="access-policy" aria-label="Condiciones de acceso">
+            <strong>Acceso de una sola sesión</strong>
+            <p>Al cerrar sesión, cerrar esta pestaña o ventana, o recargar la página, su cuenta quedará inhabilitada. No podrá volver a ingresar ni completar las evaluaciones pendientes.</p>
+            <p>Antes de ingresar, prepare la imagen frontal de su DNI (JPG, JPEG o PNG) y una computadora con cámara. Reserve hasta 30 minutos por evaluación.</p>
+            <label><input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} /> He leído las condiciones y estoy listo/a para completar las evaluaciones.</label>
+          </section>
+          <BotonPersonalizado
               variant="primary"
               type="submit"
               disabled={
                 loading ||
-                !dni.trim() ||
+                !accepted || !dni.trim() ||
                 !password
               }
             >

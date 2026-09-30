@@ -5,6 +5,8 @@ const state = vi.hoisted(() => ({
   docs: new Map<string, any>(), users: new Map<string, any>(), counter: 0,
   failBatch: false, failDelete: false,
 }));
+const email = vi.hoisted(() => vi.fn());
+vi.mock('resend', () => ({ Resend: class { emails = { send: email }; } }));
 
 vi.mock('firebase-admin', () => {
   const snapshot = (path: string) => ({ id: path.split('/')[1], ref: reference(path),
@@ -79,10 +81,24 @@ it('creates the patient with every selected assignment under the same patient ID
   expect(state.docs.get(`pacientes/${result.pacienteId}`).uid).toBe(result.uid);
 });
 
+it('emails only the assessment count and explains preparation and single-use access', async () => {
+  vi.stubEnv('RESEND_API_KEY', 'test-key-not-real');
+  email.mockResolvedValue({ error: null });
+  await crearPaciente(alta);
+  const html = email.mock.calls.at(-1)?.[0].html;
+  expect(html).toContain('3 evaluaciones asignadas');
+  expect(html).toContain('30 minutos');
+  expect(html).toContain('JPEG, JPG o PNG');
+  expect(html).toContain('computadora con cámara');
+  expect(html).toContain('inhabilitada');
+  expect(html).not.toMatch(/BFQ|Big Five|Raven|K10/i);
+});
+
 it('allows recreation after deleting both Auth and patient data', async () => {
   const first = await crearPaciente(alta);
   state.docs.set('resultados/r1', { pacienteId: first.pacienteId });
   state.docs.set('test_progress/t1', { userId: first.pacienteId });
+  state.docs.set(`accesosPaciente/${first.pacienteId}`, { estado: 'activa' });
   await eliminarPaciente(first.pacienteId, 'admin');
   expect(state.users.size).toBe(0);
   expect(state.docs.size).toBe(0);

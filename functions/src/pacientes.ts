@@ -10,14 +10,6 @@ const testsDisponibles = new Set([
   "raven",
 ]);
 
-const nombresTests: Record<string, string> = {
-  k10: "Escala K10",
-  bfq: "Personalidad BFQ",
-  zulliger: "Láminas Zulliger",
-  bender: "Test de Bender",
-  raven: "Raven Abreviado",
-};
-
 const bloqueos = new Set<string>();
 
 function normalizarDni(valor: unknown) {
@@ -167,15 +159,6 @@ async function enviarEmailAcceso({
 
   const fechaAcceso = formatearFechaArgentina(inicio);
 
-  const listaTests = tests
-    .map(
-      (testId) =>
-        `<li style="margin-bottom: 8px;">
-          ${nombresTests[testId] ?? testId}
-        </li>`,
-    )
-    .join("");
-
   const { error } = await resend.emails.send({
     /*
      * IMPORTANTE:
@@ -264,11 +247,15 @@ async function enviarEmailAcceso({
                 </p>
               </div>
 
-              <h3>Evaluaciones asignadas</h3>
-
+              <h3>Antes de ingresar</h3>
+              <p>Tiene <strong>${tests.length} evaluaciones asignadas</strong>. Cada una puede tomar hasta <strong>30 minutos</strong>. Reserve tiempo suficiente para completar todas en una misma sesión.</p>
               <ul>
-                ${listaTests}
+                <li>Prepare una imagen del frente de su DNI en formato JPEG, JPG o PNG (hasta 10 MB).</li>
+                <li>Utilice una computadora con cámara. Puede ser integrada, USB o un teléfono configurado previamente como cámara web mediante una aplicación compatible.</li>
+                <li>Compruebe la cámara antes de ingresar. Durante cada evaluación podrán realizarse capturas para verificar su identidad.</li>
               </ul>
+              <p><strong>Acceso de una sola sesión:</strong> al cerrar sesión, cerrar la pestaña o ventana, o recargar la página, su cuenta quedará inhabilitada y no podrá volver a ingresar, aunque tenga evaluaciones pendientes.</p>
+              <p>Durante un test, si cambia de pestaña, minimiza o activa otra ventana, tendrá 2 minutos para volver. Vencido ese plazo, la evaluación se marcará como abandonada y no podrá retomarla.</p>
 
               <div
                 style="
@@ -550,6 +537,8 @@ export async function eliminarPaciente(
     .get();
 
   const batch = db.batch();
+
+  batch.delete(db.collection("accesosPaciente").doc(pacienteId));
 
   asignaciones.docs.forEach((documento) => {
     batch.delete(documento.ref);

@@ -1,3 +1,4 @@
+import { logoutPatient } from "../../utils/patientAccess";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { signOut } from "firebase/auth";
@@ -16,19 +17,18 @@ export default function Sidebar() {
   const rol = localStorage.getItem("rol");
 
   const [tiempo, setTiempo] = useState("Cargando...");
-  const [pacienteActual, setPacienteActual] = useState<any>(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem("paciente") || "null",
-      );
-    } catch {
-      return null;
-    }
-  });
+  const pacienteId = localStorage.getItem("pacienteId");
+  const [pacienteActual, setPacienteActual] = useState<any>(null);
 
   const emailAdmin = localStorage.getItem("email");
 
   const handleLogout = async () => {
+    if (rol === "paciente") {
+      if (!window.confirm("Si cierra sesión, su cuenta quedará inhabilitada y no podrá volver a ingresar ni completar las evaluaciones pendientes. ¿Desea cerrar sesión?")) return;
+      try { await logoutPatient(); } catch { /* Server expiry remains the fallback. */ }
+      navigate("/login", { replace: true });
+      return;
+    }
     try {
       await signOut(auth);
     } catch (error) {
@@ -126,6 +126,7 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    setPacienteActual(null);
     if (rol === "admin") {
       return;
     }
@@ -138,17 +139,15 @@ export default function Sidebar() {
       return;
     }
 
-    let paciente;
-
     try {
-      paciente = JSON.parse(pacienteData);
+      JSON.parse(pacienteData);
     } catch {
       setTiempo("No disponible");
       return;
     }
 
     const userId =
-      paciente?.id || paciente?.uid;
+      pacienteId;
 
     if (!userId) {
       setTiempo("No disponible");
@@ -180,11 +179,7 @@ export default function Sidebar() {
          * para que documentación/contacto reflejen
          * Firestore y no un localStorage viejo.
          */
-        setPacienteActual((prev: any) => ({
-          ...prev,
-          ...data,
-          id: docSnap.id,
-        }));
+        setPacienteActual({ ...data, id: docSnap.id });
 
         const fechaFin =
           data.fechaFinAcceso;
@@ -239,7 +234,7 @@ export default function Sidebar() {
         clearInterval(interval);
       }
     };
-  }, [rol]);
+  }, [rol, pacienteId]);
 
   /*
    * DATOS DEL USUARIO
@@ -291,7 +286,7 @@ export default function Sidebar() {
   }
 
   const dniCargado =
-    !!pacienteActual?.archivodni;
+    pacienteActual?.id === pacienteId && typeof pacienteActual?.archivodni === "string" && pacienteActual.archivodni.trim().length > 0;
 
   const emailContacto =
     pacienteActual?.contacto ||

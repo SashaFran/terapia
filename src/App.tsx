@@ -22,6 +22,7 @@ import PrivatePacienteRoute from "./routes/PrivatePacienteRoute";
 import Sidebar from "./components/Sidebar/Sidebar";
 import BreadcrumbsNav from "./components/Breadcrumbs/HeaderInfo";
 import TestRunner from "./pages/TestRunner/TestRunner";
+import PatientSessionNotice from "./components/PatientSessionNotice";
 import Footer from "./components/Footer/Footer"
 
 import styles from "./App.module.css";
@@ -31,6 +32,7 @@ export default function App() {
   return (
     <BrowserRouter basename="/">
       <AuthProvider>
+        <PatientSessionNotice />
         <Routes>
 
           

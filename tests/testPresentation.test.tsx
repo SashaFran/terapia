@@ -29,7 +29,7 @@ describe('assessment presentation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
     expect((screen.getAllByRole('radio')[2] as HTMLInputElement).checked).toBe(true);
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('1');
-    fireEvent.click(screen.getByRole('button', { name: `Ir a la pregunta ${BFQ_TEST.preguntas.length}, pendiente` }));
+    fireEvent.click(screen.getByRole('button', { name: `Pregunta ${BFQ_TEST.preguntas.length}, pendiente` }));
     expect((screen.getByRole('button', { name: 'Finalizar evaluación' }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/Faltan .* preguntas por responder/)).toBeTruthy();
     expect(engine.submit).not.toHaveBeenCalled();

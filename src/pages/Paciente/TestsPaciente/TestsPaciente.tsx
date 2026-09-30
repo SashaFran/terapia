@@ -1,15 +1,15 @@
+import { logoutPatient } from "../../../utils/patientAccess";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   query,
   where,
 } from "firebase/firestore";
-import { signOut } from "firebase/auth";
+
 
 import {
-  auth,
   db,
 } from "../../../firebase/firebase";
 
@@ -183,10 +183,12 @@ export default function TestsPaciente() {
 
       case "abandono":
         return {
-          texto: "Interrumpido",
+          texto: "Abandonado",
           clase: styles.abandoned,
         };
 
+      case "en_curso":
+        return { texto: "En curso", clase: styles.pending };
       default:
         return {
           texto: "Pendiente",
@@ -196,81 +198,21 @@ export default function TestsPaciente() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data =
-          localStorage.getItem(
-            "paciente",
-          );
-
-        if (!data) {
-          navigate("/login");
-          return;
-        }
-
-        const pacienteParsed =
-          JSON.parse(data);
-
-        setPaciente(
-          pacienteParsed,
-        );
-
-        const q = query(
-          collection(
-            db,
-            "asignaciones",
-          ),
-          where(
-            "pacienteId",
-            "==",
-            pacienteParsed.id,
-          ),
-        );
-
-        const snap =
-          await getDocs(q);
-
-        const testsData =
-          snap.docs.map(
-            (documento) => ({
-              id: documento.id,
-              ...documento.data(),
-            }),
-          ) as Test[];
-
-        setTests(testsData);
-      } catch (error) {
-        console.error(
-          "Error cargando evaluaciones:",
-          error,
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchData();
+    const data = localStorage.getItem("paciente");
+    if (!data) { navigate("/login"); return; }
+    let patient;
+    try { patient = JSON.parse(data); } catch { navigate("/login"); return; }
+    setPaciente(patient);
+    const assignments = query(collection(db, "asignaciones"), where("pacienteId", "==", patient.id));
+    return onSnapshot(assignments, snap => {
+      setTests(snap.docs.map(documento => ({ id: documento.id, ...documento.data() })) as Test[]);
+      setLoading(false);
+    }, error => { console.error("Error cargando evaluaciones:", error); setLoading(false); });
   }, [navigate]);
 
   const cerrarSesion = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error(
-        "Error cerrando sesión:",
-        error,
-      );
-    }
-
-    localStorage.removeItem(
-      "paciente",
-    );
-    localStorage.removeItem(
-      "pacienteId",
-    );
-    localStorage.removeItem("rol");
-
-    navigate("/");
+    if (!window.confirm("Al cerrar sesión su cuenta quedará inhabilitada y no podrá volver a ingresar. ¿Desea continuar?")) return;
+    try { await logoutPatient(); } finally { navigate("/login", { replace: true }); }
   };
 
   if (loading) {
@@ -556,6 +498,8 @@ export default function TestsPaciente() {
                       >
                         No disponible
                       </span>
+                    ) : test.estado === "en_curso" ? (
+                      <span className={styles.blockedText}>Registrando salida…</span>
                     ) : bloqueado ? (
                       <span
                         className={

@@ -95,3 +95,5 @@ export const recuperarAccesoAdminAuth =
   }).https.onCall(async (data) => {
     return recuperarAccesoAdmin(data);
   });
+// Patient sessions are enforced server-side; closing is a narrowly scoped capability.
+export { iniciarAccesoPaciente, actualizarAccesoPaciente, cerrarAccesoPaciente, expirarSesionesPaciente } from "./accesoEndpoints";

@@ -1,217 +1,58 @@
-import { useEffect, useRef } from "react";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-  Timestamp,
-  getDoc,
-  writeBatch,
-} from "firebase/firestore";
-import { db } from "../../firebase/firebase";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import TestK10 from "../../components/Tests/TestK10/TestK10";
 import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
 import TestZulliger from "../../components/Tests/TestZulliger/TestZulliger";
 import TestBender from "../../components/Tests/TestBender/TestBender";
+import { accessStore, abandonPatientTest, finishPatientTest } from "../../utils/patientAccess";
+import { getPacienteSession } from "../../utils/pacienteSession";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  clearPacienteSession,
-  clearTestEnCurso,
-  getPacienteSession,
-  setTestEnCurso,
-} from "../../utils/pacienteSession";
 
 export default function TestRunner() {
-  const navigate = useNavigate();
   const { testId } = useParams();
+  return <Assessment key={testId} testId={testId} />;
+}
 
-  const pacienteId = localStorage.getItem("pacienteId"); // 🔥 CLAVE
-  const testCompletadoRef = useRef(false);
-  const bloqueoAplicadoRef = useRef(false);
-  const confirmarSalidaRef = useRef(false);
-  const resultadoRef = useRef(doc(collection(db, "resultados")));
-
+function Assessment({ testId }: { testId: string | undefined }) {
+  const navigate = useNavigate();
+  const access = useSyncExternalStore(accessStore.subscribe, accessStore.snapshot);
+  const started = useRef(false);
+  const completed = useRef(false);
+  const [error, setError] = useState("");
+  const patient = getPacienteSession();
+  if (access.testId === testId) started.current = true;
   useEffect(() => {
-    if (!pacienteId || !testId) return;
-
-    setTestEnCurso({ pacienteId, testId });
-
-    const bloquearSalida = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    const bloquearRetroceso = () => {
-      if (testCompletadoRef.current || confirmarSalidaRef.current) return;
-      const confirmar = window.confirm(
-        "¿Seguro que desea salir? Recuerde que al cerrar no podrá volver a ingresar y deberá comunicarse con Administración para solicitar un nuevo acceso.",
-      );
-      if (!confirmar) {
-        window.history.pushState(null, "", window.location.href);
-        return;
-      }
-      confirmarSalidaRef.current = true;
-      navigate("/app/tests");
-    };
-
-    window.addEventListener("beforeunload", bloquearSalida);
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", bloquearRetroceso);
-
     return () => {
-      window.removeEventListener("beforeunload", bloquearSalida);
-      window.removeEventListener("popstate", bloquearRetroceso);
-
-      if (testCompletadoRef.current || bloqueoAplicadoRef.current || !pacienteId)
-        return;
-
-      bloqueoAplicadoRef.current = true;
-
-      void (async () => {
-        try {
-          await updateDoc(doc(db, "pacientes", pacienteId), {
-            activo: false,
-          });
-          const asignacionesPendientes = await getDocs(
-            query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
-          );
-          await Promise.all(
-            asignacionesPendientes.docs.map((asig) => {
-              const estado = asig.data().estado;
-              if (estado === "completado") return Promise.resolve();
-              return updateDoc(doc(db, "asignaciones", asig.id), {
-                estado: "abandono",
-              });
-            }),
-          );
-        } catch (error) {
-          console.error("No se pudo bloquear al paciente al salir del test", error);
-        } finally {
-          clearPacienteSession();
-        }
-      })();
-    };
-  }, [pacienteId, testId]);
-
-  const handleFinish = async (resultado: any) => {
-    if (!pacienteId || !testId) {
-      alert("Faltan datos del paciente");
-      return;
-    }
-    const pacienteSnapPre = await getDoc(doc(db, "pacientes", pacienteId));
-    if (!pacienteSnapPre.exists() || !pacienteSnapPre.data()?.archivodni) {
-      alert("Necesitás subir el DNI antes de realizar tests.");
-      navigate("/app/subir-dni");
-      return;
-    }
-
-    const ahora = new Date();
-
-    let data: any = {
-      testId,
-      respuestas: resultado.respuestas || [],
-      metodo: resultado.metodo || "",
-      fecha: Timestamp.fromDate(ahora),
-      pacienteId, // 🔥 AHORA NUNCA VA NULL
-      archivoCaptura: resultado.archivoCaptura || null,
-      captura_public_id: resultado.captura_public_id || null,
-      tiempoTotalMs: resultado.tiempoTotalMs ?? null,
-      out_of_time: resultado.out_of_time === true,
-    };
-
-    if (testId === "k10") {
-      data.score = resultado.score;
-      data.nivel = resultado.nivel;
-    }
-
-    if (testId === "bfq") {
-      const scoreTotal = Object.values(resultado.dimensiones || {})
-        .reduce((acc: number, val: any) => acc + (val || 0), 0);
-
-      data.score = scoreTotal;
-      data.nivel = "Perfil Big Five";
-      data.dimensiones = resultado.dimensiones;
-    }
-
-    if (testId === "raven") {
-      data.nivel = resultado.nivel;
-      data.errores = resultado.errores ?? null;
-    }
-
-    if (testId === "zulliger" || testId === "bender") {
-      data.nivel = "Interpretación Láminas";
-      data.resumenClinico = generarResumenLaminas({
-        pacienteNombre: "Paciente",
-        fecha: ahora,
-        respuestas: resultado.respuestas,
-      });
-    }
-
-    const q = query(
-      collection(db, "asignaciones"),
-      where("pacienteId", "==", pacienteId),
-      where("testId", "==", testId)
-    );
-
-    const snap = await getDocs(q);
-
-    const batch = writeBatch(db);
-    batch.set(resultadoRef.current, data);
-    snap.docs.forEach((d) =>
-      batch.update(doc(db, "asignaciones", d.id), {
-        estado: "completado",
-        fechaCompletado: Timestamp.fromDate(ahora),
-      })
-    );
-
-    await batch.commit();
-    testCompletadoRef.current = true;
-    clearTestEnCurso();
-
-    const [asignacionesActualizadas, pacienteSnap] = await Promise.all([
-      getDocs(
-        query(collection(db, "asignaciones"), where("pacienteId", "==", pacienteId)),
-      ),
-      getDoc(doc(db, "pacientes", pacienteId)),
-    ]);
-
-    const asignaciones = asignacionesActualizadas.docs.map((d) => d.data());
-    const totalAsignaciones = asignaciones.length;
-    const completadas = asignaciones.filter(
-      (a: any) => a.estado === "completado",
-    ).length;
-    const pacienteData = pacienteSnap.data();
-    const dniCargado = !!pacienteData?.archivodni;
-    const flujoTerminado = totalAsignaciones > 0 && completadas === totalAsignaciones;
-
-    if (flujoTerminado && dniCargado && pacienteData?.activo !== false) {
-      await updateDoc(doc(db, "pacientes", pacienteId), { activo: false });
-
-      const parsed = getPacienteSession();
-      if (parsed) {
-        localStorage.setItem(
-          "paciente",
-          JSON.stringify({
-            ...parsed,
-            activo: false,
-          }),
-        );
+      if (testId && started.current && !completed.current) {
+        void abandonPatientTest(testId).catch(() => {});
       }
-    }
-
-    navigate("/app/tests");
+    };
+  }, [testId]);
+  const cancel = async () => {
+    if (!testId) return;
+    if (!window.confirm("Si abandona esta evaluación, no podrá retomarla. ¿Desea continuar?")) return;
+    try { await abandonPatientTest(testId); navigate("/app/tests"); }
+    catch { setError("No se pudo registrar el abandono. Verifique la conexión e intente nuevamente."); }
   };
-
-  if (!pacienteId) return <p>Paciente no encontrado</p>;
-
-  if (testId === "k10") return <TestK10 onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "bfq") return <TestBFQ onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "zulliger") return <TestZulliger onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "bender") return <TestBender onFinish={handleFinish} userId={pacienteId} />;
-  if (testId === "raven") return <TestRaven onFinish={handleFinish} userId={pacienteId} />;
-
-  return <p>Test no encontrado</p>;
+  const handleFinish = async (resultado: any) => {
+    if (!testId) throw new Error("Evaluación inválida.");
+    let data = { ...resultado };
+    if (testId === "zulliger" || testId === "bender") {
+      data = { ...data, resumenClinico: generarResumenLaminas({ pacienteNombre: patient?.nombre || "Paciente", fecha: new Date(), respuestas: resultado.respuestas }) };
+    }
+    await finishPatientTest(testId, data, () => { completed.current = true; });
+    navigate("/app/tests", { replace: true });
+  };
+  const tests = { k10: TestK10, bfq: TestBFQ, raven: TestRaven, zulliger: TestZulliger, bender: TestBender };
+  const Test = tests[testId as keyof typeof tests];
+  if (!Test || !patient) return <p>Evaluación no disponible.</p>;
+  if (started.current && !access.testId && !completed.current) return <section className="access-policy"><h1>Evaluación abandonada</h1><p>No puede volver a ingresar a esta evaluación.</p><button onClick={() => navigate("/app/tests")}>Volver a evaluaciones</button></section>;
+  return <>
+    {error && <p role="alert">{error}</p>}
+    {access.testId && <button type="button" className="boton-base boton-secondary" onClick={() => void cancel()}>Abandonar evaluación</button>}
+    <fieldset disabled={access.connectionLost || Boolean(access.awayUntil)} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
+      <Test key={testId} userId={patient.id} onFinish={handleFinish} />
+    </fieldset>
+  </>;
 }
