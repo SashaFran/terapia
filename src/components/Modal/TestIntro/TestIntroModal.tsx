@@ -5,6 +5,7 @@ import Modal from "../../Modal/Modal";
 import ConsentimientoCamara from "../../Modal/CamaraModal/CamaraModal";
 
 import styles from "./TestIntroModal.module.css";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 type Instruccion = {
@@ -20,7 +21,7 @@ type Props = {
 
   canStart: boolean;
   onConsentChange: (accepted: boolean) => void;
-  onStart: () => void;
+  onStart: () => void | Promise<void>;
 
   startDisabled?: boolean;
 };
@@ -35,6 +36,15 @@ export default function TestIntroModal({
   onStart,
   startDisabled = false,
 }: Props) {
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState("");
+  const begin = async () => {
+    if (starting) return;
+    setStarting(true); setStartError("");
+    try { await onStart(); }
+    catch (error) { setStartError(error instanceof Error ? error.message : "No se pudo iniciar. Verifique la cámara y la conexión."); }
+    finally { setStarting(false); }
+  };
   return (
     <Modal
       abierto={true}
@@ -170,6 +180,8 @@ export default function TestIntroModal({
             CONSENTIMIENTO
         ============================================= */}
 
+        <p className="access-policy">Al comenzar, mantenga esta pantalla activa. Si cambia de pestaña o ventana, tendrá 2 minutos para regresar. Salir del test lo marcará como abandonado. Cerrar sesión o esta ventana inhabilita toda la cuenta.</p>
+        {startError && <p role="alert">{startError}</p>}
         <ConsentimientoCamara
           changeStatus={onConsentChange}
         />
@@ -198,10 +210,10 @@ export default function TestIntroModal({
           <div className={styles.action}>
             <BotonPersonalizado
               variant="primary"
-              onClick={onStart}
-              disabled={!canStart || startDisabled}
+              onClick={() => void begin()}
+              disabled={!canStart || startDisabled || starting}
             >
-              Comenzar evaluación
+              {starting ? "Verificando acceso y cámara…" : "Comenzar evaluación"}
             </BotonPersonalizado>
           </div>
         </footer>

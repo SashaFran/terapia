@@ -2,6 +2,7 @@ import { act, cleanup, render, renderHook, screen } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTestEngine } from '../src/components/Tests/helpers/useTestEngine';
 
+vi.mock('../src/utils/patientAccess', () => ({ hasPatientAccess: () => false, beginPatientTest: vi.fn() }));
 vi.mock('../src/firebase/firebase', () => ({ db: {} }));
 vi.mock('firebase/firestore', () => ({ doc: () => ({}), setDoc: async () => undefined }));
 vi.mock('../src/components/Tests/helpers/useCameraCapture', () => ({
@@ -19,7 +20,7 @@ describe('test timing', () => {
       userId: 'p1', testId: 'k10', timeLimitMs: 30 * 60000, onFinish,
       getResult: () => ({ respuestas: answers, score: 3 }),
     }));
-    act(() => result.current.start());
+    await act(async () => { await result.current.start(); });
     await act(() => vi.advanceTimersByTimeAsync(25 * 60000 - 1000));
     expect(result.current.feedback).toBeNull();
     await act(() => vi.advanceTimersByTimeAsync(1000));
@@ -39,7 +40,7 @@ describe('test timing', () => {
   it('keeps the original elapsed time and payload on a failed save retry', async () => {
     const onFinish = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined);
     const { result } = renderHook(() => useTestEngine({ userId: 'p1', testId: 'bfq', timeLimitMs: 1800000, onFinish }));
-    act(() => result.current.start());
+    await act(async () => { await result.current.start(); });
     await act(() => vi.advanceTimersByTimeAsync(65000));
     await act(async () => { await expect(result.current.submit({ respuestas: [4] })).rejects.toThrow('offline'); });
     expect(result.current.inputLocked).toBe(true);
@@ -52,7 +53,7 @@ describe('test timing', () => {
   it('does not submit twice when a manual finish coincides with expiration', async () => {
     const onFinish = vi.fn().mockResolvedValue(undefined);
     const { result } = renderHook(() => useTestEngine({ userId: 'p1', testId: 'raven', timeLimitMs: 6000, onFinish }));
-    act(() => result.current.start());
+    await act(async () => { await result.current.start(); });
     await act(() => vi.advanceTimersByTimeAsync(5000));
     await act(() => result.current.submit({ respuestas: [1] }));
     await act(() => vi.advanceTimersByTimeAsync(5000));

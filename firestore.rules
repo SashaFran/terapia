@@ -1,0 +1,55 @@
+rules_version = '2';
+// Prototype rules. Assumed models:
+// pacientes/{id}: uid (immutable for patients), nombre, dni, activo, server-owned
+// accesoEstado/sesionHasta, optional archivodni and dni_public_id.
+// asignaciones/{id}: pacienteId, testId, estado; patient transitions use Functions.
+// resultados/{id}: pacienteId, testId; patient results use Functions exclusively.
+// sesiones/{id}: pacienteId, testId; administration manages these records.
+// test_progress/{patientId_testId}: userId, testId, data, updatedAt; non-authoritative.
+// accesosPaciente/{id}: server-only capability hash and lease; no client writes.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() { return request.auth != null && request.auth.token.admin == true; }
+    function owns(id) {
+      return request.auth != null && get(/databases/$(database)/documents/pacientes/$(id)).data.uid == request.auth.uid;
+    }
+    function active(id) {
+      let p = get(/databases/$(database)/documents/pacientes/$(id)).data;
+      return owns(id) && p.activo != false && p.accesoEstado == 'activa' && p.sesionHasta > request.time && p.fechaFinAcceso > request.time;
+    }
+    function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+    function validPatient(d) { return text(d.uid, 128) && text(d.nombre, 300) && text(d.dni, 20) && d.activo is bool; }
+    function validAssignment(d) { return text(d.pacienteId, 128) && text(d.testId, 100) && text(d.estado, 40); }
+    function validResult(d) { return text(d.pacienteId, 128) && text(d.testId, 100); }
+    match /pacientes/{id} {
+      allow read: if admin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow create: if admin() && validPatient(request.resource.data);
+      allow update: if validPatient(request.resource.data) && (admin() ||
+        (active(id) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archivodni', 'dni_public_id']) &&
+         text(request.resource.data.archivodni, 2048) && request.resource.data.archivodni.matches('https://res[.]cloudinary[.]com/.*') &&
+         text(request.resource.data.dni_public_id, 512)));
+      allow delete: if admin();
+    }
+    match /asignaciones/{id} {
+      allow read: if admin() || active(resource.data.pacienteId);
+      allow create, update: if admin() && validAssignment(request.resource.data);
+      allow delete: if admin();
+    }
+    match /resultados/{id} {
+      allow read, delete: if admin();
+      allow create, update: if admin() && validResult(request.resource.data);
+    }
+    match /sesiones/{id} {
+      allow read: if admin() || active(resource.data.pacienteId);
+      allow create, update: if admin() && validAssignment(request.resource.data);
+      allow delete: if admin();
+    }
+    match /test_progress/{id} {
+      allow read: if admin() || active(resource.data.userId);
+      // Progress writes also use the capability-checked, size-limited Function.
+      allow create, update: if false;
+      allow delete: if admin();
+    }
+    match /accesosPaciente/{id} { allow read, write: if false; }
+  }
+}
