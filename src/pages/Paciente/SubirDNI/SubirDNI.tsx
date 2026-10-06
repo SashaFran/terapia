@@ -60,12 +60,13 @@ export default function SubirDNI() {
     const formatosPermitidos = [
       "image/jpeg",
       "image/jpg",
+      "image/png",
     ];
 
     if (!formatosPermitidos.includes(archivo.type)) {
       setFile(null);
       setError(
-        "El archivo debe ser una imagen en formato JPG o JPEG.",
+        "El archivo debe ser una imagen en formato JPG, JPEG o PNG.",
       );
       return;
     }
@@ -302,7 +303,7 @@ export default function SubirDNI() {
 
               <div>
                 <h3>Formato</h3>
-                <p>Imagen JPG o JPEG.</p>
+                <p>Imagen JPG, JPEG o PNG.</p>
               </div>
             </article>
 
@@ -338,7 +339,7 @@ export default function SubirDNI() {
               ref={inputRef}
               id="dni-file"
               type="file"
-              accept=".jpg,.jpeg,image/jpeg"
+              accept=".jpg,.jpeg,.png,image/jpeg,image/png"
               className={styles.hiddenInput}
               onChange={(e) =>
                 seleccionarArchivo(
@@ -383,7 +384,7 @@ export default function SubirDNI() {
                     </strong>
 
                     <span>
-                      JPG o JPEG · Máximo 10 MB
+                      JPG, JPEG o PNG · Máximo 10 MB
                     </span>
                   </div>
                 </>

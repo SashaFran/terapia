@@ -29,7 +29,11 @@ describe('assessment presentation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
     expect((screen.getAllByRole('radio')[2] as HTMLInputElement).checked).toBe(true);
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('1');
+<<<<<<< HEAD
     fireEvent.click(screen.getByRole('button', { name: new RegExp(`Pregunta ${BFQ_TEST.preguntas.length}`) }));
+=======
+    fireEvent.click(screen.getByRole('button', { name: `Pregunta ${BFQ_TEST.preguntas.length}, pendiente` }));
+>>>>>>> cc660b14b0c599491925a6c5e2ce9bfe45a6e008
     expect((screen.getByRole('button', { name: 'Finalizar evaluación' }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/Faltan .* preguntas por responder/)).toBeTruthy();
     expect(engine.submit).not.toHaveBeenCalled();
