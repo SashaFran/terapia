@@ -61,7 +61,7 @@
 .eyebrow {
   color: #ff7900;
 
-  font-size: 0.63rem;
+  font-size: var(--font-size-mid);
   font-weight: 800;
 
   letter-spacing: 0.12em;
@@ -363,7 +363,7 @@
   border: 1px solid #ffe2c4;
   border-radius: 50%;
 
-  font-size: 0.67rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 }
 
@@ -391,7 +391,7 @@
 .pacienteInfo span {
   color: var(--font-color);
 
-  font-size: 0.63rem;
+  font-size: var(--font-size-mid);
 }
 
 /* =========================

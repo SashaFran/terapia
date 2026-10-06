@@ -4,6 +4,7 @@ import { db } from "../../../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import styles from "./SubirDNI.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
+import LoadingState from "../../../components/Loading/LoadingState";
 
 export default function SubirDNI() {
   const navigate = useNavigate();
@@ -181,12 +182,7 @@ export default function SubirDNI() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.loading}>
-        <div className={styles.loadingCircle} />
-        <p>Cargando tu documentación…</p>
-      </div>
-    );
+    return <LoadingState message="Cargando tu documentación..." />;
   }
 
   return (

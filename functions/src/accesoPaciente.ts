@@ -5,7 +5,8 @@ import { HttpsError } from "firebase-functions/v1/https";
 export const GRACIA_MS = 120000;
 const DURACION_TEST_MS = 30 * 60000;
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
-const deny = () => new HttpsError("failed-precondition", "Este acceso ya fue utilizado o quedó inhabilitado. Contacte a administración.");
+const deny = (message = "Este acceso ya fue utilizado o quedó inhabilitado. Contacte a administración.") =>
+  new HttpsError("failed-precondition", message);
 const millis = (value: admin.firestore.Timestamp | undefined) => value?.toMillis() ?? 0;
 
 export function validarToken(token: unknown): asserts token is string {
@@ -34,7 +35,21 @@ export async function iniciarAcceso(uid: string, token: string) {
     const patient = (await tx.get(ref)).data()!;
     const access = (await tx.get(accessRef)).data();
     const now = Date.now();
-    if (patient.activo === false || millis(patient.fechaFinAcceso) <= now) throw deny();
+    if (patient.activo === false) {
+      if (patient.accesoEstado === "abandonada") {
+        throw deny("El acceso fue inhabilitado porque la evaluación quedó abandonada. Contacte a administración si necesita asistencia.");
+      }
+
+      if (patient.accesoEstado === "finalizada") {
+        throw deny("El acceso fue cerrado porque las evaluaciones ya finalizaron. Contacte a administración si necesita asistencia.");
+      }
+
+      throw deny("La cuenta está inhabilitada. Contacte a administración para solicitar asistencia.");
+    }
+
+    if (millis(patient.fechaFinAcceso) <= now) {
+      throw deny("El período de acceso venció. Contacte a administración para solicitar una renovación.");
+    }
     if (millis(patient.fechaInicioAcceso) > now) {
       throw new HttpsError("failed-precondition", "Su período de acceso todavía no comenzó.");
     }

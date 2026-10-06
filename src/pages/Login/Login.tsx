@@ -396,7 +396,6 @@ export default function Login() {
             styles.patientAccess
           }
         >
-          <div>
             <strong>
               ¿Sos paciente?
             </strong>
@@ -406,7 +405,6 @@ export default function Login() {
               evaluaciones desde el
               portal de pacientes.
             </p>
-          </div>
 
           <button
             type="button"

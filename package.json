@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "build": "vite build",
+    "build": "vite build && node scripts/copy-spa-fallback.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",

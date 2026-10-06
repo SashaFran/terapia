@@ -1108,7 +1108,7 @@ font-size: var(--font-size-xsmall);
   }
 
   .kpiLabel {
-    font-size: 0.52rem;
+    font-size: var(--font-size-xsmall);
   }
 
   .activityTime {

@@ -15,6 +15,7 @@ import {
 } from "../../firebase/sesiones";
 
 import BotonPersonalizado from "../../components/Boton/Boton";
+import LoadingState from "../../components/Loading/LoadingState";
 
 interface Paciente {
   id: string;
@@ -237,25 +238,7 @@ export default function NuevaSesion({
   ======================================================= */
 
   if (loading) {
-    return (
-      <div
-        className={
-          styles.loading
-        }
-      >
-        <div
-          className={
-            styles.loadingIndicator
-          }
-        >
-          <span />
-        </div>
-
-        <p>
-          Cargando pacientes...
-        </p>
-      </div>
-    );
+    return <LoadingState message="Cargando pacientes..." />;
   }
 
   /* =======================================================

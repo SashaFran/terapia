@@ -7,6 +7,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { descargarInforme } from "../../utils/descargarInforme.ts";
 import Modal from "../../components/Modal/Modal.tsx";
 import NuevaSesion from "../NuevaSesion/NuevaSesion.tsx";
+import LoadingState from "../../components/Loading/LoadingState";
 
 interface Resultado {
   id: string;
@@ -201,17 +202,7 @@ export default function Sesiones() {
       )[0] || null;
 
   if (loading) {
-    return (
-      <div className={styles.loading}>
-        <div
-          className={
-            styles.loadingIndicator
-          }
-        />
-
-        <p>Cargando sesiones...</p>
-      </div>
-    );
+    return <LoadingState message="Cargando sesiones..." />;
   }
 
   return (

@@ -381,7 +381,7 @@
 
   color: #747980;
 
-  font-size: 0.67rem;
+  font-size: var(--font-size-small);
 }
 
 
@@ -524,7 +524,7 @@
   border: 0;
 
   font-family: inherit;
-  font-size: 0.67rem;
+  font-size: var(--font-size-small);
   font-weight: 600;
 
   cursor: pointer;
@@ -775,7 +775,7 @@
 
   border-radius: 999px;
 
-  font-size: 0.67rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 }
 

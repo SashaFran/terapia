@@ -15,6 +15,7 @@ import {
 
 import styles from "./TestsPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
+import LoadingState from "../../../components/Loading/LoadingState";
 
 interface Test {
   id: string;
@@ -216,19 +217,7 @@ export default function TestsPaciente() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.loading}>
-        <div
-          className={
-            styles.loadingCircle
-          }
-        />
-
-        <p>
-          Cargando tus evaluaciones…
-        </p>
-      </div>
-    );
+    return <LoadingState message="Cargando tus evaluaciones..." />;
   }
 
   return (

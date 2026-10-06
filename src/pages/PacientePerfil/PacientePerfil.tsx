@@ -17,6 +17,7 @@ import styles from "./PacientePerfil.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
 import ConfirmModal from "../../components/Modal/ConfirmModal/ConfirmModal";
 import EditarPacienteModal from "../../components/Modal/editarPaciente/EditarPacienteModal";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import { eliminarPaciente } from "../../firebase/pacientes";
 
@@ -665,25 +666,7 @@ export default function PacientePerfil() {
   ========================================================= */
 
   if (loading) {
-    return (
-      <div
-        className={
-          styles.loading
-        }
-      >
-        <div
-          className={
-            styles.loadingIndicator
-          }
-        >
-          <span />
-        </div>
-
-        <p>
-          Cargando paciente...
-        </p>
-      </div>
-    );
+    return <LoadingState message="Cargando paciente..." />;
   }
 
   if (!patient) {

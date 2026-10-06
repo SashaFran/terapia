@@ -351,7 +351,7 @@
 
   color: #969a9f;
 
-  font-size: 0.58rem;
+  font-size: var(--font-size-small);
 
   line-height: 1.55;
 }
@@ -509,7 +509,7 @@ font-size: var(--font-size-xsmall);
 
   color: #a2a6ab;
 
-  font-size: 0.52rem;
+  font-size: var(--font-size-xsmall);
 }
 
 .securityDot {
@@ -538,7 +538,7 @@ font-size: var(--font-size-xsmall);
   }
 
   .selectorCard {
-    width: min(100%, 470px);
+    width: min(100%, 570px);
 
     padding: 1.5rem;
   }

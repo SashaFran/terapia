@@ -51,10 +51,32 @@ describe("single-use patient access", () => {
   });
   it("rejects inactive patients and access before its date", async () => {
     state.docs.get("pacientes/p1").activo = false;
-    await expect(iniciarAcceso("u1", token)).rejects.toThrow();
+    await expect(iniciarAcceso("u1", token)).rejects.toMatchObject({
+      message: "La cuenta está inhabilitada. Contacte a administración para solicitar asistencia.",
+    });
     state.docs.get("pacientes/p1").activo = true;
     state.docs.get("pacientes/p1").fechaInicioAcceso = ts(2000000);
-    await expect(iniciarAcceso("u1", token)).rejects.toThrow();
+    await expect(iniciarAcceso("u1", token)).rejects.toMatchObject({
+      message: "Su período de acceso todavía no comenzó.",
+    });
+  });
+  it("explains expired and abandoned access states", async () => {
+    state.docs.get("pacientes/p1").fechaFinAcceso = ts(999999);
+    await expect(iniciarAcceso("u1", token)).rejects.toMatchObject({
+      message: "El período de acceso venció. Contacte a administración para solicitar una renovación.",
+    });
+
+    state.docs.get("pacientes/p1").fechaFinAcceso = ts(99999999);
+    state.docs.get("pacientes/p1").activo = false;
+    state.docs.get("pacientes/p1").accesoEstado = "abandonada";
+    await expect(iniciarAcceso("u1", token)).rejects.toMatchObject({
+      message: "El acceso fue inhabilitado porque la evaluación quedó abandonada. Contacte a administración si necesita asistencia.",
+    });
+
+    state.docs.get("pacientes/p1").accesoEstado = "finalizada";
+    await expect(iniciarAcceso("u1", token)).rejects.toMatchObject({
+      message: "El acceso fue cerrado porque las evaluaciones ya finalizaron. Contacte a administración si necesita asistencia.",
+    });
   });
   it("closing before doing any tests disables the account and every pending assignment", async () => {
     await iniciarAcceso("u1", token);
