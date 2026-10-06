@@ -20,7 +20,7 @@ import PrivateAdminRoute from "./routes/PrivateAdminRoute";
 import PrivatePacienteRoute from "./routes/PrivatePacienteRoute";
 
 import Sidebar from "./components/Sidebar/Sidebar";
-import BreadcrumbsNav from "./components/Breadcrumbs/HeaderInfo";
+import AdminTopbar from "./components/AdminShell/AdminTopbar";
 import TestRunner from "./pages/TestRunner/TestRunner";
 import PatientSessionNotice from "./components/PatientSessionNotice";
 import Footer from "./components/Footer/Footer"
@@ -77,23 +77,23 @@ export default function App() {
             path="/admin/*"
             element={
               <PrivateAdminRoute>
-                <div className={styles.layout}>
+                <div className={`${styles.layout} ${styles.adminLayout}`}>
                   <Sidebar />
-                  <BreadcrumbsNav />
-                  <div className={styles.mainArea}>
-                    
-                      <main className={`${styles.mainContent}`}>
-                      <Routes>
-                        <Route path="dashboard" element={<AdminDashboard />} />
-                        <Route path="pacientes" element={<AdminPacientes />} />
-                        <Route path="paciente/:id" element={<AdminPacientePerfil />} />
-                        <Route path="nuevo-paciente" element={<NuevoPaciente />} />
-                        <Route path="sesiones" element={<AdminSesiones />} />
-                        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-                      </Routes>
-                    </main>
+                  <div className={styles.adminWorkspace}>
+                    <AdminTopbar />
+                    <div className={styles.mainArea}>
+                      <main className={styles.mainContent}>
+                        <Routes>
+                          <Route path="dashboard" element={<AdminDashboard />} />
+                          <Route path="pacientes" element={<AdminPacientes />} />
+                          <Route path="paciente/:id" element={<AdminPacientePerfil />} />
+                          <Route path="nuevo-paciente" element={<NuevoPaciente />} />
+                          <Route path="sesiones" element={<AdminSesiones />} />
+                          <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                        </Routes>
+                      </main>
+                    </div>
                   </div>
-                  <Footer/>
                 </div>
               </PrivateAdminRoute>
             }

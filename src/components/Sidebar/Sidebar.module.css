@@ -521,3 +521,15 @@
     right: -0.35rem;
   }
 }
+
+.adminRail { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 72px; min-width: 72px; padding: 28px 0 22px; background: #11110f; color: #aaa79c; border-right: 1px solid #ffffff10; z-index: 120; }
+.railBrand { display: flex; gap: 4px; height: 32px; transform: rotate(35deg); }
+.railBrand span { display: block; width: 9px; height: 28px; border-radius: 9px; background: #ffb000; }
+.railBrand span:last-child { height: 22px; margin-top: 3px; background: #ff3c2a; }
+.railNav { display: flex; flex-direction: column; flex: 1; gap: 12px; padding-top: 34px; }
+.railLink { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 13px; color: inherit; background: transparent; cursor: pointer; transition: background .2s, color .2s; }
+.railLink:hover, .railActive { background: #ffb000; color: #17140d; }
+.railLink:focus-visible, .railBrand:focus-visible { outline: 2px solid #ffb000; outline-offset: 4px; }
+.railLink svg { width: 21px; height: 21px; }
+.railAvatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(145deg,#ffd262,#ff8800); color: #201f1b; font-size: 12px; font-weight: 800; }
+@media(max-width: 600px) { .adminRail { width: 54px; min-width: 54px; padding-top: 24px; } .railLink { width: 38px; height: 38px; } }

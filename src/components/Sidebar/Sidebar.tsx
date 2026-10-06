@@ -4,6 +4,10 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
 import Tooltip from "@mui/material/Tooltip";
+import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
+import PeopleOutline from "@mui/icons-material/PeopleOutline";
+import AssignmentOutlined from "@mui/icons-material/AssignmentOutlined";
+import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
 
 import styles from "../Sidebar/Sidebar.module.css";
 import { auth, db } from "../../firebase/firebase";
@@ -292,6 +296,19 @@ export default function Sidebar() {
     pacienteActual?.contacto ||
     pacienteActual?.email ||
     "No informado";
+
+  if (rol === "admin") {
+    const icons = [<DashboardOutlined />, <PeopleOutline />, <AssignmentOutlined />];
+    return <aside className={styles.adminRail} aria-label="Navegación principal">
+      <Link to="/admin/dashboard" className={styles.railBrand} aria-label="JoinSolution"><span /><span /></Link>
+      <nav className={styles.railNav}>{linksAdmin.map((link, index) => {
+        const active = pathname.startsWith(link.to) || (index === 1 && (pathname.startsWith("/admin/paciente/") || pathname.includes("nuevo-paciente")));
+        return <Tooltip key={link.to} title={link.label} placement="right"><Link to={link.to} aria-label={link.label} aria-current={active ? "page" : undefined} className={`${styles.railLink} ${active ? styles.railActive : ""}`}>{icons[index]}</Link></Tooltip>;
+      })}</nav>
+      <Tooltip title="Cerrar sesión" placement="right"><button type="button" className={styles.railLink} aria-label="Cerrar sesión" onClick={handleLogout}><LogoutOutlined /></button></Tooltip>
+      <span className={styles.railAvatar} title={displayName}>{iniciales}</span>
+    </aside>;
+  }
 
   return (
     <aside
