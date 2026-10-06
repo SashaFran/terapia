@@ -683,3 +683,19 @@
     padding: 1rem;
   }
 }
+/* Shared management design: cream surfaces and warm borders. */
+.container { height: auto; }
+.layout { gap: 26px; }
+.pageHeader h1 { font-size: clamp(26px,3vw,34px); letter-spacing: -1px; }
+.pageHeader p { color: #777367; font-size: 12px; }
+.eyebrow { color: #a25a00; font-size: 9px; letter-spacing: 1.7px; }
+.metricaCard { background: #fffdf8; border: 1px solid #ded9cc; border-radius: 16px; box-shadow: none; }
+.metricaCard::before { display: none; }
+.metricaDot { background: #ffb000; box-shadow: none; }
+.metricaNumero { font-family: var(--font-family-header); color: #201f1b; }
+.tableSection { background: #fffdf8; border: 1px solid #ded9cc; border-radius: 18px; box-shadow: none; }
+.tableHeader { background: #fffdf8; border-color: #e8e4d9; }
+.tablaSesiones thead th { background: #f8f6ef; color: #777367; font-size: 9px; letter-spacing: .8px; text-transform: uppercase; }
+.tablaSesiones tbody td { border-color: #ebe7dd; }
+.pacienteAvatar { background: #f5e8c7; color: #98621c; border-radius: 11px; }
+.testBadge { color: #8f6516; background: #fff1cf; border-color: #efddb5; }
