@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import AssignmentTurnedInOutlined from "@mui/icons-material/AssignmentTurnedInOutlined";
+import PeopleOutline from "@mui/icons-material/PeopleOutline";
+import EventAvailableOutlined from "@mui/icons-material/EventAvailableOutlined";
 import { db } from "../../firebase/firebase.js";
 import styles from "./Sesiones.module.css";
 import BotonPersonalizado from "../../components/Boton/Boton";
@@ -24,53 +27,38 @@ interface Paciente {
   nombre: string;
   archivodni?: string;
 }
-
+const pageSize = 10;
 export default function Sesiones() {
-  const [showModal, setShowModal] =
-    useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  const [resultados, setResultados] =
-    useState<Resultado[]>([]);
+  const [resultados, setResultados] = useState<Resultado[]>([]);
 
-  const [pacientesMap, setPacientesMap] =
-    useState<Record<string, Paciente>>({});
+  const [pacientesMap, setPacientesMap] = useState<Record<string, Paciente>>(
+    {},
+  );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [page, setPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [
-    selectedSession,
-    setSelectedSession,
-  ] = useState<Resultado | null>(null);
+  const [selectedSession, setSelectedSession] = useState<Resultado | null>(
+    null,
+  );
 
-  const formatearFecha = (
-    timestamp: any,
-  ): string => {
+  const formatearFecha = (timestamp: any): string => {
     if (!timestamp) return "N/A";
 
-    if (
-      typeof timestamp.toDate ===
-      "function"
-    ) {
-      return timestamp
-        .toDate()
-        .toLocaleDateString("es-AR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
+    if (typeof timestamp.toDate === "function") {
+      return timestamp.toDate().toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
     }
 
-    if (
-      typeof timestamp.seconds ===
-      "number"
-    ) {
-      return new Date(
-        timestamp.seconds * 1000,
-      ).toLocaleDateString("es-AR", {
+    if (typeof timestamp.seconds === "number") {
+      return new Date(timestamp.seconds * 1000).toLocaleDateString("es-AR", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -80,9 +68,7 @@ export default function Sesiones() {
     return "N/A";
   };
 
-  const handleOpenModal = (
-    resultado: Resultado,
-  ) => {
+  const handleOpenModal = (resultado: Resultado) => {
     setSelectedSession(resultado);
     setIsModalOpen(true);
   };
@@ -92,17 +78,13 @@ export default function Sesiones() {
     setSelectedSession(null);
   };
 
-  const handleSuccessfulSave = (
-    id: string,
-    nuevasObservaciones: string,
-  ) => {
+  const handleSuccessfulSave = (id: string, nuevasObservaciones: string) => {
     setResultados((prev) =>
       prev.map((r) =>
         r.id === id
           ? {
               ...r,
-              observacionesIniciales:
-                nuevasObservaciones,
+              observacionesIniciales: nuevasObservaciones,
             }
           : r,
       ),
@@ -118,61 +100,32 @@ export default function Sesiones() {
       try {
         setLoading(true);
 
-        const snapResultados =
-          await getDocs(
-            collection(
-              db,
-              "resultados",
-            ),
-          );
+        const snapResultados = await getDocs(collection(db, "resultados"));
 
-        const resultadosData =
-          snapResultados.docs.map(
-            (d) => ({
-              id: d.id,
-              ...d.data(),
-            }),
-          ) as Resultado[];
+        const resultadosData = snapResultados.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        })) as Resultado[];
 
-        const snapPacientes =
-          await getDocs(
-            collection(
-              db,
-              "pacientes",
-            ),
-          );
+        const snapPacientes = await getDocs(collection(db, "pacientes"));
 
-        const map: Record<
-          string,
-          Paciente
-        > = {};
+        const map: Record<string, Paciente> = {};
 
-        snapPacientes.docs.forEach(
-          (d) => {
-            const data = d.data();
+        snapPacientes.docs.forEach((d) => {
+          const data = d.data();
 
-            map[d.id] = {
-              id: d.id,
-              nombre:
-                data.nombre ||
-                "Sin nombre",
-              archivodni:
-                data.archivodni ||
-                data.archivoDNI,
-            };
-          },
-        );
+          map[d.id] = {
+            id: d.id,
+            nombre: data.nombre || "Sin nombre",
+            archivodni: data.archivodni || data.archivoDNI,
+          };
+        });
 
-        setResultados(
-          resultadosData,
-        );
+        setResultados(resultadosData);
 
         setPacientesMap(map);
       } catch (error) {
-        console.error(
-          "Error al cargar sesiones:",
-          error,
-        );
+        console.error("Error al cargar sesiones:", error);
       } finally {
         setLoading(false);
       }
@@ -181,26 +134,30 @@ export default function Sesiones() {
     void cargarDatos();
   }, []);
 
-  const totalTests =
-    resultados.length;
+  const totalTests = resultados.length;
 
-  const pacientesEvaluados =
-    new Set(
-      resultados
-        .map((r) => r.pacienteId)
-        .filter(Boolean),
-    ).size;
+  const pacientesEvaluados = new Set(
+    resultados.map((r) => r.pacienteId).filter(Boolean),
+  ).size;
 
   const ultimaFecha =
     resultados
       .map((r) => r.fecha)
       .filter(Boolean)
-      .sort(
-        (a, b) =>
-          (b.seconds || 0) -
-          (a.seconds || 0),
-      )[0] || null;
+      .sort((a, b) => (b.seconds || 0) - (a.seconds || 0))[0] || null;
 
+  const pages = Math.max(1, Math.ceil(resultados.length / pageSize));
+
+  const currentPage = Math.min(page, pages);
+
+  const resultadosPagina = resultados.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  const desde = resultados.length ? (currentPage - 1) * pageSize + 1 : 0;
+
+  const hasta = Math.min(currentPage * pageSize, resultados.length);
   if (loading) {
     return <LoadingState message="Cargando sesiones..." />;
   }
@@ -212,37 +169,22 @@ export default function Sesiones() {
             ENCABEZADO
         ========================= */}
 
-        <section
-          className={styles.pageHeader}
-        >
+        <section className={styles.pageHeader}>
           <div>
-            <span
-              className={
-                styles.eyebrow
-              }
-            >
-              EVALUACIONES
-            </span>
+            <span className={styles.eyebrow}>EVALUACIONES</span>
 
             <h1>Sesiones</h1>
 
             <p>
-              Consultá los resultados,
-              observaciones e informes de
-              las evaluaciones realizadas.
+              Consultá los resultados, observaciones e informes de las
+              evaluaciones realizadas.
             </p>
           </div>
 
-          <div
-            className={
-              styles.headerAction
-            }
-          >
+          <div className={styles.headerAction}>
             <BotonPersonalizado
               variant="primary"
-              onClick={
-                guardarNuevaSesion
-              }
+              onClick={guardarNuevaSesion}
               tooltip="Registrar una nueva sesión."
               disabled={false}
             >
@@ -255,136 +197,79 @@ export default function Sesiones() {
             MÉTRICAS
         ========================= */}
 
-        <section
-          className={
-            styles.metricasGrid
-          }
-        >
-          <article
-            className={
-              styles.metricaCard
-            }
-          >
-            <div
-              className={
-                styles.metricaTop
-              }
-            >
-              <span>
-                Tests realizados
-              </span>
+<section
+  className={styles.metricasGrid}
+  aria-label="Métricas de sesiones"
+>
+  <article className={styles.metricaCard}>
+    <span className={styles.statIcon}>
+      <AssignmentTurnedInOutlined />
+    </span>
 
-              <span
-                className={
-                  styles.metricaDot
-                }
-              />
-            </div>
+    <div className={styles.metricaContent}>
+      <span className={styles.metricaLabel}>
+        Tests realizados
+      </span>
 
-            <strong
-              className={
-                styles.metricaNumero
-              }
-            >
-              {totalTests}
-            </strong>
+      <div className={styles.metricaValueRow}>
+        <strong>{totalTests}</strong>
+        <small>Evaluaciones completadas</small>
+      </div>
+    </div>
+  </article>
 
-            <p>
-              Evaluaciones completadas
-            </p>
-          </article>
+  <article className={styles.metricaCard}>
+    <span
+      className={`${styles.statIcon} ${styles.coral}`}
+    >
+      <PeopleOutline />
+    </span>
 
-          <article
-            className={
-              styles.metricaCard
-            }
-          >
-            <div
-              className={
-                styles.metricaTop
-              }
-            >
-              <span>
-                Pacientes evaluados
-              </span>
+    <div className={styles.metricaContent}>
+      <span className={styles.metricaLabel}>
+        Pacientes evaluados
+      </span>
 
-              <span
-                className={
-                  styles.metricaDot
-                }
-              />
-            </div>
+      <div className={styles.metricaValueRow}>
+        <strong>{pacientesEvaluados}</strong>
+        <small>Pacientes con resultados</small>
+      </div>
+    </div>
+  </article>
 
-            <strong
-              className={
-                styles.metricaNumero
-              }
-            >
-              {pacientesEvaluados}
-            </strong>
+  <article className={styles.metricaCard}>
+    <span
+      className={`${styles.statIcon} ${styles.yellow}`}
+    >
+      <EventAvailableOutlined />
+    </span>
 
-            <p>
-              Pacientes con resultados
-            </p>
-          </article>
+    <div className={styles.metricaContent}>
+      <span className={styles.metricaLabel}>
+        Último test
+      </span>
 
-          <article
-            className={
-              styles.metricaCard
-            }
-          >
-            <div
-              className={
-                styles.metricaTop
-              }
-            >
-              <span>
-                Último test
-              </span>
+      <div className={styles.metricaValueRow}>
+        <strong className={styles.metricaFecha}>
+          {ultimaFecha
+            ? formatearFecha(ultimaFecha)
+            : "—"}
+        </strong>
 
-              <span
-                className={
-                  styles.metricaDot
-                }
-              />
-            </div>
-
-            <strong
-              className={`${styles.metricaNumero} ${styles.metricaFecha}`}
-            >
-              {ultimaFecha
-                ? formatearFecha(
-                    ultimaFecha,
-                  )
-                : "—"}
-            </strong>
-
-            <p>
-              Última evaluación
-              registrada
-            </p>
-          </article>
-        </section>
+        <small>Última evaluación registrada</small>
+      </div>
+    </div>
+  </article>
+</section>
 
         {/* =========================
             TABLA
         ========================= */}
 
-        <main
-          className={
-            styles.tableSection
-          }
-        >
-          <div
-            className={
-              styles.tableHeader
-            }
-          >
+        <main className={styles.tableSection}>
+          <div className={styles.tableHeader}>
             <div>
-              <h2>
-                Resultados de
-                evaluaciones
-              </h2>
+              <h2>Resultados de evaluaciones</h2>
 
               <p>
                 {totalTests === 1
@@ -394,11 +279,7 @@ export default function Sesiones() {
             </div>
           </div>
 
-          <div
-            className={
-              styles.tablaSesiones
-            }
-          >
+          <div className={styles.tablaSesiones}>
             <table>
               <thead>
                 <tr>
@@ -408,211 +289,152 @@ export default function Sesiones() {
 
                   <th>Paciente</th>
 
-                  <th>
-                    Observaciones
-                  </th>
+                  <th>Observaciones</th>
 
-                  <th
-                    className={
-                      styles.accionHeader
-                    }
-                  >
-                    Informe
-                  </th>
+                  <th className={styles.accionHeader}>Informe</th>
                 </tr>
               </thead>
 
               <tbody>
-                {resultados.length ===
-                0 ? (
+                {resultados.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={5}
-                      className={
-                        styles.emptyState
-                      }
-                    >
-                      <strong>
-                        Todavía no hay
-                        resultados
-                      </strong>
+                    <td colSpan={5} className={styles.emptyState}>
+                      <strong>Todavía no hay resultados</strong>
 
-                      <span>
-                        Las evaluaciones
-                        completadas
-                        aparecerán acá.
-                      </span>
+                      <span>Las evaluaciones completadas aparecerán acá.</span>
                     </td>
                   </tr>
                 ) : (
-                  resultados.map(
-                    (r) => {
-                      const paciente =
-                        pacientesMap[
-                          r.pacienteId ||
-                            ""
-                        ];
+                  resultadosPagina.map((r) => {
+                    const paciente = pacientesMap[r.pacienteId || ""];
 
-                      const tieneObservaciones =
-                        Boolean(
-                          r.observacionesIniciales?.trim(),
-                        );
+                    const tieneObservaciones = Boolean(
+                      r.observacionesIniciales?.trim(),
+                    );
 
-                      return (
-                        <tr key={r.id}>
-                          {/* FECHA */}
+                    return (
+                      <tr key={r.id}>
+                        {/* FECHA */}
 
-                          <td>
-                            <span
-                              className={
-                                styles.fecha
-                              }
-                            >
-                              {formatearFecha(
-                                r.fecha,
-                              )}
-                            </span>
-                          </td>
+                        <td>
+                          <span className={styles.fecha}>
+                            {formatearFecha(r.fecha)}
+                          </span>
+                        </td>
 
-                          {/* TEST */}
+                        {/* TEST */}
 
-                          <td>
-                            <span
-                              className={
-                                styles.testBadge
-                              }
-                            >
-                              {r.testId?.toUpperCase() ||
-                                "—"}
-                            </span>
-                          </td>
+                        <td>
+                          <span className={styles.testBadge}>
+                            {r.testId?.toUpperCase() || "—"}
+                          </span>
+                        </td>
 
-                          {/* PACIENTE */}
+                        {/* PACIENTE */}
 
-                          <td>
-                            <div
-                              className={
-                                styles.pacienteCell
-                              }
-                            >
-                              <div
-                                className={
-                                  styles.pacienteAvatar
-                                }
-                              >
-                                {paciente?.nombre
-                                  ? paciente.nombre
-                                      .trim()
-                                      .split(
-                                        /\s+/,
-                                      )
-                                      .slice(
-                                        0,
-                                        2,
-                                      )
-                                      .map(
-                                        (
-                                          parte,
-                                        ) =>
-                                          parte.charAt(
-                                            0,
-                                          ),
-                                      )
-                                      .join(
-                                        "",
-                                      )
-                                      .toUpperCase()
-                                  : "?"}
-                              </div>
-
-                              <div
-                                className={
-                                  styles.pacienteInfo
-                                }
-                              >
-                                <strong>
-                                  {paciente?.nombre ||
-                                    "Paciente no encontrado"}
-                                </strong>
-                              </div>
+                        <td>
+                          <div className={styles.pacienteCell}>
+                            <div className={styles.pacienteAvatar}>
+                              {paciente?.nombre
+                                ? paciente.nombre
+                                    .trim()
+                                    .split(/\s+/)
+                                    .slice(0, 2)
+                                    .map((parte) => parte.charAt(0))
+                                    .join("")
+                                    .toUpperCase()
+                                : "?"}
                             </div>
-                          </td>
 
-                          {/* OBSERVACIONES */}
+                            <div className={styles.pacienteInfo}>
+                              <strong>
+                                {paciente?.nombre || "Paciente no encontrado"}
+                              </strong>
+                            </div>
+                          </div>
+                        </td>
 
-                          <td>
-                            <button
-                              type="button"
-                              className={`${styles.observacionButton} ${
-                                tieneObservaciones
-                                  ? styles.observacionGuardada
-                                  : ""
-                              }`}
-                              onClick={() =>
-                                handleOpenModal(
-                                  r,
-                                )
-                              }
-                            >
-                              <span
-                                className={
-                                  styles.actionIcon
-                                }
-                              >
-                                {tieneObservaciones
-                                  ? "✓"
-                                  : "+"}
-                              </span>
+                        {/* OBSERVACIONES */}
 
-                              <span>
-                                {tieneObservaciones
-                                  ? "Ver / editar"
-                                  : "Agregar"}
-                              </span>
-                            </button>
-                          </td>
-
-                          {/* INFORME */}
-
-                          <td
-                            className={
-                              styles.accionCell
-                            }
+                        <td>
+                          <button
+                            type="button"
+                            className={`${styles.observacionButton} ${
+                              tieneObservaciones
+                                ? styles.observacionGuardada
+                                : ""
+                            }`}
+                            onClick={() => handleOpenModal(r)}
                           >
-                            <button
-                              type="button"
-                              className={
-                                styles.downloadButton
-                              }
-                              onClick={() =>
-                                descargarInforme(
-                                  r,
-                                  paciente,
-                                )
-                              }
-                            >
-                              <span>
-                                Descargar
-                              </span>
+                            <span className={styles.actionIcon}>
+                              {tieneObservaciones ? "✓" : "+"}
+                            </span>
 
-                              <span
-                                className={
-                                  styles.downloadIcon
-                                }
-                                aria-hidden="true"
-                              >
-                                ↓
-                              </span>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    },
-                  )
+                            <span>
+                              {tieneObservaciones ? "Ver / editar" : "Agregar"}
+                            </span>
+                          </button>
+                        </td>
+
+                        {/* INFORME */}
+
+                        <td className={styles.accionCell}>
+                          <button
+                            type="button"
+                            className={styles.downloadButton}
+                            onClick={() => descargarInforme(r, paciente)}
+                          >
+                            <span>Descargar</span>
+
+                            <span
+                              className={styles.downloadIcon}
+                              aria-hidden="true"
+                            >
+                              ↓
+                            </span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
+          <footer className={styles.tableFooter}>
+  <span>
+    Mostrando {desde}–{hasta} de{" "}
+    {resultados.length} evaluaciones
+  </span>
+
+  <nav aria-label="Paginación de sesiones">
+    <button
+      type="button"
+      disabled={currentPage <= 1}
+      onClick={() =>
+        setPage(currentPage - 1)
+      }
+      aria-label="Página anterior"
+    >
+      ‹
+    </button>
+
+    <span>
+      Página {currentPage} de {pages}
+    </span>
+
+    <button
+      type="button"
+      disabled={currentPage >= pages}
+      onClick={() =>
+        setPage(currentPage + 1)
+      }
+      aria-label="Página siguiente"
+    >
+      ›
+    </button>
+  </nav>
+</footer>
         </main>
       </div>
 
@@ -624,9 +446,7 @@ export default function Sesiones() {
         abierto={isModalOpen}
         onCerrar={handleCloseModal}
         sesion={selectedSession}
-        onGuardarExitoso={
-          handleSuccessfulSave
-        }
+        onGuardarExitoso={handleSuccessfulSave}
       />
 
       {/* =========================
@@ -636,28 +456,12 @@ export default function Sesiones() {
       {showModal && (
         <Modal
           abierto={true}
-          onCerrar={() =>
-            setShowModal(false)
-          }
+          onCerrar={() => setShowModal(false)}
           titulo="Registrar nueva sesión"
         >
-          <div
-            className={
-              styles.modalOverlay
-            }
-          >
-            <div
-              className={
-                styles.modalContent
-              }
-            >
-              <NuevaSesion
-                onClose={() =>
-                  setShowModal(
-                    false,
-                  )
-                }
-              />
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <NuevaSesion onClose={() => setShowModal(false)} />
             </div>
           </div>
         </Modal>

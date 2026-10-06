@@ -1,20 +1,23 @@
+/* =========================================================
+   JOIN SOLUTION
+   SIDEBAR
+   ========================================================= */
+
+/* =========================================================
+   PACIENTE — NAVBAR
+   ========================================================= */
+
 .sidebar {
   position: relative;
   z-index: 100;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border: 1px solid #eef1f6;
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius);
 
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.02),
-    0 4px 14px rgba(32, 40, 50, 0.05);
+  box-shadow: var(--shadow-sm);
 }
-
-/* =========================
-   NAVBAR
-========================= */
 
 .navbar {
   display: flex;
@@ -23,27 +26,30 @@
 
   width: 100%;
 
-  gap: 1rem;
+  gap: var(--space-4);
 
-  padding: 0.45rem 1.5rem;
+  padding: 0.45rem var(--space-6);
+
+  box-sizing: border-box;
 }
 
 .center {
   display: flex;
   align-items: center;
 
-  gap: 1.35rem;
+  gap: var(--space-6);
 }
 
 .item {
   position: relative;
 
-  padding: 0.65rem 0;
+  padding: var(--space-3) 0;
 
-  color: var(--gris-dark);
+  color: var(--text-primary);
 
-  font-size: 0.88rem;
-  font-weight: var(--font-light);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-mid);
+  font-weight: var(--font-regular);
 
   text-decoration: none;
 
@@ -51,19 +57,15 @@
 }
 
 .item:hover {
-  color: #ff8800;
+  color: var(--naranja2);
 }
 
 .active {
-  color: #ff7900;
+  color: var(--naranja2);
 
   font-weight: var(--font-bold);
 }
 
-/*
- * Línea sutil debajo de la
- * sección actualmente activa.
- */
 .active::after {
   content: "";
 
@@ -75,32 +77,25 @@
 
   height: 2px;
 
-  background: #ff7900;
+  background: var(--naranja2);
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
-/* =========================
-   USUARIO
-========================= */
+/* =========================================================
+   PACIENTE — USUARIO
+   ========================================================= */
 
 .right {
   position: relative;
 
-  padding: 0.35rem;
-
-  background: transparent;
+  padding: var(--space-1);
 }
 
 .userWrapper {
   position: relative;
 }
 
-/*
- * Puente invisible entre
- * trigger y dropdown.
- * Evita que el hover se corte.
- */
 .userWrapper::after {
   content: "";
 
@@ -117,17 +112,19 @@
   display: flex;
   align-items: center;
 
-  gap: 0.7rem;
+  gap: var(--space-3);
 
-  padding: 0.25rem 0.35rem;
+  padding:
+    var(--space-1)
+    var(--space-2);
 
   cursor: pointer;
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .userTrigger:hover {
-  background: #fafafa;
+  background: var(--surface-muted);
 }
 
 .avatar {
@@ -139,20 +136,20 @@
   width: 36px;
   height: 36px;
 
-  color: #ffffff;
+  color: var(--on-action);
   background: var(--rojo);
 
   border-radius: 50%;
 
   font-size: var(--font-size-small);
-  font-weight: 700;
+  font-weight: var(--font-bold);
 }
 
 .userInfo {
   display: flex;
   align-items: center;
 
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .name {
@@ -160,10 +157,10 @@
 
   overflow: hidden;
 
-  color: var(--font-color);
+  color: var(--text-primary);
 
-  font-size: 0.83rem;
-  font-weight: var(--font-regular);
+  font-size: var(--font-size-mid);
+  font-weight: var(--font-medium);
 
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -182,31 +179,33 @@
   transform: rotate(180deg);
 }
 
-/* =========================
-   DROPDOWN
-========================= */
+/* =========================================================
+   PACIENTE — DROPDOWN
+   ========================================================= */
 
 .subMenu {
   position: absolute;
-  display: flex;
-  flex-direction: column;
+
   top: calc(100% + 16px);
   right: 0;
 
-  width: 330px;
+  z-index: 9999;
 
-  overflow: visible;
+  display: flex;
+  flex-direction: column;
+
+  width: 330px;
 
   padding: 0;
 
-  background: #ffffff;
+  overflow: visible;
 
-  border: 1px solid #e9edf1;
-  border-radius: 16px;
+  background: var(--surface);
 
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.04),
-    0 18px 45px rgba(31, 38, 48, 0.13);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+
+  box-shadow: var(--shadow-hover);
 
   opacity: 0;
 
@@ -217,8 +216,6 @@
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
-
-  z-index: 9999;
 }
 
 .userWrapper:hover .subMenu {
@@ -228,8 +225,6 @@
 
   transform: translateY(0);
 }
-
-/* Flechita superior */
 
 .subMenu::before {
   content: "";
@@ -242,25 +237,21 @@
   width: 13px;
   height: 13px;
 
-  background: #ffffff;
+  background: var(--surface);
 
-  border-top: 1px solid #e9edf1;
-  border-left: 1px solid #e9edf1;
+  border-top: 1px solid var(--border-soft);
+  border-left: 1px solid var(--border-soft);
 
   transform: rotate(45deg);
 }
-
-/* =========================
-   HEADER DEL MENÚ
-========================= */
 
 .menuHeader {
   display: flex;
   align-items: center;
 
-  gap: 0.85rem;
+  gap: var(--space-3);
 
-  padding: 1.25rem;
+  padding: var(--space-5);
 }
 
 .menuAvatar {
@@ -272,14 +263,19 @@
   width: 42px;
   height: 42px;
 
-  color: #ffffff;
+  color: var(--on-action);
 
-  background: linear-gradient(135deg, #ff8800, #ff4438);
+  background:
+    linear-gradient(
+      135deg,
+      var(--naranja2),
+      var(--rojo)
+    );
 
   border-radius: 50%;
 
   font-size: var(--font-size-small);
-  font-weight: 800;
+  font-weight: var(--font-extrabold);
 }
 
 .menuIdentity {
@@ -288,40 +284,38 @@
 
   min-width: 0;
 
-  gap: 0.2rem;
+  gap: var(--space-1);
 }
 
 .menuIdentity strong {
   overflow: hidden;
 
-  color: var(--gris-dark);
+  color: var(--text-primary);
 
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: var(--font-size-mid);
+  font-weight: var(--font-bold);
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .menuIdentity span {
-  color: var(--gris-dark);
+  color: var(--text-secondary);
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-small);
 }
 
 .divider {
   width: 100%;
   height: 1px;
 
-  background: #f0f1f3;
+  background: var(--border-soft);
 }
 
-/* =========================
-   INFORMACIÓN PACIENTE
-========================= */
-
 .menuContent {
-  padding: 0.55rem 1.25rem;
+  padding:
+    var(--space-2)
+    var(--space-5);
 }
 
 .infoRow {
@@ -331,55 +325,57 @@
 
   min-height: 58px;
 
-  gap: 1rem;
+  gap: var(--space-4);
 
-  border-bottom: 1px solid #f2f3f5;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .infoRow > div {
   display: flex;
   flex-direction: column;
 
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .infoLabel {
-  color: var(--gris-dark);
+  color: var(--text-secondary);
 
   font-size: var(--font-size-small);
-  font-weight: 500;
+  font-weight: var(--font-medium);
 }
 
 .timeValue {
-  color: var(--gris-dark);
+  color: var(--text-primary);
 
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: var(--font-size-mid);
+  font-weight: var(--font-bold);
 }
 
 .statusDot {
   width: 8px;
   height: 8px;
 
-  background: #ff8800;
+  background: var(--naranja2);
 
   border-radius: 50%;
 
-  box-shadow: 0 0 0 4px rgba(255, 136, 0, 0.1);
+  box-shadow:
+    0 0 0 4px
+    rgba(255, 136, 0, 0.1);
 }
 
 .successValue {
-  color: #357557;
+  color: var(--success-text);
 
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
 }
 
 .pendingValue {
-  color: #b26a20;
+  color: var(--warning-text);
 
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-bold);
 }
 
 .checkIcon,
@@ -393,98 +389,225 @@
 
   border-radius: 50%;
 
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-extrabold);
 }
 
 .checkIcon {
-  color: #357557;
-  background: #eaf7f0;
+  color: var(--success-text);
+  background: var(--surface-success);
 }
 
 .pendingIcon {
-  color: #b26a20;
-  background: #fff4df;
+  color: var(--warning-text);
+  background: var(--surface-warning);
 }
-
-.contactBlock {
-  display: flex;
-  flex-direction: column;
-
-  gap: 0.3rem;
-
-  padding: 0.9rem 0 0.7rem;
-}
-
-.emailValue {
-  overflow: hidden;
-
-  color: var(--gris-dark);
-
-  font-size: var(--font-size-small);
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* =========================
-   ADMIN
-========================= */
-
-.adminBlock {
-  padding: 1rem 1.25rem;
-}
-
-.roleBadge {
-  display: inline-flex;
-
-  padding: 0.3rem 0.55rem;
-
-  color: #b85b00;
-  background: #fff3e5;
-
-  border-radius: 999px;
-
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.adminBlock p {
-  margin: 0.65rem 0 0;
-
-  color: var(--gris-dark);
-
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-/* =========================
-   LOGOUT
-========================= */
 
 .logoutContainer {
-  padding: 1rem 1.25rem 1.25rem;
   align-self: center;
+
+  width: 100%;
+
+  padding:
+    var(--space-4)
+    var(--space-5)
+    var(--space-5);
+
+  box-sizing: border-box;
 }
 
 .logoutContainer > * {
   width: 100%;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* =========================================================
+   ADMIN — FIGMA SIDE RAIL
+   ========================================================= */
 
-@media (max-width: 900px) {
+.adminRail {
+  position: relative;
+  z-index: 1200;
+
+  display: flex;
+  flex: 0 0 72px;
+  flex-direction: column;
+  align-items: center;
+
+  width: 72px;
+  min-width: 72px;
+  height: 100%;
+
+  padding: 14px 0 18px;
+
+  box-sizing: border-box;
+
+  color: #f4f2eb;
+  background: #11110f;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* =========================================================
+   ADMIN — LOGO
+   ========================================================= */
+
+.adminLogo {
+  display: grid;
+  place-items: center;
+
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 48px;
+
+  margin-bottom: 24px;
+
+  border-radius: 14px;
+
+  text-decoration: none;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.adminLogo:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.adminLogo:active {
+  transform: scale(0.96);
+}
+
+.adminLogo img {
+  display: block;
+
+  width: 38px;
+  height: 38px;
+
+  object-fit: contain;
+}
+
+/* =========================================================
+   ADMIN — NAV
+   ========================================================= */
+
+.adminNav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+
+  gap: 10px;
+}
+
+.adminNavLink {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  color: #9c9a91;
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 13px;
+
+  text-decoration: none;
+
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.adminNavLink:hover {
+  color: #f4f2eb;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.adminNavLink:active {
+  transform: scale(0.94);
+}
+
+.adminNavLink svg {
+  width: 21px;
+  height: 21px;
+}
+
+.adminNavActive {
+  color: #17140d;
+
+  background: #ffb000;
+
+  border-color: rgba(255, 176, 0, 0.3);
+
+  box-shadow:
+    0 8px 22px
+    rgba(255, 176, 0, 0.13);
+}
+
+.adminNavActive:hover {
+  color: #17140d;
+  background: #ffb000;
+}
+
+.adminNavActive::before {
+  content: "";
+
+  position: absolute;
+
+  top: 9px;
+  bottom: 9px;
+  left: -7px;
+
+  width: 3px;
+
+  background: #ff3c2a;
+
+  border-radius:
+    0
+    999px
+    999px
+    0;
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.adminLogo:focus-visible,
+.adminNavLink:focus-visible {
+  outline: 2px solid #ff8800;
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
   .navbar {
     flex-wrap: wrap;
 
     justify-content: center;
 
-    gap: 0.75rem;
+    gap: var(--space-3);
 
-    padding: 0.5rem 1rem;
+    padding:
+      var(--space-2)
+      var(--space-4);
   }
 
   .center {
@@ -493,43 +616,104 @@
     width: 100%;
 
     justify-content: center;
-
     flex-wrap: wrap;
+
+    gap: var(--space-4);
   }
 
-  .subMenu {
-    right: -0.5rem;
-
-    width: min(calc(100vw - 2rem), 330px);
+  .item {
+    font-size: var(--font-size-small);
   }
-}
 
-@media (max-width: 600px) {
   .userInfo {
     display: none;
   }
 
-  .center {
-    gap: 0.9rem;
-  }
-
-  .item {
-    font-size: 0.8rem;
-  }
-
   .subMenu {
     right: -0.35rem;
+
+    width:
+      min(
+        calc(100vw - 2rem),
+        330px
+      );
+  }
+
+  /* ADMIN — rail inferior */
+
+  .adminRail {
+    position: fixed;
+
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    z-index: 1400;
+
+    flex-direction: row;
+
+    width: 100%;
+    min-width: 0;
+    height: 66px;
+
+    padding: 8px 16px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 0;
+  }
+
+  .adminLogo {
+    display: none;
+  }
+
+  .adminNav {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    align-items: center;
+
+    width: 100%;
+
+    gap: 8px;
+  }
+
+  .adminNavLink {
+    justify-self: center;
+
+    width: 48px;
+    height: 48px;
+
+    margin: 0;
+  }
+
+  .adminNavActive::before {
+    top: auto;
+    right: 12px;
+    bottom: -8px;
+    left: 12px;
+
+    width: auto;
+    height: 3px;
+
+    border-radius:
+      999px
+      999px
+      0
+      0;
   }
 }
 
-.adminRail { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 72px; min-width: 72px; padding: 28px 0 22px; background: #11110f; color: #aaa79c; border-right: 1px solid #ffffff10; z-index: 120; }
-.railBrand { display: flex; gap: 4px; height: 32px; transform: rotate(35deg); }
-.railBrand span { display: block; width: 9px; height: 28px; border-radius: 9px; background: #ffb000; }
-.railBrand span:last-child { height: 22px; margin-top: 3px; background: #ff3c2a; }
-.railNav { display: flex; flex-direction: column; flex: 1; gap: 12px; padding-top: 34px; }
-.railLink { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 13px; color: inherit; background: transparent; cursor: pointer; transition: background .2s, color .2s; }
-.railLink:hover, .railActive { background: #ffb000; color: #17140d; }
-.railLink:focus-visible, .railBrand:focus-visible { outline: 2px solid #ffb000; outline-offset: 4px; }
-.railLink svg { width: 21px; height: 21px; }
-.railAvatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(145deg,#ffd262,#ff8800); color: #201f1b; font-size: 12px; font-weight: 800; }
-@media(max-width: 600px) { .adminRail { width: 54px; min-width: 54px; padding-top: 24px; } .railLink { width: 38px; height: 38px; } }
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .adminLogo,
+  .adminNavLink,
+  .item,
+  .arrow {
+    transition: none;
+  }
+}

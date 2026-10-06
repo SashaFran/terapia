@@ -1,185 +1,887 @@
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
 .topbar {
   position: relative;
-  z-index: 110;
-  display: flex;
+  z-index: 1100;
+
+  display: grid;
+  grid-template-columns:
+    minmax(220px, auto)
+    minmax(240px, 430px)
+    minmax(220px, auto);
+
   align-items: center;
+
+  width: 100%;
+  min-height: var(--admin-topbar-height, 68px);
+
   gap: 24px;
-  min-height: 88px;
-  padding: 18px 30px;
-  background: #f4f2eb;
-  border-bottom: 1px solid #dfddd4;
-  color: #201f1b;
+
+  padding: 0 30px;
+
+  color: #f7f4ed;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.09);
 }
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+.heroTopbar {
+  color: #20170c;
+
+background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naranja2) 68%, #ff4938 100% );
+  border-bottom-color:
+    rgba(61, 37, 8, 0.12);
+}
+
+/* =========================================================
+   INTERNAL PAGES
+   ========================================================= */
+
+.darkTopbar {
+  color: #f7f4ed;
+
+  background:
+    rgba(17, 17, 15, 0.98);
+
+  border-bottom-color:
+    rgba(255, 255, 255, 0.07);
+
+  backdrop-filter: blur(18px);
+}
+
+/* =========================================================
+   WORDMARK
+   ========================================================= */
+
 .wordmark {
   display: flex;
   align-items: center;
-  gap: 12px;
+
+  min-width: 0;
+
+  gap: 10px;
+
   color: inherit;
+
   text-decoration: none;
+
   white-space: nowrap;
 }
+
 .wordmark strong {
-  font-size: 17px;
-  letter-spacing: -0.6px;
+  font-family:
+    var(--font-family-header),
+    sans-serif;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  letter-spacing: -0.04em;
 }
+
 .mark {
   display: flex;
+  align-items: center;
+
   gap: 4px;
+
+  width: 22px;
+  height: 28px;
+
   transform: rotate(35deg);
 }
+
 .mark i {
-  width: 7px;
-  height: 25px;
-  border-radius: 8px;
+  display: block;
+
+  width: 6px;
+  height: 21px;
+
   background: #ffb000;
+
+  border-radius: 999px;
 }
+
 .mark i:last-child {
+  height: 17px;
+
+  margin-top: 4px;
+
   background: #ff3c2a;
-  height: 20px;
-  margin-top: 3px;
 }
+
+.heroTopbar .mark i:first-child {
+  background: #1e1912;
+}
+
+.heroTopbar .mark i:last-child {
+  background: #ff3c2a;
+}
+
 .section {
-  border-left: 1px solid #d6d2c5;
+  max-width: 170px;
+
+  overflow: hidden;
+
   padding-left: 14px;
-  font-size: 12px;
-  color: #68665c;
+
+  color: #858178;
+
+  border-left:
+    1px solid
+    rgba(255, 255, 255, 0.13);
+
+  font-size: var(--font-size-mid);
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
+.heroTopbar .section {
+  color:
+    rgba(52, 33, 12, 0.66);
+
+  border-left-color:
+    rgba(52, 33, 12, 0.2);
+}
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
 .searchWrap {
   position: relative;
-  flex: 1;
-  max-width: 480px;
-  margin-left: auto;
+
+  width: 100%;
   min-width: 0;
 }
+
 .search {
   display: flex;
   align-items: center;
+
+  width: 100%;
+  height: 38px;
+
   gap: 9px;
-  padding: 11px 13px;
-  background: #e9e6dd;
-  border: 1px solid #dcd8cd;
-  border-radius: 12px;
-  color: #777367;
+
+  padding: 0 12px;
+
+  color: #aaa79c;
+
+  background:
+    rgba(255, 255, 255, 0.055);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
+  border-radius: 10px;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
+
+.search:hover {
+  background:
+    rgba(255, 255, 255, 0.075);
+}
+
 .search:focus-within {
-  outline: 2px solid #ff8800;
-  outline-offset: 2px;
+  border-color:
+    rgba(255, 176, 0, 0.5);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 176, 0, 0.08);
 }
+
+.search > svg {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+}
+
 .search input {
   width: 100%;
   min-width: 0;
+
+  padding: 0;
+
+  color: inherit;
+
+  background: transparent;
+
   border: 0;
   outline: 0;
-  background: transparent;
-  color: #201f1b;
+
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-mid);
 }
+
+ input:focus,
+.search input:focus-visible {
+  outline: none;
+  border: 0;
+}
+.search input::placeholder {
+  color: currentColor;
+  opacity: 0.65;
+}
+
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .search kbd {
+  flex-shrink: 0;
+
+  padding: 3px 6px;
+
+  color: #77756e;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 5px;
+
   font: inherit;
-  font-size: 9px;
+  font-size: 8px;
+  font-weight: 700;
+
   white-space: nowrap;
 }
+
+/* Dashboard search */
+
+.heroTopbar .search {
+  color:
+    rgba(56, 36, 14, 0.75);
+
+  background:
+    rgba(255, 255, 255, 0.2);
+
+  border-color:
+    rgba(54, 34, 12, 0.15);
+}
+
+.heroTopbar .search:hover {
+  background:
+    rgba(255, 255, 255, 0.27);
+}
+
+.heroTopbar .search:focus-within {
+  background:
+    rgba(255, 255, 255, 0.31);
+
+  border-color:
+    rgba(51, 31, 9, 0.25);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 255, 255, 0.11);
+}
+
+.heroTopbar .search kbd {
+  color:
+    rgba(52, 33, 12, 0.65);
+
+  background:
+    rgba(255, 255, 255, 0.17);
+
+  border-color:
+    rgba(52, 33, 12, 0.12);
+}
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
 .results {
   position: absolute;
-  top: calc(100% + 9px);
-  width: 100%;
-  max-height: 350px;
-  overflow: auto;
-  border: 1px solid #dcd8cd;
-  border-radius: 14px;
+
+  top: calc(100% + 10px);
+  right: 0;
+  left: 0;
+
+  z-index: 1500;
+
+  max-height: 360px;
+
+  overflow-y: auto;
+
   background: #fffdf8;
-  box-shadow: 0 12px 30px #15141126;
+
+  border: 1px solid #e4dfd3;
+  border-radius: 14px;
+
+  box-shadow:
+    0 18px 45px
+    rgba(10, 10, 8, 0.2);
 }
+
 .results a {
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
-  text-decoration: none;
+
+  gap: 3px;
+
+  padding: 12px 15px;
+
   color: #201f1b;
-  border-bottom: 1px solid #e9e6dd;
+
+  text-decoration: none;
+
+  border-bottom:
+    1px solid #ece8df;
 }
+
+.results a:last-of-type {
+  border-bottom: 0;
+}
+
 .results a:hover,
 .results a:focus-visible {
-  background: #fff0cf;
+  background: #fff2d5;
 }
-.results span,
-.results p {
-  font-size: 12px;
-  color: #68665c;
+
+.results strong {
+  font-size: var(--font-size-mid);
+  font-weight: 700;
 }
+
+.results span {
+  color: #777367;
+
+  font-size: var(--font-size-small);
+}
+
 .results p {
-  padding: 12px 16px;
   margin: 0;
+
+  padding: 13px 15px;
+
+  color: #68665c;
+
+  font-size: var(--font-size-mid);
 }
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  min-width: 0;
+
+  gap: 14px;
+}
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+.notification {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  color: inherit;
+
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 50%;
+
+  cursor: pointer;
+}
+
+.notification:hover {
+  background:
+    rgba(255, 255, 255, 0.07);
+}
+
+.heroTopbar .notification:hover {
+  background:
+    rgba(54, 34, 12, 0.08);
+}
+
+.notification svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notificationDot {
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  width: 6px;
+  height: 6px;
+
+  background: #ff3c2a;
+
+  border:
+    1px solid
+    currentColor;
+
+  border-radius: 50%;
+}
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.profileWrapper {
+  position: relative;
+  font-size: var(--font-size-small);
+  min-width: 0;
+}
+
 .profile {
   display: flex;
   align-items: center;
-  gap: 10px;
+
   min-width: 0;
+
+  gap: 1rem;
+
+  padding: 0.5rem;
+
+  color: inherit;
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
-.profile > div {
-  display: flex;
-  flex-direction: column;
-  max-width: 160px;
+
+.profile:hover,
+.profile[aria-expanded="true"] {
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  border-color:
+    rgba(255, 255, 255, 0.06);
 }
-.profile strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  white-space: nowrap;
+
+.heroTopbar .profile:hover,
+.heroTopbar .profile[aria-expanded="true"] {
+  background:
+    rgba(52, 33, 12, 0.08);
+
+  border-color:
+    rgba(52, 33, 12, 0.08);
 }
-.profile div span {
-  font-size: 10px;
-  color: #777367;
-}
+
+
+/* =========================================================
+   AVATAR
+   ========================================================= */
+
 .avatar {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #ffd262, #ff8800);
+
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
   color: #201f1b;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd262,
+      #ff8800
+    );
+
+  border-radius: 50%;
+
+  font-size: var(--font-size-small);
   font-weight: 800;
-  font-size: 11px;
 }
+
+.heroTopbar .avatar {
+  background:
+    rgba(255, 255, 255, 0.38);
+
+  border:
+    1px solid
+    rgba(58, 37, 13, 0.12);
+}
+
+
+/* =========================================================
+   PROFILE TEXT
+   ========================================================= */
+
+.profileText {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  max-width: 150px;
+}
+
+.profileText strong {
+  overflow: hidden;
+
+  color: inherit;
+
+  font-size: var(--font-size-small);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileText span {
+  color: #77756e;
+
+  font-size: var(--font-size-small);
+}
+
+.heroTopbar .profileText span {
+  color:
+    rgba(52, 33, 12, 0.65);
+}
+
+
+/* =========================================================
+   CHEVRON
+   ========================================================= */
+
+.profileChevron {
+  width: 17px !important;
+  height: 17px !important;
+
+  flex: 0 0 17px;
+
+  margin-left: 1px;
+
+  color: #77756e;
+
+  transition:
+    transform 0.18s ease;
+}
+
+.heroTopbar .profileChevron {
+  color:
+    rgba(52, 33, 12, 0.62);
+}
+
+.profileChevronOpen {
+  transform: rotate(180deg);
+}
+
+.adminLogo{
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+/* =========================================================
+   PROFILE MENU
+   ========================================================= */
+
+.profileMenu {
+position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1700;
+  width: 280px;
+  overflow: hidden;
+  color: var(--beige);
+  background: #211f1b;
+  border-radius: 14px;
+  box-shadow: 0 18px 45px rgba(10, 10, 8, 0.22);
+  animation: _profileMenuIn_1d858_1 0.16s ease-out;
+}
+
+@keyframes profileMenuIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px)
+      scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   MENU IDENTITY
+   ========================================================= */
+
+.menuIdentity {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 16px;
+}
+
+.menuAvatar {
+  display: grid;
+  place-items: center;
+
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  color: #201f1b;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd262,
+      #ff8800
+    );
+
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.menuIdentity > div {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 2px;
+}
+
+.menuIdentity strong {
+  overflow: hidden;
+
+  color: var(--beige);
+
+  font-size: var(--font-size-mid);
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menuIdentity div span {
+  overflow: hidden;
+
+  color: #777367;
+
+  font-size: var(--font-size-small);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   ROLE
+   ========================================================= */
+
+.menuRole {
+padding: 1.5rem;
+  background: #211f1b;
+  border-top: 1px solid var(--control-border);
+  border-bottom: 1px solid var(--control-border);
+  display: flex;
+  justify-content: center;
+}
+
+.menuRole span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 23px;
+
+  padding: 4px 8px;
+
+  color: #7a4e00;
+  background: #fff0cf;
+
+  border:
+    1px solid
+    #ffd77a;
+
+  border-radius: 999px;
+
+  font-size: var(--font-size-small);
+  font-weight: 800;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+.logoutButton {
+display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 13px 16px;
+  color: #b42318;
+  background: transparent;
+  border: 0;
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease;
+  margin: 0.5rem;
+    width: calc(100% - 1rem); /* Ocupa todo el ancho menos el margen de 0.5rem de cada lado */
+  justify-content: center;   /* Ahora sí centrará el contenido adentro */
+}
+
+.logoutButton:hover {
+  color: #8f1b13;
+
+  background: #fff0ee;
+}
+
+.logoutButton svg {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 18px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .profileChevron,
+  .profileMenu {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
 @media (max-width: 1100px) {
+  .topbar {
+    grid-template-columns:
+      auto
+      minmax(200px, 1fr)
+      auto;
+
+    gap: 16px;
+
+    padding: 0 22px;
+  }
+
   .section,
-  .profile > div,
+  .profileText,
+  .profileChevron {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    gap: 12px;
+
+    padding:
+      0 14px;
+  }
+
+  .wordmark strong {
+    display: none;
+  }
+
+  .searchWrap {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .wordmark {
+    display: none;
+  }
+
+  .actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .search kbd {
     display: none;
   }
+}
+
+@media (max-width: 480px) {
+  .notification {
+    display: none;
+  }
+
   .topbar {
-    gap: 16px;
+    gap: 8px;
   }
-}
-@media (max-width: 600px) {
-  .topbar {
-    flex-wrap: wrap;
-    padding: 14px 18px;
-    gap: 12px;
-  }
-  .profile {
-    margin-left: auto;
-  }
-  .searchWrap {
-    order: 3;
-    flex-basis: 100%;
-    max-width: none;
-  }
-}
-.dashboardTopbar {
-  background: linear-gradient(115deg, #ffd068, #ffb000 60%, #ff9d00);
-  border-bottom-color: #20170c15;
-}
-.dashboardTopbar .search {
-  background: #ffffff26;
-  border-color: #20170c20;
-  color: #62431b;
-}
-.dashboardTopbar .section,
-.dashboardTopbar .profile div span {
-  color: #62431b;
 }

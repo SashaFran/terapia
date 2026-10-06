@@ -1,6 +1,6 @@
 /* =========================================================
-   LAYOUT
-========================================================= */
+   PACIENTE PERFIL
+   ========================================================= */
 
 .container {
   display: flex;
@@ -11,15 +11,15 @@
   min-width: 0;
   min-height: 0;
 
-  gap: 1.35rem;
+  gap: 26px;
 
-  color: var(--font-color);
+  color: #f4f2eb;
 }
 
 
 /* =========================================================
    ENCABEZADO
-========================================================= */
+   ========================================================= */
 
 .pageHeader {
   display: flex;
@@ -28,7 +28,7 @@
 
   width: 100%;
 
-  gap: 2rem;
+  gap: 32px;
 }
 
 .heading {
@@ -36,15 +36,14 @@
 }
 
 .eyebrow {
-  margin: 0 0 0.35rem;
+  margin: 0 0 6px;
 
-  color: #ff6b00;
+  color: #ffb000;
 
-  font-size: 0.64rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 
-  letter-spacing: 0.09em;
-
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -52,63 +51,26 @@
   display: flex;
   align-items: center;
 
-  gap: 0.65rem;
+  gap: 10px;
 }
 
 .titleRow h1 {
   margin: 0;
 
-  color: var(--font-color);
+  color: #f4f2eb;
 
   font-family: var(--font-family-header);
-  font-size: clamp(1.65rem, 2.4vw, 2rem);
-  font-weight: 600;
+  font-size: var(--font-size-h1);
+  font-weight: 800;
 
   line-height: 1.05;
-}
-
-.backButton {
-  display: grid;
-  flex: 0 0 auto;
-
-  width: 30px;
-  height: 30px;
-
-  padding: 0;
-
-  color: #696d73;
-  background: #ffffff;
-
-  border: 1px solid #e2e5e9;
-  border-radius: 8px;
-
-  font-family: inherit;
-  font-size: 1rem;
-
-  cursor: pointer;
-
-  place-items: center;
-
-  transition:
-    border-color 0.18s ease,
-    color 0.18s ease,
-    background 0.18s ease,
-    transform 0.18s ease;
-}
-
-.backButton:hover {
-  color: #ff6500;
-  background: #fffaf6;
-
-  border-color: #ffc89e;
-
-  transform: translateX(-2px);
+  letter-spacing: -0.03em;
 }
 
 .pageDescription {
-  margin: 0.35rem 0 0;
+  margin: 7px 0 0;
 
-  color: #555b63;
+  color: #85827a;
 
   font-size: var(--font-size-small);
   line-height: 1.45;
@@ -119,13 +81,57 @@
   flex: 0 0 auto;
   align-items: center;
 
-  gap: 0.7rem;
+  gap: 10px;
+}
+
+
+/* =========================================================
+   BOTÓN VOLVER
+   Se conserva por compatibilidad si vuelve a utilizarse
+   ========================================================= */
+
+.backButton {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  color: #aaa79f;
+  background: #211f1b;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: var(--font-size-medium);
+
+  cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.backButton:hover {
+  color: #17140d;
+  background: #ffb000;
+
+  border-color: #ffb000;
+
+  transform: translateX(-2px);
 }
 
 
 /* =========================================================
    MÉTRICAS
-========================================================= */
+   ========================================================= */
 
 .metricsGrid {
   display: grid;
@@ -133,131 +139,104 @@
   grid-template-columns:
     repeat(3, minmax(0, 1fr));
 
-  gap: 1rem;
+  gap: 16px;
 }
 
 .metricCard {
   position: relative;
 
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
   min-width: 0;
-  min-height: 116px;
-  overflow: hidden;
+  min-height: 112px;
 
-  padding: 1.15rem 1.3rem;
+  padding: 20px;
 
-  background: #ffffff;
+  color: #f4f2eb;
+  background: #211f1b;
 
-  border: 1px solid #e6e9ed;
-  border-radius: var(--radius);
-
-  box-shadow:
-    0 2px 4px rgba(28, 36, 44, 0.02),
-    0 5px 16px rgba(28, 36, 44, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 15px;
 
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .metricCard::before {
-  content: "";
-
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-
-  height: 3px;
-
-  background: linear-gradient(
-    90deg,
-    #ffb000,
-    #ff8800,
-    #ff4438
-  );
-
-  opacity: 0;
-
-  transform: scaleX(0.35);
-  transform-origin: center;
-
-  transition:
-    opacity 0.2s ease,
-    transform 0.25s ease;
+  display: none;
 }
 
 .metricCard:hover {
-  border-color: rgba(255, 136, 0, 0.13);
+  background: #24221e;
 
-  box-shadow:
-    0 2px 5px rgba(28, 36, 44, 0.03),
-    0 11px 26px rgba(28, 36, 44, 0.07);
+  border-color: rgba(255, 176, 0, 0.14);
 
-  transform: translateY(-2px);
-}
-
-.metricCard:hover::before {
-  opacity: 1;
-
-  transform: scaleX(1);
+  transform: translateY(-1px);
 }
 
 .metricDot {
   position: absolute;
-  top: 1.3rem;
-  right: 1.3rem;
+  top: 20px;
+  right: 20px;
 
   width: 7px;
   height: 7px;
 
-  background: #ff8a00;
+  background: #ffb000;
 
-  border: 2px solid #fff3e3;
   border-radius: 50%;
-
-  box-shadow: 0 0 0 3px #fff8ef;
 }
 
 .metricTitle {
-  margin: 0 0 0.65rem;
+  margin: 0 0 8px;
 
-  color: #73777d;
+  color: #85827a;
 
-  font-family: var(--font-family-header);
-  font-size: 1rem;
-  font-weight: 400;
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  font-weight: 500;
 }
 
 .metricMain {
   display: flex;
   align-items: center;
 
-  min-height: 26px;
+  min-height: 28px;
 }
 
 .metricNumber {
-  color: #ff6500;
+  color: #f4f2eb;
 
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-h2);
+  font-weight: 800;
 
   line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 .metricNumber span {
-  color: #a4a8ad;
+  color: #77756e;
 
-  font-size: 0.9rem;
+  font-size: var(--font-size-small);
   font-weight: 500;
+
+  letter-spacing: 0;
 }
 
 .metricCaption {
-  margin: 0.45rem 0 0;
+  margin: 7px 0 0;
 
-  color: #9499a0;
+  color: #6f8264;
 
   font-size: var(--font-size-small);
+  font-weight: 500;
+
+  line-height: 1.35;
 }
 
 .accessDates {
@@ -265,28 +244,29 @@
   align-items: center;
   flex-wrap: wrap;
 
-  min-height: 26px;
+  min-height: 28px;
 
-  gap: 0.45rem;
+  gap: 7px;
 }
 
 .accessDates strong {
-  color: #30343a;
+  color: #f4f2eb;
 
-  font-size: 0.85rem;
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-medium);
   font-weight: 700;
 }
 
 .dateArrow {
-  color: #ff7b00;
+  color: #ffb000;
 
-  font-size: 0.9rem;
+  font-size: var(--font-size-medium);
 }
 
 
 /* =========================================================
-   ESTADOS
-========================================================= */
+   ESTADO GENERAL
+   ========================================================= */
 
 .statusBadge {
   display: inline-flex;
@@ -294,9 +274,9 @@
 
   width: fit-content;
 
-  gap: 0.42rem;
+  gap: 7px;
 
-  padding: 0.32rem 0.65rem;
+  padding: 6px 10px;
 
   border-radius: 999px;
 
@@ -319,38 +299,40 @@
 }
 
 .statusSuccess {
-  color: #27805a;
-  background: #eaf7f1;
+  color: #72d29d;
+  background: rgba(40, 198, 111, 0.12);
+
+  border: 1px solid rgba(40, 198, 111, 0.16);
 }
 
 .statusWarning {
-  color: #a66b19;
-  background: #fff6e7;
+  color: #ffbf43;
+  background: rgba(255, 176, 0, 0.1);
+
+  border: 1px solid rgba(255, 176, 0, 0.16);
 }
 
 .statusDanger {
-  color: #b34c56;
-  background: #fbecee;
+  color: #ff766d;
+  background: rgba(255, 68, 56, 0.1);
+
+  border: 1px solid rgba(255, 68, 56, 0.16);
 }
 
 
 /* =========================================================
    CARDS DE DATOS
-========================================================= */
+   ========================================================= */
 
 .dataCard {
   width: 100%;
   min-width: 0;
   overflow: hidden;
 
-  background: #ffffff;
+  background: #211f1b;
 
-  border: 1px solid #e4e7eb;
-  border-radius: var(--radius);
-
-  box-shadow:
-    0 2px 4px rgba(28, 36, 44, 0.02),
-    0 5px 16px rgba(28, 36, 44, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 15px;
 }
 
 .cardHeader {
@@ -358,28 +340,30 @@
   align-items: center;
   justify-content: space-between;
 
-  min-height: 70px;
+  min-height: 72px;
 
-  gap: 1rem;
+  gap: 16px;
 
-  padding: 1rem 1.3rem;
+  padding: 16px 20px;
 
-  border-bottom: 1px solid #eceef1;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.055);
 }
 
 .cardHeader h2 {
   margin: 0;
 
-  color: #30343a;
+  color: #f4f2eb;
 
-  font-size: 0.86rem;
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-medium);
   font-weight: 700;
 }
 
 .cardHeader p {
-  margin: 0.22rem 0 0;
+  margin: 4px 0 0;
 
-  color: #747980;
+  color: #77756e;
 
   font-size: var(--font-size-small);
 }
@@ -387,10 +371,11 @@
 
 /* =========================================================
    TABLAS
-========================================================= */
+   ========================================================= */
 
 .tableWrapper {
   width: 100%;
+
   overflow-x: auto;
 }
 
@@ -398,45 +383,46 @@
   width: 100%;
 
   border-collapse: collapse;
-
   table-layout: fixed;
 }
 
 .table thead {
-  background: #f7f8f9;
+  background: #1b1a17;
 }
 
 .table th {
-  height: 38px;
+  height: 42px;
 
-  padding: 0.65rem 1.3rem;
+  padding: 10px 20px;
 
-  color: #858b93;
+  color: #77756e;
 
-  font-size: 0.62rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 
-  letter-spacing: 0.025em;
+  letter-spacing: 0.05em;
 
   text-align: center;
   text-transform: uppercase;
 
-  border-bottom: 1px solid #e7e9ec;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.055);
 }
 
 .table td {
-  height: 56px;
+  height: 58px;
 
-  padding: 0.72rem 1.3rem;
+  padding: 12px 20px;
 
-  color: #666c73;
+  color: #aaa79f;
 
-  font-size: 0.7rem;
+  font-size: var(--font-size-small);
 
   text-align: center;
   vertical-align: middle;
 
-  border-bottom: 1px solid #edf0f2;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.045);
 }
 
 .table tbody tr:last-child td {
@@ -448,13 +434,13 @@
 }
 
 .table tbody tr:hover {
-  background: #fffaf6;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .testName {
-  color: #31353a;
+  color: #f4f2eb;
 
-  font-size: 0.72rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 }
 
@@ -466,7 +452,7 @@
 
 /* =========================================================
    ESTADOS DE TESTS
-========================================================= */
+   ========================================================= */
 
 .tableStatus {
   display: inline-flex;
@@ -474,15 +460,16 @@
 
   width: fit-content;
 
-  gap: 0.4rem;
+  gap: 6px;
 
-  padding: 0.31rem 0.62rem;
+  padding: 6px 10px;
 
   border-radius: 999px;
 
-  font-size: 0.65rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 
+  line-height: 1;
   text-transform: capitalize;
 }
 
@@ -496,29 +483,35 @@
 }
 
 .tableStatusCompleted {
-  color: #27805a;
-  background: #eaf7f1;
+  color: #72d29d;
+  background: rgba(40, 198, 111, 0.12);
+
+  border: 1px solid rgba(40, 198, 111, 0.14);
 }
 
 .tableStatusPending {
-  color: #a66b19;
-  background: #fff6e7;
+  color: #ffbf43;
+  background: rgba(255, 176, 0, 0.1);
+
+  border: 1px solid rgba(255, 176, 0, 0.14);
 }
 
 .tableStatusDanger {
-  color: #b34c56;
-  background: #fbecee;
+  color: #ff766d;
+  background: rgba(255, 68, 56, 0.1);
+
+  border: 1px solid rgba(255, 68, 56, 0.14);
 }
 
 
 /* =========================================================
    ACCIONES DE TABLA
-========================================================= */
+   ========================================================= */
 
 .tableAction {
-  padding: 0.4rem 0;
+  padding: 6px 0;
 
-  color: #a14d54;
+  color: #ff766d;
   background: transparent;
 
   border: 0;
@@ -533,7 +526,7 @@
 }
 
 .tableAction:hover {
-  color: #7e2932;
+  color: #ff9a93;
 
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -542,88 +535,138 @@
 .commentCell {
   overflow: hidden;
 
-  color: #777c83 !important;
+  color: #8d8a82 !important;
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .fileLink {
-  color: #4e535a;
+  width: -moz-available;
 
+  padding: 0;
+
+  color: #ffb000;
+  background: transparent;
+
+  border: 0;
+
+  font: inherit;
   font-size: var(--font-size-small);
-  font-weight: 600;
+  font-weight: 700;
 
   text-decoration: none;
+
+  cursor: pointer;
 
   transition: color 0.16s ease;
 }
 
-.fileLink:hover {
-  color: #ff6500;
+.fileLink:hover:not(:disabled) {
+  color: #ffc43d;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.fileLink:disabled {
+  opacity: 0.55;
+
+  cursor: wait;
 }
 
 .muted {
-  color: #b2b6bb;
+  color: #66645e;
 }
 
 .emptyTable {
   height: 105px !important;
 
-  color: #989da3 !important;
+  color: #77756e !important;
 
-  font-size: 0.72rem !important;
+  font-size: var(--font-size-small) !important;
 
   text-align: center !important;
 }
 
 
 /* =========================================================
+   TEXT-BUTTON GLOBAL DENTRO DE LAS TABLAS
+   ========================================================= */
+
+.container :global(.text-button) {
+  padding: 6px 0;
+
+  color: #ff766d;
+  background: transparent;
+
+  border: 0;
+
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.container :global(.text-button:hover) {
+  color: #ff9a93;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+
+/* =========================================================
    ZONA DE PELIGRO
-========================================================= */
+   ========================================================= */
 
 .dangerZone {
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 1.5rem;
+  gap: 24px;
 
-  padding: 0.95rem 1.2rem;
+  padding: 16px 20px;
 
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 68, 56, 0.055);
 
-  border: 1px solid rgba(179, 76, 86, 0.13);
-  border-radius: var(--radius);
+  border: 1px solid rgba(255, 68, 56, 0.15);
+  border-radius: 15px;
 }
 
 .dangerZone h3 {
   margin: 0;
 
-  color: #555b62;
+  color: #f4f2eb;
 
-  font-size: 0.73rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
 }
 
 .dangerZone p {
-  margin: 0.18rem 0 0;
+  margin: 4px 0 0;
 
-  color: #999da3;
+  color: #85827a;
 
-  font-size: 0.64rem;
+  font-size: var(--font-size-small);
 }
 
 .deletePatient {
   flex: 0 0 auto;
 
-  padding: 0.5rem 0.75rem;
+  padding: 8px 12px;
 
-  color: #a84a54;
+  color: #ff766d;
   background: transparent;
 
-  border: 1px solid rgba(168, 74, 84, 0.2);
-  border-radius: 7px;
+  border: 1px solid rgba(255, 118, 109, 0.24);
+  border-radius: 8px;
 
   font-family: inherit;
   font-size: var(--font-size-small);
@@ -638,10 +681,10 @@
 }
 
 .deletePatient:hover {
-  color: #8b313a;
-  background: #fff5f5;
+  color: #fff;
+  background: #ff4438;
 
-  border-color: rgba(168, 74, 84, 0.3);
+  border-color: #ff4438;
 }
 
 .deletePatient:disabled {
@@ -653,39 +696,40 @@
 
 /* =========================================================
    MODAL DNI
-========================================================= */
+   ========================================================= */
 
 .modalBackdrop {
   position: fixed;
   inset: 0;
 
   display: grid;
+  place-items: center;
 
-  padding: 1.5rem;
+  padding: 24px;
 
-  background: rgba(25, 22, 20, 0.4);
+  background: rgba(8, 8, 7, 0.72);
 
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(5px);
 
   z-index: 9999;
-
-  place-items: center;
 }
 
 .dniModal {
   width: min(620px, 100%);
   max-height: 85vh;
+
   overflow-y: auto;
 
-  padding: 1.35rem;
+  padding: 22px;
 
-  background: #ffffff;
+  color: #f4f2eb;
+  background: #211f1b;
 
-  border: 1px solid rgba(53, 37, 28, 0.08);
-  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 18px;
 
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.18);
+    0 28px 80px rgba(0, 0, 0, 0.42);
 }
 
 .dniModalHeader {
@@ -693,70 +737,72 @@
   align-items: flex-start;
   justify-content: space-between;
 
-  gap: 1rem;
+  gap: 16px;
 
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
 .modalEyebrow {
-  margin: 0 0 0.2rem;
+  margin: 0 0 4px;
 
-  color: #ff6500;
+  color: #ffb000;
 
-  font-size: 0.61rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 
-  letter-spacing: 0.08em;
-
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .dniModalHeader h2 {
   margin: 0;
 
-  color: #30343a;
+  color: #f4f2eb;
 
-  font-size: 1rem;
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-large);
   font-weight: 700;
 }
 
 .modalSubtitle {
-  margin: 0.25rem 0 0;
+  margin: 4px 0 0;
 
-  color: #8c9197;
+  color: #85827a;
 
-  font-size: 0.7rem;
+  font-size: var(--font-size-small);
 }
 
 .closeModal {
   display: grid;
+  place-items: center;
 
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
 
   padding: 0;
 
-  color: #858a90;
-  background: #f6f7f8;
+  color: #aaa79f;
+  background: #292823;
 
-  border: 1px solid #eceef0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
 
   font-family: inherit;
-  font-size: 1rem;
+  font-size: var(--font-size-medium);
 
   cursor: pointer;
 
-  place-items: center;
-
   transition:
     color 0.16s ease,
-    background 0.16s ease;
+    background 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .closeModal:hover {
-  color: #30343a;
-  background: #eeeeef;
+  color: #17140d;
+  background: #ffb000;
+
+  border-color: #ffb000;
 }
 
 .documentStatus {
@@ -765,14 +811,15 @@
 
   width: fit-content;
 
-  gap: 0.45rem;
+  gap: 7px;
 
-  margin-bottom: 0.8rem;
-  padding: 0.35rem 0.6rem;
+  margin-bottom: 13px;
+  padding: 6px 10px;
 
-  color: #27805a;
-  background: #eaf7f1;
+  color: #72d29d;
+  background: rgba(40, 198, 111, 0.12);
 
+  border: 1px solid rgba(40, 198, 111, 0.14);
   border-radius: 999px;
 
   font-size: var(--font-size-small);
@@ -780,23 +827,22 @@
 }
 
 .documentStatusDot {
-  color: #27805a;
+  color: #72d29d;
 }
 
 .dniPreview {
   display: grid;
+  place-items: center;
 
   min-height: 260px;
   overflow: hidden;
 
-  padding: 1rem;
+  padding: 16px;
 
-  background: #f7f8f9;
+  background: #171713;
 
-  border: 1px solid #e8eaed;
-  border-radius: 10px;
-
-  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
 }
 
 .dniPreview img {
@@ -807,7 +853,7 @@
 
   object-fit: contain;
 
-  border-radius: 7px;
+  border-radius: 8px;
 }
 
 .openDocument {
@@ -815,9 +861,9 @@
 
   width: fit-content;
 
-  margin: 0.9rem 0 0 auto;
+  margin: 14px 0 0 auto;
 
-  color: #4f555c;
+  color: #ffb000;
 
   font-size: var(--font-size-small);
   font-weight: 600;
@@ -826,7 +872,10 @@
 }
 
 .openDocument:hover {
-  color: #ff6500;
+  color: #ffc43d;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .noDocument {
@@ -837,91 +886,67 @@
 
   min-height: 190px;
 
-  padding: 1.5rem;
+  padding: 24px;
 
-  color: #868b91;
-  background: #f8f9fa;
+  color: #85827a;
+  background: #171713;
 
-  border: 1px dashed #dfe2e5;
-  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
 
   text-align: center;
 }
 
 .noDocumentIcon {
   display: grid;
+  place-items: center;
 
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
 
-  margin-bottom: 0.65rem;
+  margin-bottom: 10px;
 
-  color: #a66b19;
-  background: #fff6e7;
+  color: #ffbf43;
+  background: rgba(255, 176, 0, 0.1);
 
   border-radius: 50%;
 
-  font-size: 0.9rem;
+  font-size: var(--font-size-medium);
   font-weight: 700;
-
-  place-items: center;
 }
 
 .noDocument strong {
-  color: #565b61;
-
-  font-size: 0.75rem;
-}
-
-.noDocument p {
-  margin: 0.25rem 0 0;
-
-  color: #979ca2;
+  color: #f4f2eb;
 
   font-size: var(--font-size-small);
 }
-.fileLink {
-  padding: 0;
 
-  color: var(--accent-text);
-  background: transparent;
+.noDocument p {
+  margin: 4px 0 0;
 
-  border: 0;
+  color: #77756e;
 
-  cursor: pointer;
-
-  font: inherit;
-  font-weight: var(--font-bold);
-
-  text-decoration: none;
-  width: -moz-available;
+  font-size: var(--font-size-small);
 }
 
-.fileLink:hover:not(:disabled) {
-  text-decoration: underline;
-}
 
-.fileLink:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
 /* =========================================================
    LOADING
-========================================================= */
+   ========================================================= */
 
 .loading {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 
   min-height: 55vh;
 
-  flex-direction: column;
+  gap: 13px;
 
-  align-items: center;
-  justify-content: center;
+  color: #85827a;
 
-  gap: 0.8rem;
-
-  color: #92979d;
+  font-size: var(--font-size-small);
 }
 
 .loading p {
@@ -934,18 +959,15 @@
   position: relative;
 
   display: grid;
+  place-items: center;
 
   width: 38px;
   height: 38px;
 
-  background: #f8f8f8;
+  background: #211f1b;
 
-  border:
-    1px solid #e6e8ea;
-
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
-
-  place-items: center;
 }
 
 .loadingIndicator span {
@@ -970,30 +992,29 @@
 @keyframes dashboardPulse {
   0%,
   100% {
-    transform:
-      scale(0.8);
-
     opacity: 0.55;
+
+    transform: scale(0.8);
   }
 
   50% {
-    transform:
-      scale(1);
-
     opacity: 1;
+
+    transform: scale(1);
   }
 }
 
+
 /* =========================================================
    RESPONSIVE
-========================================================= */
+   ========================================================= */
 
 @media (max-width: 1000px) {
   .pageHeader {
     align-items: flex-start;
     flex-direction: column;
 
-    gap: 1rem;
+    gap: 16px;
   }
 
   .metricsGrid {
@@ -1008,7 +1029,7 @@
 
 @media (max-width: 720px) {
   .container {
-    gap: 1rem;
+    gap: 18px;
   }
 
   .headerActions {
@@ -1047,10 +1068,6 @@
 }
 
 @media (max-width: 480px) {
-  .titleRow h1 {
-    font-size: 1.5rem;
-  }
-
   .pageDescription {
     padding-left: 0;
   }
@@ -1068,22 +1085,6 @@
   }
 
   .dniModal {
-    padding: 1.1rem;
+    padding: 18px;
   }
 }
-/* Match the patient list while retaining all existing profile actions. */
-.container { gap: 26px; }
-.titleRow h1 { font-size: clamp(26px,3vw,34px); letter-spacing: -1px; }
-.eyebrow { color: #a25a00; font-size: 9px; letter-spacing: 1.7px; }
-.pageDescription { color: #777367; font-size: 12px; }
-.metricCard { background: #fffdf8; border: 1px solid #ded9cc; border-radius: 16px; box-shadow: none; }
-.metricCard::before { display: none; }
-.metricCard:hover { transform: none; border-color: #ded9cc; box-shadow: none; }
-.metricDot { background: #ffb000; box-shadow: none; }
-.metricNumber { font-family: var(--font-family-header); }
-.dataCard { background: #fffdf8; border: 1px solid #ded9cc; border-radius: 18px; box-shadow: none; }
-.cardHeader { border-color: #e8e4d9; }
-.table thead th { background: #f8f6ef; color: #777367; font-size: 9px; letter-spacing: .8px; text-transform: uppercase; }
-.table tbody td { border-color: #ebe7dd; }
-.backButton { background: #fffdf8; border-color: #ded9cc; border-radius: 9px; color: #68665c; }
-.dangerZone { background: #f9e6dd; border-color: #edc4b9; border-radius: 16px; box-shadow: none; }

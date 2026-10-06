@@ -224,7 +224,6 @@ export default function Pacientes() {
           <div>
             <span>Nuevos registros</span>
             <strong>{newPatients}</strong>
-            <small>Durante los últimos 7 días</small>
           </div>
         </article>
         <article className={styles.metricaCard}>
@@ -235,7 +234,7 @@ export default function Pacientes() {
             <span>Evaluaciones por completar</span>
             <strong>{activeAssignments}</strong>
             <small>
-              En pacientes activos · {completed} completadas en total
+              En pacientes activos
             </small>
           </div>
         </article>

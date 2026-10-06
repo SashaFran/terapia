@@ -1,380 +1,972 @@
+/* =========================================================
+   PACIENTES
+   ========================================================= */
+
 .container {
   width: 100%;
   min-width: 0;
+
   display: grid;
   gap: 26px;
-  color: #201f1b;
+
+  color: #f4f2eb;
 }
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
 .pageHeader {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
-  gap: 20px;
+  justify-content: space-between;
+
+  gap: 24px;
+
   flex-wrap: wrap;
 }
-.eyebrow {
-  margin: 0 0 8px;
-  color: #a25a00;
-  font-size: 9px;
-  letter-spacing: 1.7px;
-  font-weight: 800;
-}
-.pageHeader h1 {
-  margin: 0 0 9px;
-  font-size: clamp(26px, 3vw, 34px);
-  line-height: 1.15;
-  letter-spacing: -1px;
-}
-.pageHeader p:not(.eyebrow) {
-  margin: 0;
-  color: #777367;
-  font-size: 12px;
-}
-.metricasGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-.metricaCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 23px;
-  border-radius: 16px;
-  border: 1px solid #ded9cc;
-  background: #fffdf8;
+
+.pageHeader > div:first-child {
   min-width: 0;
 }
+
+.eyebrow {
+  margin: 0 0 10px;
+
+  color: #ffb000;
+
+  font-size: var(--font-size-xsmall);
+  font-weight: 800;
+
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+}
+
+.pageHeader h1 {
+  margin: 0 0 8px;
+
+  color: #f4f2eb;
+
+  font-family: var(--font-family-header);
+  font-size: clamp(30px, 3vw, 38px);
+  font-weight: 800;
+
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+
+.pageHeader p:not(.eyebrow) {
+  margin: 0;
+
+  color: #85827a;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   NEW PATIENT BUTTON
+   ========================================================= */
+
+.pageHeader :global(.boton-primary) {
+  min-width: 150px;
+  min-height: 44px;
+
+  padding: 0 20px;
+
+  color: #17140d;
+  background: linear-gradient(100deg, var(--orange), var(--orange-deep));
+
+  border: 0;
+  border-radius: 11px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  box-shadow: none;
+}
+
+.pageHeader :global(.boton-primary:hover) {
+  background: #ffc12f;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   METRICS
+   ========================================================= */
+
+.metricasGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.metricaCard {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  min-height: 112px;
+
+  gap: 16px;
+
+  padding: 22px 20px;
+
+  color: #f4f2eb;
+  background: #211f1b;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 1px 0
+    rgba(255, 255, 255, 0.015);
+
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.metricaCard:hover {
+  background: #24221e;
+
+  border-color:
+    rgba(255, 176, 0, 0.14);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   METRIC ICONS
+   ========================================================= */
+
 .statIcon {
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  color: #a35c00;
-  background: #ffb00025;
+
+  width: 43px;
+  height: 43px;
+
+  flex: 0 0 43px;
+
+  color: #17140d;
+  background: #ffb000;
+
+  border-radius: 12px;
 }
+
 .statIcon svg {
-  width: 21px;
+  width: 20px;
+  height: 20px;
 }
-.coral {
-  color: #bc6044;
-  background: #f7a88b30;
+
+.statIcon.coral {
+  color: #fff8f5;
+  background: #ff4438;
 }
-.yellow {
-  color: #8f8425;
-  background: #eee78655;
+
+.statIcon.yellow {
+  color: #2d2915;
+  background: #f1d958;
 }
+
+
+/* =========================================================
+   METRIC TEXT
+   ========================================================= */
+
 .metricaCard > div {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  display: grid;
+
+  grid-template-columns:
+    auto auto;
+
+  align-items: baseline;
+  justify-content: start;
+
+  column-gap: 10px;
+  row-gap: 5px;
+
+  min-width: 0;
 }
+
 .metricaCard span:not(.statIcon) {
-  font-size: 11px;
-  color: #777367;
+  grid-column: 1 / -1;
+
+  color: #85827a;
+
+  font-size: var(--font-size-small);
+  font-weight: 500;
 }
+
 .metricaCard strong {
-  font-size: 30px;
+  color: #f4f2eb;
+
+  font-family: var(--font-family-header);
+  font-size: 29px;
+  font-weight: 800;
+
   line-height: 1;
   letter-spacing: -1px;
-  font-family: var(--font-family-header);
 }
+
 .metricaCard small {
-  font-size: 10px;
-  color: #777367;
-  line-height: 1.5;
+  color: #6f8264;
+
+  font-size: var(--font-size-small);
+  font-weight: 500;
+
+  line-height: 1.35;
 }
+
+
+/* =========================================================
+   TABLE PANEL
+   ========================================================= */
+
 .tableSection {
   min-width: 0;
-  border: 1px solid #ded9cc;
-  border-radius: 18px;
-  background: #fffdf8;
+
   overflow: hidden;
+
+  color: #f4f2eb;
+  background: #211f1b;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 17px;
 }
+
+
+/* =========================================================
+   TABLE HEADER
+   ========================================================= */
+
 .tableHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 24px;
-  border-bottom: 1px solid #e8e4d9;
+
+  gap: 20px;
+
+  min-height: 80px;
+
+  padding: 20px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.07);
 }
+
 .tableHeader h2 {
-  font-size: 17px;
-  margin: 0 0 7px;
-  letter-spacing: -0.5px;
+  margin: 0 0 6px;
+
+  color: #f4f2eb;
+
+  font-family: var(--font-family-header);
+  font-size: 16px;
+  font-weight: 750;
+
+  letter-spacing: -0.45px;
 }
+
 .tableHeader p {
-  font-size: 11px;
-  color: #777367;
   margin: 0;
+
+  color: #77756e;
+
+  font-size: var(--font-size-xsmall);
 }
+
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
 .controls {
   display: flex;
+  align-items: center;
+
   flex-wrap: wrap;
+
   gap: 10px;
 }
+
+
+/* =========================================================
+   LOCAL SEARCH
+   ========================================================= */
+
 .search {
   display: flex;
-  gap: 8px;
   align-items: center;
-  border: 1px solid #ded9cc;
-  border-radius: 9px;
-  padding: 8px 10px;
-  color: #777367;
-  background: #f4f2eb;
+
+  width: 210px;
+  min-height: 36px;
+
+  gap: 8px;
+
+  padding: 0 12px;
+
+  color: #77756e;
+  background: #171713;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  border-radius: 10px;
+
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
+
+.search svg {
+  width: 16px;
+  height: 16px;
+
+  flex: 0 0 16px;
+}
+
+.search:focus-within {
+  background: #191915;
+
+  border-color:
+    rgba(255, 176, 0, 0.55);
+
+  outline: none;
+}
+
 .search input {
-  width: 170px;
+  width: 100%;
   min-width: 0;
+
+  color: #d8d5cc;
   background: transparent;
+
   border: 0;
   outline: 0;
-  color: #201f1b;
+
   font: inherit;
-  font-size: 11px;
+  font-size: var(--font-size-small);
 }
-.search:focus-within {
-  outline: 2px solid #ff8800;
-  outline-offset: 2px;
+
+.search input::placeholder {
+  color: #696760;
 }
+
+
+/* =========================================================
+   STATUS SELECT
+   ========================================================= */
+
 .controls select {
-  border: 1px solid #ded9cc;
-  border-radius: 9px;
-  padding: 8px 12px;
+  min-height: 36px;
+
+  padding: 0 34px 0 12px;
+
+  color: #c9c6bd;
+  background: #171713;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  border-radius: 10px;
+
+  outline: none;
+
   font: inherit;
-  font-size: 11px;
-  background: #f4f2eb;
-  color: #201f1b;
+  font-size: var(--font-size-small);
+
+  cursor: pointer;
 }
+
+.controls select:hover {
+  border-color:
+    rgba(255, 176, 0, 0.3);
+}
+
+.controls select:focus {
+  border-color: #ffb000;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
 .tablaPacientes {
   width: 100%;
+
   overflow-x: auto;
 }
+
 .tablaPacientes table {
   width: 100%;
+
   border-collapse: collapse;
+
   text-align: left;
 }
+
+
+/* =========================================================
+   TABLE HEAD
+   ========================================================= */
+
+.tablaPacientes thead {
+  background: #191915;
+}
+
 .tablaPacientes th {
-  padding: 16px 24px;
-  font-size: 9px;
-  color: #777367;
+  padding: 13px 20px;
+
+  color: #66645e;
+  background: transparent;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+
+  font-size: var(--font-size-small);
+  font-weight: 700;
+
+  letter-spacing: 0.85px;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  background: #f8f6ef;
+
   white-space: nowrap;
 }
+
+
+/* =========================================================
+   TABLE BODY
+   ========================================================= */
+
 .tablaPacientes td {
-  padding: 21px 24px;
-  border-bottom: 1px solid #ebe7dd;
-  font-size: 11px;
+  padding: 16px 20px;
+
+  color: #bbb8b0;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  font-size: var(--font-size-small);
+
+  vertical-align: middle;
 }
+
+.tablaPacientes tbody tr {
+  background: #211f1b;
+
+  transition:
+    background 0.16s ease;
+}
+
 .tablaPacientes tbody tr:hover {
-  background: #fbf8f0;
+  background: #25231f;
 }
+
+.tablaPacientes tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+
+/* =========================================================
+   PATIENT
+   ========================================================= */
+
 .pacienteCell {
   display: flex;
   align-items: center;
+
+  min-width: 210px;
+
   gap: 11px;
-  min-width: 170px;
 }
+
 .pacienteAvatar {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  border-radius: 11px;
-  background: #f5e8c7;
-  color: #98621c;
-  font-size: 11px;
+
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  color: #2a2110;
+  background: #f1c45c;
+
+  border-radius: 9px;
+
+  font-size: var(--font-size-xsmall);
   font-weight: 800;
 }
+
 .pacienteInfo {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+
+  min-width: 0;
+
+  gap: 4px;
 }
+
 .pacienteInfo strong {
-  font-size: 12px;
+  overflow: hidden;
+
+  max-width: 190px;
+
+  color: #e7e4dc;
+
+  font-size: var(--font-size-small);
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .pacienteInfo span {
-  color: #777367;
-  font-size: 10px;
+  overflow: hidden;
+
+  max-width: 190px;
+
+  color: #66645e;
+
+  font-size: var(--font-size-small);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
 .estadoBadge {
   display: inline-flex;
   align-items: center;
+
   gap: 6px;
-  padding: 5px 9px;
-  border-radius: 7px;
-  font-size: 10px;
-  font-weight: 600;
+
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  font-size: var(--font-size-small);
+  font-weight: 700;
+
   white-space: nowrap;
 }
+
 .estadoBadge i {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
+
+  flex: 0 0 5px;
+
   background: currentColor;
+
+  border-radius: 50%;
 }
+
 .activo {
-  color: #397444;
-  background: #e9f2e3;
+  color: #62d886;
+  background: rgba(58, 151, 83, 0.14);
 }
+
 .vencido {
-  color: #b15240;
-  background: #f9e6dd;
+  color: #ef6b62;
+  background: rgba(192, 56, 45, 0.14);
 }
+
 .pendiente {
-  color: #8f6516;
-  background: #fff1cf;
+  color: #f1bd48;
+  background: rgba(217, 156, 30, 0.14);
 }
+
 .inactivo {
-  color: #68665c;
-  background: #ece9e2;
+  color: #8d8a83;
+  background: rgba(130, 127, 119, 0.12);
 }
+
+
+/* =========================================================
+   DATE
+   ========================================================= */
+
 .fecha {
-  color: #777367;
+  color: #77756e !important;
+
   white-space: nowrap;
 }
+
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
+
 .progressCell {
-  min-width: 170px;
+  min-width: 230px;
 }
+
 .progressCell > div:first-child {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 10px;
-  color: #777367;
+
+  gap: 16px;
+
+  color: #85827a;
+
+  font-size: var(--font-size-small);
 }
+
 .progressCell strong {
-  color: #514b3e;
+  color: #77756e;
+
+  font-size: var(--font-size-small);
+  font-weight: 500;
 }
+
 .progressTrack {
-  height: 5px;
-  margin-top: 9px;
-  border-radius: 5px;
-  background: #ebe7dd;
+  height: 4px;
+
+  margin-top: 8px;
+
   overflow: hidden;
+
+  background: #37352f;
+
+  border-radius: 999px;
 }
+
 .progressTrack > span {
   display: block;
+
   height: 100%;
-  background: linear-gradient(90deg, #ffb000, #ff8800);
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffb000 0%,
+      #ff8800 62%,
+      #ff3c2a 100%
+    );
+
   border-radius: inherit;
 }
+
+
+/* =========================================================
+   VIEW BUTTON
+   ========================================================= */
+
 .verButton {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  color: #9a6500;
-  background: #fff1cf;
-  border: 1px solid #efddb5;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-height: 33px;
+
+  padding: 0 12px;
+
+  color: #c7c3ba;
+  background: transparent;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.13);
+
   border-radius: 8px;
-  padding: 8px 11px;
+
+  font: inherit;
+  font-size: var(--font-size-xsmall);
+  font-weight: 500;
+
   white-space: nowrap;
+
   cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
+
 .verButton:hover {
-  background: #ffdf93;
+  color: #17140d;
+  background: #ffb000;
+
+  border-color: #ffb000;
 }
+
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
 .emptyState {
   display: grid;
+
   justify-items: center;
+
   gap: 10px;
-  padding: 40px 20px;
-  color: #777367;
-  font-size: 12px;
+
+  padding: 48px 20px;
+
+  color: #77756e;
+
+  font-size: 11px;
 }
+
+.emptyState svg {
+  color: #ffb000;
+}
+
 .emptyState strong {
-  color: #201f1b;
+  color: #e7e4dc;
 }
+
+
+/* =========================================================
+   TABLE FOOTER
+   ========================================================= */
+
 .tableFooter {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+
   flex-wrap: wrap;
-  padding: 17px 24px;
-  color: #777367;
-  font-size: 10px;
+
+  gap: 14px;
+
+  min-height: 54px;
+
+  padding: 12px 20px;
+
+  color: #66645e;
+
+  background: #211f1b;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  font-size: var(--font-size-small);
 }
+
 .tableFooter nav {
   display: flex;
   align-items: center;
-  gap: 10px;
+
+  gap: 8px;
 }
+
+.tableFooter nav > span {
+  color: #77756e;
+
+  font-size: var(--font-size-small);
+}
+
 .tableFooter button {
-  width: 30px;
-  height: 30px;
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  color: #aaa79f;
+  background: transparent;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
   border-radius: 7px;
-  border: 1px solid #ded9cc;
-  background: #f4f2eb;
-  color: #201f1b;
+
   cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
 }
+
+.tableFooter button:hover:not(:disabled) {
+  color: #17140d;
+  background: #ffb000;
+
+  border-color: #ffb000;
+}
+
 .tableFooter button:disabled {
-  opacity: 0.4;
+  opacity: 0.28;
+
   cursor: default;
 }
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
 .error {
-  padding: 24px;
+  padding: 30px;
+
+  color: #f4f2eb;
+  background: #211f1b;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 16px;
 }
+
+.error h1 {
+  margin-top: 0;
+}
+
+.error p {
+  color: #85827a;
+}
+
 .error button {
   padding: 10px 16px;
+
+  color: #17140d;
+  background: #ffb000;
+
   border: 0;
   border-radius: 10px;
-  background: #ffb000;
+
+  font-weight: 700;
+
   cursor: pointer;
 }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
 @media (max-width: 1000px) {
   .metricasGrid {
     grid-template-columns: 1fr;
   }
+
   .metricaCard {
-    align-items: center;
+    min-height: 92px;
   }
+
   .metricaCard > div {
-    display: grid;
-    grid-template-columns: 1fr auto;
     width: 100%;
-    align-items: center;
-  }
-  .metricaCard small {
-    grid-column: 1 / -1;
   }
 }
-@media (max-width: 600px) {
+
+
+@media (max-width: 700px) {
   .container {
     gap: 20px;
   }
+
+  .pageHeader {
+    align-items: stretch;
+  }
+
+  .pageHeader :global(.boton-primary) {
+    width: 100%;
+  }
+
   .tableHeader,
   .tableFooter {
-    padding: 18px;
+    padding:
+      16px
+      18px;
   }
+
   .controls {
     width: 100%;
   }
+
   .search {
     flex: 1;
-    min-width: 120px;
+
+    width: auto;
+    min-width: 160px;
   }
-  .search input {
-    width: 100%;
+
+  .controls select {
+    flex: 1;
   }
+
   .metricaCard {
     padding: 18px;
   }
+
   .tablaPacientes td,
   .tablaPacientes th {
-    padding: 16px;
+    padding:
+      14px
+      16px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .pageHeader h1 {
+    font-size: 30px;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .search,
+  .controls select {
+    width: 100%;
+  }
+
+  .tableFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .metricaCard,
+  .verButton,
+  .tableFooter button {
+    transition: none;
   }
 }
