@@ -351,7 +351,7 @@
   box-sizing: border-box;
 
   font-family: inherit;
-  font-size: 0.68rem;
+  font-size: var(--font-size-small);
 
   color-scheme: light;
 

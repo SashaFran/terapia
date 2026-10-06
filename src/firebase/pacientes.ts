@@ -48,6 +48,14 @@ export function mensajeErrorPaciente(
     message?: string;
   };
 
+  if (code === "auth/user-disabled") {
+    return "La cuenta está inhabilitada. Contacte a administración para solicitar asistencia.";
+  }
+
+  if (code?.startsWith("auth/")) {
+    return "No se pudo ingresar. Verifique su DNI y contraseña o contacte a administración.";
+  }
+
   if (
     [
       "functions/already-exists",

@@ -9,8 +9,7 @@ export default function Selector() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const paciente =
-      localStorage.getItem("paciente");
+    const paciente = localStorage.getItem("paciente");
 
     if (paciente) {
       navigate("/app/dashboard", {
@@ -21,152 +20,139 @@ export default function Selector() {
 
   return (
     <main className={styles.page}>
-      <div
-        className={styles.backgroundGlow}
-        aria-hidden="true"
-      />
+      <div className={styles.ambientBackground} aria-hidden="true">
+        <span className={`${styles.orb} ${styles.orbYellow}`} />
+        <span className={`${styles.orb} ${styles.orbOrange}`} />
+        <span className={`${styles.orb} ${styles.orbRed}`} />
+      </div>
+      <section className={styles.shell}>
+        {/* =====================================================
+            BRAND / PRESENTATION
+        ====================================================== */}
 
-      <section className={styles.selectorCard}>
-        {/* HEADER */}
+        <section className={styles.presentation}>
+          <header className={styles.brand}>
+            <img src={Logo} alt="Join Solution" className={styles.logo} />
 
-        <header className={styles.header}>
-          <div className={styles.logoWrapper}>
-            <img
-              src={Logo}
-              alt="Join Solution"
-              className={styles.logo}
-            />
+            <div className={styles.brandText}>
+              <strong>JOIN SOLUTION</strong>
+              <span>Plataforma de evaluaciones</span>
+            </div>
+          </header>
+
+          <div className={styles.introduction}>
+            <h1>
+              Evaluaciones
+              <br />
+              psicológicas.
+            </h1>
+
+            <p className={styles.description}>
+              Un entorno digital para gestionar y realizar evaluaciones
+              psicológicas de forma organizada, simple y segura.
+            </p>
           </div>
 
-          <p className={styles.eyebrow}>
-            Join Solution
-          </p>
-
-          <h1>Bienvenido</h1>
-
-          <p className={styles.subtitle}>
-            Seleccioná el tipo de acceso para
-            continuar a la plataforma.
-          </p>
-        </header>
-
-        {/* ACCESOS */}
-
-        <div className={styles.accessGrid}>
-          {/* PACIENTE */}
-
-          <article className={styles.accessCard}>
-            <div className={styles.cardTop}>
-              <span className={styles.cardNumber}>
-                01
-              </span>
-
-              <span
-                className={styles.arrow}
-                aria-hidden="true"
-              >
-                →
-              </span>
-            </div>
-
-            <div className={styles.cardBody}>
-              <div
-                className={`${styles.iconBox} ${styles.patientIcon}`}
-                aria-hidden="true"
-              >
-                <span />
-              </div>
-
-              <div className={styles.cardText}>
-                <h2>Paciente</h2>
-
-                <p>
-                  Accedé a tus evaluaciones
-                  asignadas y documentación.
-                </p>
+          <div className={styles.features}>
+            <div className={styles.feature}>
+              <div>
+                <strong>Entorno protegido</strong>
+                <p>Acceso diferenciado según el perfil.</p>
               </div>
             </div>
+
+            <div className={styles.feature}>
+              <div>
+                <strong>Seguimiento centralizado</strong>
+                <p>Evaluaciones, sesiones y resultados.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================
+            ACCESS
+        ====================================================== */}
+
+        <section className={styles.access}>
+          <div className={styles.accessHeader}>
+            <p className={styles.accessEyebrow}>ACCESO</p>
+
+            <h2>Bienvenido</h2>
+
+            <p>Seleccioná cómo querés ingresar a la plataforma.</p>
+          </div>
+
+          <div className={styles.accessOptions}>
+            {/* PACIENTE */}
 
             <button
               type="button"
-              className={styles.accessButton}
-              onClick={() =>
-                navigate("/login")
-              }
+              className={`${styles.accessCard} ${styles.patientCard}`}
+              onClick={() => navigate("/login")}
             >
-              <span>
-                Ingresar como paciente
+              <span className={styles.cardAccent} />
+
+              <span className={styles.cardContent}>
+                <strong className={styles.cardTitle}>Paciente</strong>
+
+                <span className={styles.cardDescription}>
+                  Accedé a tus evaluaciones asignadas y consultá tu actividad
+                  dentro de la plataforma.
+                </span>
               </span>
 
-              <span aria-hidden="true">
-                →
+              <span className={styles.cardMeta}>
+                <span>Evaluaciones asignadas</span>
+
+                <span>Seguimiento de progreso</span>
+              </span>
+
+              <span className={styles.cardAction}>
+                <span>Ingresar como paciente</span>
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13" />
+                  <path d="m14 7 5 5-5 5" />
+                </svg>
               </span>
             </button>
-          </article>
 
-          {/* ADMINISTRACIÓN */}
-
-          <article className={styles.accessCard}>
-            <div className={styles.cardTop}>
-              <span className={styles.cardNumber}>
-                02
-              </span>
-
-              <span
-                className={styles.arrow}
-                aria-hidden="true"
-              >
-                →
-              </span>
-            </div>
-
-            <div className={styles.cardBody}>
-              <div
-                className={`${styles.iconBox} ${styles.adminIcon}`}
-                aria-hidden="true"
-              >
-                <span />
-                <span />
-              </div>
-
-              <div className={styles.cardText}>
-                <h2>Administración</h2>
-
-                <p>
-                  Gestioná pacientes, sesiones
-                  y resultados desde el panel.
-                </p>
-              </div>
-            </div>
+            {/* ADMINISTRACIÓN */}
 
             <button
               type="button"
-              className={styles.accessButton}
-              onClick={() =>
-                navigate("/admin/login")
-              }
+              className={`${styles.accessCard} ${styles.adminCard}`}
+              onClick={() => navigate("/admin/login")}
             >
-              <span>
-                Ingresar al panel
+              <span className={styles.cardAccent} />
+
+              <span className={styles.cardContent}>
+                <strong className={styles.cardTitle}>Administración</strong>
+
+                <span className={styles.cardDescription}>
+                  Gestioná pacientes, sesiones, evaluaciones y resultados desde
+                  el panel profesional.
+                </span>
               </span>
 
-              <span aria-hidden="true">
-                →
+              <span className={styles.cardMeta}>
+                <span>Gestión de pacientes</span>
+
+                <span>Sesiones y resultados</span>
+              </span>
+
+              <span className={styles.cardAction}>
+                <span>Ingresar al panel</span>
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13" />
+                  <path d="m14 7 5 5-5 5" />
+                </svg>
               </span>
             </button>
-          </article>
-        </div>
-
-        {/* FOOTER */}
-
-        <footer className={styles.footer}>
-          <span className={styles.securityDot} />
-
-          <p>
-            Plataforma de evaluaciones ·
-            Join Solution
-          </p>
-        </footer>
+          </div>
+        </section>
       </section>
     </main>
   );

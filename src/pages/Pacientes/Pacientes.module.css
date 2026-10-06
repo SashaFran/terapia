@@ -223,7 +223,7 @@
 
   color: var(--gris-dark);
 
-  font-size: 0.68rem;
+  font-size: var(--font-size-small);
   font-weight: 400;
 }
 
@@ -468,7 +468,7 @@
 .testsText {
   color: #777e87;
 
-  font-size: 0.68rem;
+  font-size: var(--font-size-small);
 }
 
 .testsText strong, .testsText span  {

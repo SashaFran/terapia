@@ -1,34 +1,33 @@
-import { useEffect, useState } from "react";
-
-import styles from "./Dashboard.module.css";
-import LoadingState from "../../components/Loading/LoadingState";
-
-import { db } from "../../firebase/firebase";
-
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  type Timestamp,
-} from "firebase/firestore";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
+import {
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  type Timestamp,
+} from "firebase/firestore";
+
+import { db } from "../../firebase/firebase";
+
+import LoadingState from "../../components/Loading/LoadingState";
+
+import styles from "./Dashboard.module.css";
+
 /* =========================================================
-   TIPOS
+   TYPES
 ========================================================= */
 
 type Activity = {
@@ -40,7 +39,7 @@ type Activity = {
 type TestLevel = {
   label: string;
   valor: number;
-  color: string;
+  cantidad: number;
 };
 
 type ChartPoint = {
@@ -49,22 +48,39 @@ type ChartPoint = {
 };
 
 /* =========================================================
-   COMPONENTE
+   HELPERS
+========================================================= */
+
+function getGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) return "Buenos días";
+  if (hour < 19) return "Buenas tardes";
+
+  return "Buenas noches";
+}
+
+function normalizarNombreTest(nombre: string) {
+  if (!nombre) return "Sin datos";
+
+  return nombre.toUpperCase();
+}
+
+/* =========================================================
+   COMPONENT
 ========================================================= */
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [totalPacientes, setTotalPacientes] =
     useState(0);
 
-  const [
-    totalEvaluaciones,
-    setTotalEvaluaciones,
-  ] = useState(0);
+  const [totalEvaluaciones, setTotalEvaluaciones] =
+    useState(0);
 
-  const [
-    testMasUsado,
-    setTestMasUsado,
-  ] = useState("Sin datos");
+  const [testMasUsado, setTestMasUsado] =
+    useState("Sin datos");
 
   const [actividades, setActividades] =
     useState<Activity[]>([]);
@@ -79,7 +95,7 @@ export default function Dashboard() {
     useState(true);
 
   /* =======================================================
-     TIEMPO RELATIVO
+     RELATIVE TIME
   ======================================================= */
 
   const calcularTiempoRelativo = (
@@ -92,62 +108,50 @@ export default function Dashboard() {
     const fecha = timestamp.toDate();
 
     const diff =
-      (Date.now() -
-        fecha.getTime()) /
-      1000;
+      (Date.now() - fecha.getTime()) / 1000;
 
     if (diff < 60) {
-      return "Hace segundos";
+      return "Ahora";
     }
 
     if (diff < 3600) {
-      return `Hace ${Math.floor(
-        diff / 60,
-      )} min`;
+      return `Hace ${Math.floor(diff / 60)} min`;
     }
 
     if (diff < 86400) {
-      return `Hace ${Math.floor(
-        diff / 3600,
-      )} hs`;
+      return `Hace ${Math.floor(diff / 3600)} hs`;
     }
 
-    return fecha.toLocaleDateString(
-      "es-AR",
-    );
+    return fecha.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "short",
+    });
   };
 
   /* =======================================================
-     CARGA DE DATOS
+     DATA
   ======================================================= */
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        /* -------------------------
-           PACIENTES Y RESULTADOS
-        ------------------------- */
+        /* -------------------------------------------------
+           PACIENTES + RESULTADOS
+        ------------------------------------------------- */
 
         const pacientesSnap =
           await getDocs(
-            collection(
-              db,
-              "pacientes",
-            ),
+            collection(db, "pacientes"),
           );
 
         const resultadosSnap =
           await getDocs(
-            collection(
-              db,
-              "resultados",
-            ),
+            collection(db, "resultados"),
           );
 
         const resultados =
           resultadosSnap.docs.map(
-            (documento) =>
-              documento.data(),
+            (documento) => documento.data(),
           );
 
         setTotalPacientes(
@@ -158,154 +162,124 @@ export default function Dashboard() {
           resultados.length,
         );
 
-        /* -------------------------
-           RESOLVER NOMBRE PACIENTE
-        ------------------------- */
+        /* -------------------------------------------------
+           PATIENT NAME
+        ------------------------------------------------- */
 
         const convertir = (
-          pacienteId:
-            | string
-            | undefined,
-        ):
-          | string
-          | undefined => {
+          pacienteId: string | undefined,
+        ): string | undefined => {
           const paciente =
             pacientesSnap.docs.find(
               (documento) =>
-                documento.id ===
-                pacienteId,
+                documento.id === pacienteId,
             );
 
-          return paciente
-            ?.data()
-            .nombre;
+          return paciente?.data().nombre;
         };
 
-        /* -------------------------
-           DISTRIBUCIÓN DE TESTS
-        ------------------------- */
+        /* -------------------------------------------------
+           TEST DISTRIBUTION
+        ------------------------------------------------- */
 
-        const conteo: Record<
-          string,
-          number
-        > = {};
+        const conteo: Record<string, number> =
+          {};
 
-        resultados.forEach(
-          (resultado) => {
-            const test =
-              resultado.testId ||
-              "Sin nombre";
+        resultados.forEach((resultado) => {
+          const test =
+            resultado.testId ||
+            "Sin nombre";
 
-            conteo[test] =
-              (conteo[test] || 0) +
-              1;
-          },
-        );
+          conteo[test] =
+            (conteo[test] || 0) + 1;
+        });
 
         const total =
           resultados.length || 1;
 
         const niveles =
           Object.keys(conteo)
-            .map((test, i) => ({
+            .map((test) => ({
               label: test,
-
+              cantidad: conteo[test],
               valor: Math.round(
-                (conteo[test] /
-                  total) *
-                  100,
+                (conteo[test] / total) * 100,
               ),
-
-              color: [
-                "var(--rojo)",
-                "var(--naranja)",
-                "var(--opuesto)",
-                "var(--bordo)",
-                "var(--marron)",
-              ][i % 5],
             }))
             .sort(
               (a, b) =>
-                b.valor - a.valor,
+                b.cantidad - a.cantidad,
             );
 
         setDataNiveles(
           niveles.slice(0, 5),
         );
 
-        if (niveles.length) {
-          setTestMasUsado(
-            niveles[0].label,
-          );
-        } else {
-          setTestMasUsado(
-            "Sin datos",
-          );
-        }
-
-        /* -------------------------
-           EVOLUCIÓN POR MES
-        ------------------------- */
-
-        const meses: Record<
-          string,
-          number
-        > = {};
-
-        resultados.forEach(
-          (resultado) => {
-            if (
-              !resultado.fecha?.toDate
-            ) {
-              return;
-            }
-
-            const fecha =
-              resultado.fecha.toDate();
-
-            const key =
-              `${fecha.getFullYear()}-${fecha.getMonth()}`;
-
-            meses[key] =
-              (meses[key] || 0) + 1;
-          },
+        setTestMasUsado(
+          niveles.length
+            ? niveles[0].label
+            : "Sin datos",
         );
+
+        /* -------------------------------------------------
+           MONTHLY EVOLUTION
+        ------------------------------------------------- */
+
+        const meses: Record<string, number> =
+          {};
+
+        resultados.forEach((resultado) => {
+          if (!resultado.fecha?.toDate) {
+            return;
+          }
+
+          const fecha =
+            resultado.fecha.toDate();
+
+          const key =
+            `${fecha.getFullYear()}-${fecha.getMonth()}`;
+
+          meses[key] =
+            (meses[key] || 0) + 1;
+        });
 
         const mesesOrdenados =
           Object.keys(meses)
             .sort()
             .slice(-6);
 
-        const dataGraf =
-          mesesOrdenados.map(
-            (key) => {
-              const [year, month] =
-                key.split("-");
+        const grafico =
+          mesesOrdenados.map((key) => {
+            const [year, month] =
+              key.split("-");
 
-              const fecha =
-                new Date(
-                  Number(year),
-                  Number(month),
-                );
+            const fecha =
+              new Date(
+                Number(year),
+                Number(month),
+              );
 
-              return {
-                name: fecha.toLocaleString(
-                  "es-AR",
-                  {
-                    month: "short",
-                  },
-                ),
+            return {
+              name:
+                fecha
+                  .toLocaleString(
+                    "es-AR",
+                    {
+                      month: "short",
+                    },
+                  )
+                  .replace(".", "")
+                  .toUpperCase(),
 
-                p: meses[key],
-              };
-            },
-          );
+              p: meses[key],
+            };
+          });
 
-        setDataGrafico(dataGraf);
+        setDataGrafico(grafico);
 
-        /* -------------------------
-           ACTIVIDAD RECIENTE
-        ------------------------- */
+        /* -------------------------------------------------
+           ACTIVITY
+        ------------------------------------------------- */
 
         const actividadQuery =
           query(
@@ -313,12 +287,10 @@ export default function Dashboard() {
               db,
               "resultados",
             ),
-
             orderBy(
               "fecha",
               "desc",
             ),
-
             limit(6),
           );
 
@@ -335,10 +307,8 @@ export default function Dashboard() {
 
               return {
                 titulo:
-                  `Evaluación ${
-                    data.testId ||
-                    "—"
-                  }`,
+                  data.testId ||
+                  "Evaluación",
 
                 subtitulo:
                   convertir(
@@ -368,15 +338,7 @@ export default function Dashboard() {
   }, []);
 
   /* =======================================================
-     LOADING
-  ======================================================= */
-
-  if (loading) {
-    return <LoadingState message="Cargando panel..." />;
-  }
-
-  /* =======================================================
-     FECHA
+     DERIVED
   ======================================================= */
 
   const fechaActual = new Date();
@@ -391,769 +353,575 @@ export default function Dashboard() {
       },
     );
 
-  const horaResumen =
-    fechaActual.toLocaleTimeString(
-      "es-AR",
-      {
-        hour: "2-digit",
-        minute: "2-digit",
-      },
+  const totalPeriodo =
+    useMemo(
+      () =>
+        dataGrafico.reduce(
+          (total, punto) =>
+            total + punto.p,
+          0,
+        ),
+      [dataGrafico],
     );
+
+  const principal =
+    dataNiveles[0];
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
+
+  if (loading) {
+    return (
+      <LoadingState message="Cargando panel..." />
+    );
+  }
 
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
-    <section
-      className={styles.dashboard}
-      aria-label="Panel de control"
-    >
-      {/* ===============================================
-          RESUMEN
-      =============================================== */}
+    <main className={styles.dashboard}>
+      {/* ===================================================
+          EDITORIAL HERO
+      =================================================== */}
 
-      <article
-        className={`${styles.card} ${styles.summary}`}
-      >
+      <section className={styles.hero}>
         <div
-          className={
-            styles.summaryContent
-          }
-        >
-          <p
-            className={
-              styles.eyebrow
-            }
-          >
-            Resumen del día
-          </p>
-
-          <h1>
-            Tu actividad clínica,
-            en un vistazo.
-          </h1>
-
-          <p
-            className={
-              styles.summaryDate
-            }
-          >
-            <span>
-              {fechaResumen}
-            </span>
-
-            <span
-              className={
-                styles.dateSeparator
-              }
-              aria-hidden="true"
-            >
-              ·
-            </span>
-
-            <span>
-              {horaResumen}
-            </span>
-          </p>
-        </div>
-
-        <div
-          className={
-            styles.summaryVisual
-          }
+          className={styles.heroAmbient}
           aria-hidden="true"
         >
           <span
-            className={
-              styles.summaryRingOuter
-            }
+            className={styles.heroOrbOne}
           />
 
           <span
-            className={
-              styles.summaryRingMiddle
-            }
+            className={styles.heroOrbTwo}
           />
 
           <span
-            className={
-              styles.summaryRingInner
-            }
+            className={styles.heroRing}
           />
         </div>
-      </article>
 
-      {/* ===============================================
-          KPIS
-      =============================================== */}
+        <div className={styles.heroMain}>
+          <div className={styles.heroMeta}>
+          </div>
 
-      <article
-        className={`${styles.card} ${styles.kpis}`}
-      >
-        <div
-          className={
-            styles.kpiHeader
-          }
-        >
-          <p
-            className={
-              styles.eyebrow
-            }
-          >
-            Indicadores principales
+          <h1>
+            {getGreeting()}.
+          </h1>
+
+          <p className={styles.heroDescription}>
+            Tu espacio clínico, pacientes y
+            evaluaciones en un solo lugar.
           </p>
 
-          <span
-            className={
-              styles.kpiHeaderHint
-            }
-          >
-            Estado general
-          </span>
+          <div className={styles.heroStatus}>
+            <span
+              className={styles.statusLight}
+            />
+
+            <span>
+              Sistema operativo
+            </span>
+
+            <span
+              className={styles.statusDivider}
+            />
+
+            <span>
+              Datos actualizados
+            </span>
+          </div>
         </div>
+      </section>
 
-        <div
-          className={
-            styles.kpiGrid
-          }
-        >
-          <div
-            className={
-              styles.kpi
-            }
-          >
-            <div
-              className={
-                styles.kpiTop
-              }
-            >
-              <span
-                className={
-                  styles.kpiLabel
-                }
-              >
-                Pacientes
-              </span>
+      {/* ===================================================
+          METRICS
+      =================================================== */}
 
-              <span
-                className={
-                  styles.kpiDot
-                }
-              />
-            </div>
+      <section
+        className={styles.metrics}
+        aria-label="Resumen general"
+      >
+        <article className={styles.metric}>
 
+          <div>
             <strong>
               {totalPacientes}
             </strong>
 
-            <span
-              className={
-                styles.kpiDescription
-              }
-            >
-              Registrados
-            </span>
+            <p>Pacientes</p>
+
+            <small>
+              Personas registradas
+            </small>
           </div>
 
-          <div
-            className={
-              styles.kpi
-            }
-          >
-            <div
-              className={
-                styles.kpiTop
-              }
-            >
-              <span
-                className={
-                  styles.kpiLabel
-                }
-              >
-                Test más utilizado
-              </span>
+          <span
+            className={styles.metricMark}
+            aria-hidden="true"
+          />
+        </article>
 
-              <span
-                className={
-                  styles.kpiDot
-                }
-              />
-            </div>
-
-            <strong
-              className={
-                styles.kpiTest
-              }
-              title={
-                testMasUsado
-              }
-            >
-              {testMasUsado}
-            </strong>
-
-            <span
-              className={
-                styles.kpiDescription
-              }
-            >
-              Mayor frecuencia
-            </span>
-          </div>
-
-          <div
-            className={
-              styles.kpi
-            }
-          >
-            <div
-              className={
-                styles.kpiTop
-              }
-            >
-              <span
-                className={
-                  styles.kpiLabel
-                }
-              >
-                Evaluaciones
-              </span>
-
-              <span
-                className={
-                  styles.kpiDot
-                }
-              />
-            </div>
-
+        <article className={styles.metric}>
+          <div>
             <strong>
               {totalEvaluaciones}
             </strong>
 
-            <span
-              className={
-                styles.kpiDescription
-              }
-            >
-              Realizadas
-            </span>
-          </div>
-        </div>
-      </article>
+            <p>Evaluaciones</p>
 
-      {/* ===============================================
-          EVOLUCIÓN
-      =============================================== */}
-
-      <article
-        className={`${styles.card} ${styles.trend}`}
-      >
-        <div
-          className={
-            styles.cardHeading
-          }
-        >
-          <div>
-            <p
-              className={
-                styles.eyebrow
-              }
-            >
-              Seguimiento
-            </p>
-
-            <h2>
-              Evolución clínica
-            </h2>
+            <small>
+              Resultados completados
+            </small>
           </div>
 
           <span
-            className={
-              styles.chartCaption
-            }
-          >
-            Evaluaciones por mes
-          </span>
-        </div>
+            className={styles.metricMark}
+            aria-hidden="true"
+          />
+        </article>
 
-        {dataGrafico.length ? (
-          <div
-            className={
-              styles.chart
-            }
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
+        <article className={styles.metric}>
+            <strong
+              className={styles.metricTest}
             >
-              <AreaChart
-                data={
-                  dataGrafico
-                }
-                margin={{
-                  top: 18,
-                  right: 12,
-                  left: -18,
-                  bottom: 0,
-                }}
-              >
-                <defs>
-                  <linearGradient
-                    id="dashboardTrendFill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor="var(--opuesto-light)"
-                      stopOpacity={
-                        0.2
-                      }
-                    />
+              {normalizarNombreTest(
+                testMasUsado,
+              )}
+            </strong>
 
-                    <stop
-                      offset="100%"
-                      stopColor="var(--opuesto-light)"
-                      stopOpacity={
-                        0.01
-                      }
-                    />
-                  </linearGradient>
-                </defs>
+            <p>Más utilizado</p>
 
-                <CartesianGrid
-                  vertical={false}
-                  stroke="var(--gris)"
-                  strokeDasharray="3 5"
-                />
+            <small>
+              Mayor frecuencia
+            </small>
 
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fill: "var(--gris-med)",
-                    fontSize: 11,
-                  }}
-                />
+          <span
+            className={styles.metricMark}
+            aria-hidden="true"
+          />
+        </article>
+      </section>
 
-                <YAxis
-                  allowDecimals={
-                    false
-                  }
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fill: "var(--gris-med)",
-                    fontSize: 11,
-                  }}
-                  width={32}
-                />
+      {/* ===================================================
+          CLINICAL GRID
+      =================================================== */}
 
-                <Tooltip
-                  cursor={{
-                    stroke:
-                      "rgba(255, 136, 0, 0.12)",
-                  }}
-                  contentStyle={{
-                    background:
-                      "#ffffff",
+      <section
+        className={styles.clinicalGrid}
+      >
+        {/* ===============================================
+            CHART
+        =============================================== */}
 
-                    border:
-                      "1px solid #e8eaed",
-
-                    borderRadius:
-                      "10px",
-
-                    boxShadow:
-                      "0 8px 24px rgba(30, 35, 40, 0.08)",
-
-                    fontSize:
-                      "12px",
-                  }}
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="p"
-                  name="Evaluaciones"
-                  stroke="var(--opuesto)"
-                  strokeWidth={2.5}
-                  fill="url(#dashboardTrendFill)"
-                  activeDot={{
-                    r: 4,
-                    fill: "var(--opuesto)",
-                  }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div
-            className={
-              styles.emptyState
-            }
+        <article className={styles.chartPanel}>
+          <header
+            className={styles.sectionHeader}
           >
-            <div
-              className={
-                styles.emptyChart
-              }
-              aria-hidden="true"
-            >
-              <span
-                className={
-                  styles.emptyLineOne
-                }
-              />
+            <div>
+              <h2>
+                Pulso de evaluaciones
+              </h2>
 
-              <span
-                className={
-                  styles.emptyLineTwo
-                }
-              />
-
-              <span
-                className={
-                  styles.emptyLineThree
-                }
-              />
-
-              <span
-                className={
-                  styles.emptyPoint
-                }
-              />
+              <p>
+                Evolución de resultados
+                completados durante los
+                últimos meses.
+              </p>
             </div>
 
             <div
               className={
-                styles.emptyCopy
+                styles.chartHeadline
               }
             >
               <strong>
-                Sin datos de
-                evolución todavía
+                {totalPeriodo}
+              </strong>
+
+              <span>
+                últimos 6 meses
+              </span>
+            </div>
+          </header>
+
+          {dataGrafico.length ? (
+            <div
+              className={styles.chart}
+            >
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <AreaChart
+                  data={dataGrafico}
+                  margin={{
+                    top: 30,
+                    right: 10,
+                    left: -22,
+                    bottom: 0,
+                  }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="joinClinicalArea"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#ff8800"
+                        stopOpacity={0.3}
+                      />
+
+                      <stop
+                        offset="45%"
+                        stopColor="#ffb000"
+                        stopOpacity={0.11}
+                      />
+
+                      <stop
+                        offset="100%"
+                        stopColor="#ffb000"
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="rgba(53, 37, 28, 0.07)"
+                  />
+
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{
+                      fill:
+                        "var(--text-subtle)",
+                      fontSize: 10,
+                      fontWeight: 600,
+                    }}
+                    dy={12}
+                  />
+
+                  <YAxis
+                    allowDecimals={false}
+                    axisLine={false}
+                    tickLine={false}
+                    width={36}
+                    tick={{
+                      fill:
+                        "var(--text-subtle)",
+                      fontSize: 10,
+                    }}
+                  />
+
+                  <Tooltip
+                    cursor={{
+                      stroke:
+                        "rgba(255, 136, 0, 0.18)",
+                    }}
+                    contentStyle={{
+                      background:
+                        "var(--surface)",
+                      border:
+                        "1px solid var(--border-soft)",
+                      borderRadius: "8px",
+                      boxShadow:
+                        "var(--shadow)",
+                      fontSize:
+                        "var(--font-size-small)",
+                    }}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="p"
+                    name="Evaluaciones"
+                    stroke="#ff8800"
+                    strokeWidth={3}
+                    fill="url(#joinClinicalArea)"
+                    activeDot={{
+                      r: 5,
+                      fill: "#ff8800",
+                      stroke: "#ffffff",
+                      strokeWidth: 3,
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div
+              className={styles.emptyChart}
+            >
+              <span
+                className={styles.emptyPulse}
+              />
+
+              <strong>
+                Esperando actividad
               </strong>
 
               <p>
-                El gráfico se
-                completará a medida
-                que se registren
-                evaluaciones.
+                El pulso aparecerá cuando
+                existan evaluaciones
+                registradas.
               </p>
             </div>
+          )}
+
+          <footer
+            className={styles.chartFooter}
+          >
+            <span>
+              RESULTADOS / MES
+            </span>
+
+            <span>
+              JOIN SOLUTION · CLINICAL DATA
+            </span>
+          </footer>
+        </article>
+
+        {/* ===============================================
+            ACTIVITY
+        =============================================== */}
+
+        <aside
+          className={styles.activityPanel}
+        >
+
+          <div
+            className={
+              styles.activityTitle
+            }
+          >
+            <h2>
+              Últimos
+              <br />
+              movimientos.
+            </h2>
+
+            <span
+              aria-hidden="true"
+            >
+              ↘
+            </span>
           </div>
-        )}
-      </article>
 
-      {/* ===============================================
-          ACTIVIDAD RECIENTE
-      =============================================== */}
+          {actividades.length ? (
+            <div
+              className={
+                styles.activityList
+              }
+            >
+              {actividades.map(
+                (
+                  actividad,
+                  index,
+                ) => (
+                  <article
+                    key={`${actividad.titulo}-${index}`}
+                    className={
+                      styles.activityItem
+                    }
+                  >
+                    <div
+                      className={
+                        styles.activityRail
+                      }
+                      aria-hidden="true"
+                    >
+                      <span />
 
-      <article
-        className={`${styles.card} ${styles.activity}`}
+                      {index <
+                        actividades.length -
+                          1 && <i />}
+                    </div>
+
+                    <div
+                      className={
+                        styles.activityCopy
+                      }
+                    >
+                      <div>
+                        <strong>
+                          {normalizarNombreTest(
+                            actividad.titulo,
+                          )}
+                        </strong>
+
+                        <time>
+                          {
+                            actividad.tiempo
+                          }
+                        </time>
+                      </div>
+
+                      <p>
+                        {
+                          actividad.subtitulo
+                        }
+                      </p>
+                    </div>
+                  </article>
+                ),
+              )}
+            </div>
+          ) : (
+            <div
+              className={
+                styles.emptyActivity
+              }
+            >
+              <strong>
+                Sin movimientos
+              </strong>
+
+              <p>
+                La actividad reciente
+                aparecerá en este espacio.
+              </p>
+            </div>
+          )}
+        </aside>
+      </section>
+
+      {/* ===================================================
+          DISTRIBUTION
+      =================================================== */}
+
+      <section
+        className={styles.distribution}
       >
-        <div
+        <header
           className={
-            styles.cardHeading
+            styles.distributionHeader
           }
         >
           <div>
-            <p
-              className={
-                styles.eyebrow
-              }
-            >
-              Lo último
-            </p>
-
             <h2>
-              Actividad reciente
+              Distribución de uso
             </h2>
+
+            <p>
+              Cómo se reparte la actividad
+              entre las evaluaciones
+              realizadas.
+            </p>
           </div>
 
-          <span
-            className={
-              styles.activityCount
-            }
-          >
-            {actividades.length}{" "}
-            {actividades.length ===
-            1
-              ? "registro"
-              : "registros"}
-          </span>
-        </div>
+          {principal && (
+            <div
+              className={
+                styles.leadingTest
+              }
+            >
+              <span>
+                Test principal
+              </span>
 
-        {actividades.length ? (
+              <strong>
+                {normalizarNombreTest(
+                  principal.label,
+                )}
+              </strong>
+
+              <small>
+                {principal.valor}% del total
+              </small>
+            </div>
+          )}
+        </header>
+
+        {dataNiveles.length ? (
           <div
             className={
-              styles.activityList
+              styles.distributionList
             }
           >
-            {actividades.map(
-              (
-                actividad,
-                index,
-              ) => (
-                <div
-                  key={`${actividad.titulo}-${index}`}
+            {dataNiveles.map(
+              (nivel, index) => (
+                <article
                   className={
-                    styles.activityItem
+                    styles.distributionRow
                   }
+                  key={nivel.label}
                 >
+                  <span
+                    className={
+                      styles.distributionIndex
+                    }
+                  >
+                    {String(
+                      index + 1,
+                    ).padStart(2, "0")}
+                  </span>
+
                   <div
                     className={
-                      styles.timelineMarker
+                      styles.distributionName
+                    }
+                  >
+                    <strong>
+                      {normalizarNombreTest(
+                        nivel.label,
+                      )}
+                    </strong>
+
+                    <span>
+                      {nivel.cantidad}{" "}
+                      {nivel.cantidad === 1
+                        ? "resultado"
+                        : "resultados"}
+                    </span>
+                  </div>
+
+                  <div
+                    className={
+                      styles.distributionTrack
                     }
                     aria-hidden="true"
                   >
-                    <span />
+                    <span
+                      style={{
+                        width: `${nivel.valor}%`,
+                      }}
+                    />
                   </div>
 
-                  <div
+                  <strong
                     className={
-                      styles.activityCopy
+                      styles.distributionValue
                     }
                   >
-                    <h3>
-                      {
-                        actividad.titulo
-                      }
-                    </h3>
-
-                    <p>
-                      {
-                        actividad.subtitulo
-                      }
-                    </p>
-                  </div>
-
-                  <time
-                    className={
-                      styles.activityTime
-                    }
-                  >
-                    {
-                      actividad.tiempo
-                    }
-                  </time>
-                </div>
+                    {nivel.valor}
+                    <small>%</small>
+                  </strong>
+                </article>
               ),
             )}
           </div>
         ) : (
           <div
             className={
-              styles.emptyState
+              styles.emptyDistribution
             }
           >
-            <div
-              className={
-                styles.emptyTimeline
-              }
-              aria-hidden="true"
-            >
-              <span />
-              <span />
-              <span />
-            </div>
-
-            <div
-              className={
-                styles.emptyCopy
-              }
-            >
-              <strong>
-                Sin actividad
-                reciente
-              </strong>
-
-              <p>
-                Las últimas
-                evaluaciones
-                aparecerán en este
-                espacio.
-              </p>
-            </div>
+            Todavía no hay resultados para
+            distribuir.
           </div>
         )}
-      </article>
-
-      {/* ===============================================
-          DISTRIBUCIÓN
-      =============================================== */}
-
-      <article
-        className={`${styles.card} ${styles.usage}`}
-      >
-        <div
-          className={
-            styles.cardHeading
-          }
-        >
-          <div>
-            <p
-              className={
-                styles.eyebrow
-              }
-            >
-              Distribución
-            </p>
-
-            <h2>
-              Análisis de tests
-            </h2>
-          </div>
-
-          <span
-            className={
-              styles.chartCaption
-            }
-          >
-            Participación sobre el
-            total
-          </span>
-        </div>
-
-        {dataNiveles.length ? (
-          <div
-            className={
-              styles.chart
-            }
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-              <BarChart
-                data={
-                  dataNiveles
-                }
-                margin={{
-                  top: 20,
-                  right: 8,
-                  left: 8,
-                  bottom: 0,
-                }}
-              >
-                <CartesianGrid
-                  vertical={false}
-                  stroke="var(--gris)"
-                  strokeDasharray="3 5"
-                />
-
-                <XAxis
-                  dataKey="label"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fill: "var(--font-color)",
-                    fontSize: 11,
-                  }}
-                  tickFormatter={(
-                    label: string,
-                  ) =>
-                    label.length >
-                    12
-                      ? `${label.slice(
-                          0,
-                          11,
-                        )}…`
-                      : label
-                  }
-                />
-
-                <Tooltip
-                  formatter={(
-                    value,
-                  ) => [
-                    `${value}%`,
-                    "Participación",
-                  ]}
-                  contentStyle={{
-                    background:
-                      "#ffffff",
-
-                    border:
-                      "1px solid #e8eaed",
-
-                    borderRadius:
-                      "10px",
-
-                    boxShadow:
-                      "0 8px 24px rgba(30, 35, 40, 0.08)",
-
-                    fontSize:
-                      "12px",
-                  }}
-                />
-
-                <Bar
-                  dataKey="valor"
-                  name="Participación"
-                  radius={[
-                    7, 7, 2, 2,
-                  ]}
-                  maxBarSize={48}
-                >
-                  {dataNiveles.map(
-                    (nivel) => (
-                      <Cell
-                        key={
-                          nivel.label
-                        }
-                        fill={
-                          nivel.color
-                        }
-                      />
-                    ),
-                  )}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div
-            className={
-              styles.emptyState
-            }
-          >
-            <div
-              className={
-                styles.emptyBars
-              }
-              aria-hidden="true"
-            >
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-
-            <div
-              className={
-                styles.emptyCopy
-              }
-            >
-              <strong>
-                Sin resultados para
-                analizar
-              </strong>
-
-              <p>
-                La distribución se
-                mostrará cuando haya
-                evaluaciones
-                completadas.
-              </p>
-            </div>
-          </div>
-        )}
-      </article>
-    </section>
+      </section>
+    </main>
   );
 }

@@ -2,38 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import BotonPersonalizado from "../../components/Boton/Boton";
-
 import { useAuth } from "../../context/AuthContext";
-
 import Logo from "../../assets/images/logo.svg";
-
-import {
-  recuperarAccesoAdmin,
-} from "../../firebase/admin";
+import { recuperarAccesoAdmin } from "../../firebase/admin";
 
 import styles from "./Login.module.css";
 
 export default function Login() {
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [error, setError] =
-    useState("");
-
-  const [info, setInfo] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [recovering, setRecovering] =
-    useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   const navigate = useNavigate();
-
   const { login } = useAuth();
 
   /* =======================================================
@@ -45,10 +28,7 @@ export default function Login() {
     setInfo("");
 
     if (!email.trim() || !password) {
-      setError(
-        "Completá email y contraseña.",
-      );
-
+      setError("Completá email y contraseña.");
       return;
     }
 
@@ -60,14 +40,8 @@ export default function Login() {
         password,
       );
 
-      localStorage.removeItem(
-        "paciente",
-      );
-
-      localStorage.setItem(
-        "rol",
-        "admin",
-      );
+      localStorage.removeItem("paciente");
+      localStorage.setItem("rol", "admin");
 
       navigate("/admin/dashboard");
     } catch {
@@ -101,57 +75,44 @@ export default function Login() {
      RECUPERAR CONTRASEÑA
   ======================================================= */
 
-  const handleForgotPassword =
-    async () => {
-      setError("");
-      setInfo("");
+  const handleForgotPassword = async () => {
+    setError("");
+    setInfo("");
 
-      const emailLimpio =
-        email.trim().toLowerCase();
+    const emailLimpio =
+      email.trim().toLowerCase();
 
-      if (!emailLimpio) {
-        setError(
-          "Ingresá tu email para recibir las instrucciones de recuperación.",
-        );
+    if (!emailLimpio) {
+      setError(
+        "Ingresá tu email para recibir las instrucciones de recuperación.",
+      );
 
-        return;
-      }
+      return;
+    }
 
-      try {
-        setRecovering(true);
+    try {
+      setRecovering(true);
 
-        await recuperarAccesoAdmin({
-          email: emailLimpio,
-        });
+      await recuperarAccesoAdmin({
+        email: emailLimpio,
+      });
 
-        /*
-         * El mensaje es intencionalmente neutro.
-         *
-         * No confirmamos si el email existe
-         * ni si corresponde a un administrador.
-         */
+      setInfo(
+        "Si existe una cuenta administrativa asociada a ese email, recibirás un correo con las instrucciones para crear una nueva contraseña.",
+      );
+    } catch (error) {
+      console.error(
+        "Error solicitando recuperación:",
+        error,
+      );
 
-        setInfo(
-          "Si existe una cuenta administrativa asociada a ese email, recibirás un correo con las instrucciones para crear una nueva contraseña.",
-        );
-      } catch (error) {
-        /*
-         * Incluso ante determinados errores evitamos
-         * revelar información sobre las cuentas.
-         */
-
-        console.error(
-          "Error solicitando recuperación:",
-          error,
-        );
-
-        setInfo(
-          "Si existe una cuenta administrativa asociada a ese email, recibirás un correo con las instrucciones para crear una nueva contraseña.",
-        );
-      } finally {
-        setRecovering(false);
-      }
-    };
+      setInfo(
+        "Si existe una cuenta administrativa asociada a ese email, recibirás un correo con las instrucciones para crear una nueva contraseña.",
+      );
+    } finally {
+      setRecovering(false);
+    }
+  };
 
   /* =======================================================
      RENDER
@@ -159,292 +120,316 @@ export default function Login() {
 
   return (
     <main className={styles.page}>
+      {/* BACKGROUND */}
+
       <div
-        className={styles.backgroundGlow}
+        className={styles.ambientBackground}
         aria-hidden="true"
-      />
-
-      <section
-        className={styles.loginCard}
       >
-        {/* ===============================================
-            BRAND
-        =============================================== */}
+        <span
+          className={`${styles.orb} ${styles.orbYellow}`}
+        />
 
-        <header className={styles.header}>
-          <div
-            className={styles.brandMark}
-          >
+        <span
+          className={`${styles.orb} ${styles.orbOrange}`}
+        />
+
+        <span
+          className={`${styles.orb} ${styles.orbRed}`}
+        />
+      </div>
+
+      <section className={styles.shell}>
+        {/* =================================================
+            PRESENTATION
+        ================================================= */}
+
+        <aside className={styles.presentation}>
+          <header className={styles.brand}>
             <img
               src={Logo}
               alt="Join Solution"
+              className={styles.logo}
             />
-          </div>
 
-          <div
-            className={styles.brandCopy}
-          >
-            <p
-              className={styles.eyebrow}
-            >
-              Join Solution
-            </p>
+            <div className={styles.brandText}>
+              <strong>JOIN SOLUTION</strong>
 
+              <span>
+                Plataforma de evaluaciones
+              </span>
+            </div>
+          </header>
+
+          <div className={styles.introduction}>
             <h1>
-              Acceso administrativo
+              Gestión
+              clínica.
             </h1>
 
-            <p
-              className={styles.subtitle}
-            >
-              Ingresá tus credenciales
-              para acceder al panel de
-              gestión.
+            <p className={styles.description}>
+              Acceso al entorno profesional para la
+              administración de pacientes, sesiones,
+              evaluaciones y resultados.
             </p>
           </div>
-        </header>
 
-        {/* ===============================================
-            FORM
-        =============================================== */}
+          <div className={styles.features}>
+            <div className={styles.feature}>
+              
 
-        <div className={styles.form}>
-          {/* EMAIL */}
+              <div>
+                <strong>
+                  Gestión centralizada
+                </strong>
 
-          <div
-            className={styles.field}
-          >
-            <label
-              htmlFor="admin-email"
-            >
-              Email
-            </label>
-
-            <input
-              id="admin-email"
-              type="email"
-              autoComplete="email"
-              placeholder="nombre@joinsolution.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(
-                  e.target.value,
-                );
-
-                if (error) {
-                  setError("");
-                }
-
-                if (info) {
-                  setInfo("");
-                }
-              }}
-              onKeyDown={
-                handleKeyDown
-              }
-              disabled={
-                loading ||
-                recovering
-              }
-            />
-          </div>
-
-          {/* PASSWORD */}
-
-          <div
-            className={styles.field}
-          >
-            <div
-              className={
-                styles.passwordHeader
-              }
-            >
-              <label
-                htmlFor="admin-password"
-              >
-                Contraseña
-              </label>
-
-              <button
-                type="button"
-                className={
-                  styles.forgotButton
-                }
-                onClick={
-                  handleForgotPassword
-                }
-                disabled={
-                  loading ||
-                  recovering
-                }
-              >
-                {recovering
-                  ? "Enviando..."
-                  : "Olvidé mi contraseña"}
-              </button>
+                <p>
+                  Pacientes, sesiones y evaluaciones
+                  desde un único entorno.
+                </p>
+              </div>
             </div>
 
-            <input
-              id="admin-password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Ingresá tu contraseña"
-              value={password}
-              onChange={(e) => {
-                setPassword(
-                  e.target.value,
-                );
+            <div className={styles.feature}>
+              
 
-                if (error) {
-                  setError("");
-                }
+              <div>
+                <strong>
+                  Acceso restringido
+                </strong>
 
-                if (info) {
-                  setInfo("");
-                }
-              }}
-              onKeyDown={
-                handleKeyDown
-              }
-              disabled={
-                loading ||
-                recovering
-              }
-            />
+                <p>
+                  Área destinada al personal
+                  autorizado.
+                </p>
+              </div>
+            </div>
           </div>
+        </aside>
 
-          {/* =============================================
-              MENSAJES
-          ============================================= */}
+        {/* =================================================
+            LOGIN
+        ================================================= */}
 
-          {error && (
-            <div
-              className={`${styles.message} ${styles.errorMessage}`}
-              role="alert"
+        <section className={styles.loginPanel}>
+          <div className={styles.loginContent}>
+{/*             <button
+              type="button"
+              className={styles.backButton}
+              onClick={() => navigate("/")}
+              disabled={loading || recovering}
+            >
+              <span aria-hidden="true">←</span>
+              Volver
+            </button> */}
+
+            <header className={styles.loginHeader}>
+              <p className={styles.loginEyebrow}>
+                ACCESO ADMINISTRATIVO
+              </p>
+
+              <h2>Bienvenido</h2>
+
+              <p>
+                Ingresá tus credenciales para
+                continuar al panel de gestión.
+              </p>
+            </header>
+
+            {/* FORM */}
+
+            <div className={styles.form}>
+              {/* EMAIL */}
+
+              <div className={styles.field}>
+                <label htmlFor="admin-email">
+                  Email
+                </label>
+
+                <input
+                  id="admin-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="nombre@joinsolution.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+
+                    if (error) setError("");
+                    if (info) setInfo("");
+                  }}
+                  onKeyDown={handleKeyDown}
+                  disabled={
+                    loading || recovering
+                  }
+                />
+              </div>
+
+              {/* PASSWORD */}
+
+              <div className={styles.field}>
+                <div
+                  className={
+                    styles.passwordHeader
+                  }
+                >
+                  <label htmlFor="admin-password">
+                    Contraseña
+                  </label>
+
+                  <button
+                    type="button"
+                    className={
+                      styles.forgotButton
+                    }
+                    onClick={
+                      handleForgotPassword
+                    }
+                    disabled={
+                      loading || recovering
+                    }
+                  >
+                    {recovering
+                      ? "Enviando..."
+                      : "Olvidé mi contraseña"}
+                  </button>
+                </div>
+
+                <input
+                  id="admin-password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Ingresá tu contraseña"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+
+                    if (error) setError("");
+                    if (info) setInfo("");
+                  }}
+                  onKeyDown={handleKeyDown}
+                  disabled={
+                    loading || recovering
+                  }
+                />
+              </div>
+
+              {/* MESSAGES */}
+
+              {error && (
+                <div
+                  className={`${styles.message} ${styles.errorMessage}`}
+                  role="alert"
+                >
+                  <span
+                    className={
+                      styles.messageIndicator
+                    }
+                  />
+
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {info && (
+                <div
+                  className={`${styles.message} ${styles.infoMessage}`}
+                  role="status"
+                >
+                  <span
+                    className={
+                      styles.infoIndicator
+                    }
+                  />
+
+                  <p>{info}</p>
+                </div>
+              )}
+
+              {/* LOGIN */}
+
+              <div
+                className={
+                  styles.primaryAction
+                }
+              >
+                <BotonPersonalizado
+                  variant="primary"
+                  onClick={handleLogin}
+                  disabled={
+                    loading ||
+                    recovering ||
+                    !email.trim() ||
+                    !password
+                  }
+                >
+                  {loading
+                    ? "Ingresando..."
+                    : "Ingresar al panel"}
+                </BotonPersonalizado>
+              </div>
+            </div>
+
+            {/* OTHER ACCESS */}
+
+            <div className={styles.divider}>
+              <span />
+              <p>Otro tipo de acceso</p>
+              <span />
+            </div>
+
+            <button
+              type="button"
+              className={styles.patientAccess}
+              onClick={() => navigate("/login")}
+              disabled={loading || recovering}
             >
               <span
                 className={
-                  styles.messageIndicator
+                  styles.patientAccessContent
                 }
-              />
+              >
+                <strong>
+                  ¿Sos paciente?
+                </strong>
 
-              <p>{error}</p>
-            </div>
-          )}
+                <span>
+                  Accedé a tus evaluaciones
+                  asignadas.
+                </span>
+              </span>
 
-          {info && (
-            <div
-              className={`${styles.message} ${styles.infoMessage}`}
-              role="status"
-            >
               <span
                 className={
-                  styles.infoIndicator
+                  styles.patientAccessAction
+                }
+              >
+                Portal de pacientes
+
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h13" />
+                  <path d="m14 7 5 5-5 5" />
+                </svg>
+              </span>
+            </button>
+
+            <footer className={styles.footer}>
+              <span
+                className={
+                  styles.securityDot
                 }
               />
 
-              <p>{info}</p>
-            </div>
-          )}
-
-          {/* =============================================
-              LOGIN
-          ============================================= */}
-
-          <div
-            className={
-              styles.primaryAction
-            }
-          >
-            <BotonPersonalizado
-              variant="primary"
-              onClick={
-                handleLogin
-              }
-              disabled={
-                loading ||
-                recovering ||
-                !email.trim() ||
-                !password
-              }
-            >
-              {loading
-                ? "Ingresando..."
-                : "Ingresar al panel"}
-            </BotonPersonalizado>
+              <p>
+                Acceso exclusivo para personal
+                autorizado
+              </p>
+            </footer>
           </div>
-        </div>
-
-        {/* ===============================================
-            PATIENT ACCESS
-        =============================================== */}
-
-        <div
-          className={styles.divider}
-        >
-          <span />
-
-          <p>
-            Otro tipo de acceso
-          </p>
-
-          <span />
-        </div>
-
-        <div
-          className={
-            styles.patientAccess
-          }
-        >
-            <strong>
-              ¿Sos paciente?
-            </strong>
-
-            <p>
-              Accedé a tus
-              evaluaciones desde el
-              portal de pacientes.
-            </p>
-
-          <button
-            type="button"
-            className={
-              styles.patientButton
-            }
-            onClick={() =>
-              navigate("/login")
-            }
-            disabled={
-              loading ||
-              recovering
-            }
-          >
-            Ingresar como paciente
-
-            <span aria-hidden="true">
-              →
-            </span>
-          </button>
-        </div>
-
-        {/* ===============================================
-            FOOTER
-        =============================================== */}
-
-        <footer
-          className={styles.footer}
-        >
-          <span
-            className={
-              styles.securityDot
-            }
-          />
-
-          <p>
-            Acceso exclusivo para
-            personal autorizado
-          </p>
-        </footer>
+        </section>
       </section>
     </main>
   );

@@ -1,39 +1,85 @@
-
 .container {
-display: flex;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 2rem;
-  margin: 0.5rem;
+
+  gap: var(--space-3);
+
+  margin: var(--space-2);
+
+  color: var(--text-primary);
 }
-.containerRow{
-    width: var(--width-complete);
+
+.topRow,
+.bottomRow {
+  display: flex;
+  align-items: center;
 }
 
 .topRow {
-display: flex;
-  align-items: center;
-  color: var(--marron);
-  font-weight: 600;
-  font-size: 0.95rem;
+  position: relative;
+
+  padding-right: var(--space-3);
+
+  border-right:
+    1px solid
+    var(--border-default);
 }
 
-.emoji {
-  font-size: 1.2rem;
+.fecha {
+  color: var(--text-muted);
+
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-semibold);
+
+  letter-spacing: 0.02em;
+
+  white-space: nowrap;
 }
 
 .bottomRow {
-display: flex;
-  align-items: inherit;
-  gap: 5px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  flex-direction: row;
-  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.hora {
+  color: var(--text-primary);
+
+  font-family: var(--font-family-header);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-semibold);
+
+  letter-spacing: -0.02em;
+
+  font-variant-numeric: tabular-nums;
+
+  line-height: 1;
+}
+
+.emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 26px;
+  height: 26px;
+
+  background: var(--accent-soft);
+
+  border:
+    1px solid
+    var(--accent-border);
+
+  border-radius:
+    var(--radius-pill);
+
+  font-size: var(--font-size-small);
+}
+
+.containerRow {
+  width: var(--width-complete);
 }
 
 .divider {
-  color: var(--gris);
-}
-span{
-  font-family: var(--font-family-body);
+  color: var(--border-strong);
 }

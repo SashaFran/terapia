@@ -596,7 +596,7 @@ display: flex;
 .loading p {
   margin: 0;
 
-  font-size: 0.68rem;
+  font-size: var(--font-size-small);
 }
 
 .loadingIndicator {

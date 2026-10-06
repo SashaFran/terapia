@@ -49,7 +49,7 @@ export default function App() {
                 element={
                   <div className={styles.layout}>
                     <Sidebar />
-                    <BreadcrumbsNav />
+                    {/* <BreadcrumbsNav /> */}
                     <div className={styles.mainArea}>
                       <main className={`content scrollbar ${styles.mainContent}`}>
                         
