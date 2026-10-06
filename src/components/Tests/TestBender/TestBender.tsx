@@ -20,6 +20,12 @@ export default function TestBender({ onFinish, userId }: Props) {
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(BENDER_TEST.imagenes.length).fill("")
   );
+  const [laminaActual, setLaminaActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(BENDER_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
   const [enviando, setEnviando] = useState(false);
 
   const engine = useTestEngine({
@@ -60,6 +66,28 @@ export default function TestBender({ onFinish, userId }: Props) {
     }
   };
 
+  const irALamina = (index: number) => {
+    setLaminaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  const irSiguiente = () => {
+    if (laminaActual < respuestas.length - 1) {
+      irALamina(laminaActual + 1);
+    }
+  };
+
+  const irAnterior = () => {
+    if (laminaActual > 0) {
+      irALamina(laminaActual - 1);
+    }
+  };
+
   if (!engine.started) {
     return <TestIntroModal nombre="Test Bender" descripcion="Observe las láminas y escriba su respuesta"
       canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
@@ -79,23 +107,38 @@ export default function TestBender({ onFinish, userId }: Props) {
       {engine.CameraComponent && <engine.CameraComponent />}
 
       <div className={styles.workspace}>
-      <TestProgress total={respuestas.length} completadas={respuestas.map(r => Boolean(r.trim()))} />
+      <TestProgress
+        total={respuestas.length}
+        completadas={respuestas.map((r) => Boolean(r.trim()))}
+        visitadas={visitadas}
+        activa={laminaActual}
+        onSelect={irALamina}
+      />
       <div className={styles.container}>
-        {BENDER_TEST.imagenes.map((img, i) => (
-          <div key={i} id={`test-item-${i}`} className={styles.containerImg}>
-            <h2>Lámina {i + 1}</h2>
-            <RotatableImage src={img} />
-            <label htmlFor={`bender-${i}`}>Su respuesta para la lámina {i + 1}</label>
+        <div id={`test-item-${laminaActual}`} className={styles.containerImg}>
+            <h2>Lámina {laminaActual + 1}</h2>
+            <RotatableImage src={BENDER_TEST.imagenes[laminaActual]} />
+            <label htmlFor={`bender-${laminaActual}`}>Su respuesta para la lámina {laminaActual + 1}</label>
             <textarea
-              id={`bender-${i}`}
+              id={`bender-${laminaActual}`}
               disabled={engine.inputLocked}
               placeholder="¿Qué ves en esta lámina? ¿Qué sientes o piensas al verla?"
-              value={respuestas[i]}
-              onChange={(e) => handleChange(i, e.target.value)}
+              value={respuestas[laminaActual]}
+              onChange={(e) => handleChange(laminaActual, e.target.value)}
               className={styles.textarea}
             />
-          </div>
-        ))}
+        </div>
+
+        <div className={styles.navigation}>
+          <BotonPersonalizado onClick={irAnterior} disabled={laminaActual === 0 || engine.inputLocked} variant="secondary">
+            Anterior
+          </BotonPersonalizado>
+          {laminaActual < respuestas.length - 1 && (
+            <BotonPersonalizado onClick={irSiguiente} disabled={engine.inputLocked} variant="primary">
+              Siguiente
+            </BotonPersonalizado>
+          )}
+        </div>
 
         <BotonPersonalizado
           onClick={finalizar}

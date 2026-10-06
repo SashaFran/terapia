@@ -3,6 +3,9 @@ import styles from "./TestProgress.module.css";
 type Props = {
   total: number;
   completadas: boolean[];
+  visitadas?: boolean[];
+  activa?: number;
+  onSelect?: (index: number) => void;
   titulo?: string;
   itemLabel?: string;
 };
@@ -10,6 +13,9 @@ type Props = {
 export default function TestProgress({
   total,
   completadas,
+  visitadas = [],
+  activa,
+  onSelect,
   titulo = "Progreso",
   itemLabel = "Lámina",
 }: Props) {
@@ -22,6 +28,11 @@ export default function TestProgress({
       : 0;
 
   const irAItem = (index: number) => {
+    if (onSelect) {
+      onSelect(index);
+      return;
+    }
+
     const elemento = document.getElementById(
       `test-item-${index}`,
     );
@@ -73,6 +84,10 @@ export default function TestProgress({
           (_, index) => {
             const completa =
               completadas[index] ?? false;
+            const visitada =
+              visitadas[index] ?? false;
+            const pendienteVisitada =
+              visitada && !completa;
 
             return (
               <button
@@ -81,21 +96,28 @@ export default function TestProgress({
                 className={`${styles.item} ${
                   completa
                     ? styles.completed
-                    : styles.pending
+                    : pendienteVisitada
+                      ? styles.visited
+                      : styles.pending
                 }`}
                 onClick={() => irAItem(index)}
                 title={`${itemLabel} ${index + 1}${
                   completa
                     ? " · Respondida"
-                    : " · Pendiente"
+                    : pendienteVisitada
+                      ? " · Sin responder"
+                      : " · Pendiente"
                 }`}
                 aria-label={`Ir a ${itemLabel.toLowerCase()} ${
                   index + 1
                 }. ${
                   completa
                     ? "Respondida"
-                    : "Pendiente"
+                    : pendienteVisitada
+                      ? "Sin responder"
+                      : "Pendiente"
                 }`}
+                aria-current={activa === index ? "step" : undefined}
               >
                 <span className={styles.itemNumber}>
                   {String(index + 1).padStart(

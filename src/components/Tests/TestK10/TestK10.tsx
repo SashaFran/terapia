@@ -22,6 +22,11 @@ export default function TestK10({ onFinish, userId }: Props) {
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(K10_TEST.preguntas.length).fill(0),
   );
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(K10_TEST.preguntas.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
 
   const pacienteStorage = localStorage.getItem("paciente");
   const paciente = pacienteStorage ? JSON.parse(pacienteStorage) : null;
@@ -48,6 +53,16 @@ export default function TestK10({ onFinish, userId }: Props) {
     setRespuestas((prev) => {
       const copia = [...prev];
       copia[index] = valor;
+      return copia;
+    });
+  };
+
+  const irAPregunta = (index: number) => {
+    setPreguntaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
       return copia;
     });
   };
@@ -109,9 +124,9 @@ export default function TestK10({ onFinish, userId }: Props) {
         <nav className={styles.navigator} aria-label="Preguntas del K10">
           <h2>Preguntas</h2>
           <div className={styles.questionGrid}>{respuestas.map((r, i) => (
-            <button key={i} type="button" disabled={engine.inputLocked} onClick={() => setPreguntaActual(i)}
+              <button key={i} type="button" disabled={engine.inputLocked} onClick={() => irAPregunta(i)}
               aria-current={i === preguntaActual ? "step" : undefined}
-              aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : "pendiente"}`}>
+              aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : visitadas[i] ? "sin responder" : "pendiente"}`}>
               {i + 1}{r ? " ✓" : ""}
             </button>
           ))}</div>
@@ -136,8 +151,8 @@ export default function TestK10({ onFinish, userId }: Props) {
               onClick={() => setPreguntaActual(i => i - 1)}>Anterior</BotonPersonalizado>
             {ultima ? <BotonPersonalizado variant="primary" disabled={incompleto || enviando || engine.inputLocked} onClick={calcularResultado}>
               {enviando ? "Guardando..." : "Finalizar test"}
-            </BotonPersonalizado> : <BotonPersonalizado variant="primary" disabled={!respuestas[preguntaActual] || engine.inputLocked}
-              onClick={() => setPreguntaActual(i => i + 1)}>Siguiente</BotonPersonalizado>}
+            </BotonPersonalizado> : <BotonPersonalizado variant="primary" disabled={engine.inputLocked}
+              onClick={() => irAPregunta(preguntaActual + 1)}>Siguiente</BotonPersonalizado>}
           </div>
           <p>{ultima && incompleto ? "Responda las preguntas pendientes para finalizar." : "Puede cambiar su respuesta antes de finalizar."}</p>
         </section>

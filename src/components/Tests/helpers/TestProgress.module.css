@@ -233,6 +233,17 @@
   color: var(--gris-med);
 }
 
+.visited {
+  color: #9a5700;
+  background: #fff3d6;
+  border-color: #f2b94b;
+}
+
+.visited:hover {
+  color: #7b4300;
+  border-color: #d98d16;
+}
+
 /* =========================
    LEGEND
 ========================= */

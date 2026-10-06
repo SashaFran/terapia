@@ -84,6 +84,11 @@
   border: 1px solid var(--success-text);
   font-weight: bold;
 }
+.questionGrid button[aria-label*="sin responder"] {
+  background: #fff3d6;
+  color: #9a5700;
+  border-color: #f2b94b;
+}
 .progress {
   width: 100%;
   accent-color: linear-gradient( 90deg, #ffad00 0%, #ff7900 50%, #ff4438 100% );

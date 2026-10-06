@@ -12,6 +12,7 @@ import {
 import { obtenerMetricasPacientes } from "../../utils/obtencion/obtenerMetricasPacientes.tsx";
 import NuevoPaciente from "../NuevoPaciente/NuevoPaciente.tsx";
 import Modal from "../../components/Modal/Modal.tsx";
+import LoadingState from "../../components/Loading/LoadingState";
 
 type EstadoPaciente =
   | "Pendiente"
@@ -242,17 +243,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.loading}>
-        <div
-          className={
-            styles.loadingIndicator
-          }
-        />
-
-        <p>Cargando pacientes...</p>
-      </div>
-    );
+    return <LoadingState message="Cargando pacientes..." />;
   }
 
   return (

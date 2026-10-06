@@ -29,9 +29,10 @@
 }
 .workspace {
   display: grid;
-  grid-template-columns: var(--test-sidebar-width) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--test-sidebar-width)) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
+  min-width: 0;
 }
 .content {
   display: flex;

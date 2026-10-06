@@ -42,6 +42,11 @@ export default function TestBFQ({
   const [respuestas, setRespuestas] = useState<number[]>(
     Array(BFQ_TEST.preguntas.length).fill(0),
   );
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(BFQ_TEST.preguntas.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
 
   const totalPreguntas = BFQ_TEST.preguntas.length;
 
@@ -149,20 +154,23 @@ export default function TestBFQ({
   };
 
   const irSiguiente = () => {
-    if (
-      respuestas[preguntaActual] === 0 ||
-      preguntaActual >= totalPreguntas - 1
-    ) {
+    if (preguntaActual >= totalPreguntas - 1) {
       return;
     }
 
-    setPreguntaActual((prev) => prev + 1);
+    irAPregunta(preguntaActual + 1);
   };
 
   const irAPregunta = (index: number) => {
     if (engine.inputLocked) return;
 
     setPreguntaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
   };
 
   /* =======================================================
@@ -414,9 +422,9 @@ export default function TestBFQ({
       key={i}
       type="button"
       disabled={engine.inputLocked}
-      onClick={() => setPreguntaActual(i)}
+      onClick={() => irAPregunta(i)}
       aria-current={i === preguntaActual ? "step" : undefined}
-      aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : "pendiente"}`}
+      aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : visitadas[i] ? "sin responder" : "pendiente"}`}
     >
       {i + 1}
     </button>
@@ -583,7 +591,6 @@ export default function TestBFQ({
                 className={styles.nextButton}
                 onClick={irSiguiente}
                 disabled={
-                  respuestaActual === 0 ||
                   engine.inputLocked
                 }
               >

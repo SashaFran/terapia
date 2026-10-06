@@ -12,6 +12,13 @@
 .input { width: 100%; min-height: var(--control-height); height: auto; padding: .75rem; border: 1px solid var(--control-border); border-radius: var(--radius-control); background: var(--surface); }
 .boton { align-self: flex-end; }
 
+.navigation {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
 /* Shared reading defaults are composed above; local states use root tokens. */
 .input:disabled { color: var(--text-muted); background: var(--surface-muted); }
 .testCard:focus-within, .containerImg:focus-within { border-color: var(--control-border); }

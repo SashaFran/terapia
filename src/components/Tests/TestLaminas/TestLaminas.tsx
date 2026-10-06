@@ -19,6 +19,12 @@ export default function TestLaminas({ onFinish, userId }: Props) {
   const [bender, setBender] = useState<string[]>(Array(BENDER_TEST.imagenes.length).fill(""));
   const [canStart, setCanStart] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [preguntaActual, setPreguntaActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(LAMINAS_TEST.preguntas.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
   const zulligerCompleto = zulliger.some((r) => r && r !== "");
   const benderCompleto = bender.some((r) => r && r !== "");
   const puedeFinalizar = zulligerCompleto && benderCompleto;
@@ -54,6 +60,16 @@ export default function TestLaminas({ onFinish, userId }: Props) {
     catch { setEnviando(false); }
   };
 
+  const irAPregunta = (index: number) => {
+    setPreguntaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
   if (!engine.started) {
     return <TestIntroModal nombre="Evaluación con láminas" descripcion="Observe las imágenes y describa su interpretación"
       canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
@@ -71,21 +87,35 @@ export default function TestLaminas({ onFinish, userId }: Props) {
         <div><span>Tiempo restante</span><div className={timerClass}>{engine.minutes}:{String(engine.seconds).padStart(2, "0")}</div></div>
       </header>
       <div className={styles.workspace}>
-        <TestProgress total={totalPreguntas} completadas={respuestasMapeadas.map(r => Boolean(r.trim()))} />
+        <TestProgress
+          total={totalPreguntas}
+          completadas={respuestasMapeadas.map((r) => Boolean(r.trim()))}
+          visitadas={visitadas}
+          activa={preguntaActual}
+          onSelect={irAPregunta}
+        />
         <div className={styles.container}>
-          {imagenes.map((img, i) => (
-            <section key={i} id={`test-item-${i}`} className={styles.testCard}>
-              <h2>{LAMINAS_TEST.preguntas[i]}</h2>
-              <img className={styles.imagen} src={img} alt={LAMINAS_TEST.preguntas[i]} />
-              <label htmlFor={`lamina-${i}`}>¿Qué ve, siente o piensa al observar esta lámina?</label>
-              <textarea id={`lamina-${i}`} className={styles.textarea} disabled={engine.inputLocked} value={respuestasMapeadas[i]}
+          <section id={`test-item-${preguntaActual}`} className={styles.testCard}>
+              <h2>{LAMINAS_TEST.preguntas[preguntaActual]}</h2>
+              <img className={styles.imagen} src={imagenes[preguntaActual]} alt={LAMINAS_TEST.preguntas[preguntaActual]} />
+              <label htmlFor={`lamina-${preguntaActual}`}>¿Qué ve, siente o piensa al observar esta lámina?</label>
+              <textarea id={`lamina-${preguntaActual}`} className={styles.textarea} disabled={engine.inputLocked} value={respuestasMapeadas[preguntaActual]}
                 onChange={e => {
                   const value = e.target.value;
-                  if (i < zulliger.length) setZulliger(prev => prev.map((r, index) => index === i ? value : r));
-                  else setBender(prev => prev.map((r, index) => index === i - zulliger.length ? value : r));
+                  if (preguntaActual < zulliger.length) setZulliger(prev => prev.map((r, index) => index === preguntaActual ? value : r));
+                  else setBender(prev => prev.map((r, index) => index === preguntaActual - zulliger.length ? value : r));
                 }} />
-            </section>
-          ))}
+          </section>
+          <div className={styles.navigation}>
+            <BotonPersonalizado onClick={() => irAPregunta(preguntaActual - 1)} disabled={preguntaActual === 0 || engine.inputLocked} variant="secondary">
+              Anterior
+            </BotonPersonalizado>
+            {preguntaActual < totalPreguntas - 1 && (
+              <BotonPersonalizado onClick={() => irAPregunta(preguntaActual + 1)} disabled={engine.inputLocked} variant="primary">
+                Siguiente
+              </BotonPersonalizado>
+            )}
+          </div>
           <BotonPersonalizado onClick={finalizar} disabled={engine.inputLocked || enviando || !puedeFinalizar} variant="primary">
             {enviando ? "Guardando..." : "Finalizar evaluación completa"}
           </BotonPersonalizado>

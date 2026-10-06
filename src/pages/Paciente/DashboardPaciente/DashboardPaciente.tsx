@@ -10,12 +10,14 @@ import { db } from "../../../firebase/firebase";
 import styles from "./DashboardPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
 import type { Asignacion } from "../../../models/asignacion";
+import LoadingState from "../../../components/Loading/LoadingState";
 
 export default function DashboardPaciente() {
   const navigate = useNavigate();
 
   const [paciente, setPaciente] = useState<any>(null);
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
+  const [loadingAsignaciones, setLoadingAsignaciones] = useState(true);
 
   const calcularProgreso = (items: Asignacion[]) => {
     if (!items || items.length === 0) {
@@ -81,7 +83,12 @@ export default function DashboardPaciente() {
 
   useEffect(() => {
     const cargarAsignaciones = async () => {
-      if (!paciente?.id) return;
+      if (!paciente?.id) {
+        setLoadingAsignaciones(false);
+        return;
+      }
+
+      setLoadingAsignaciones(true);
 
       try {
         const q = query(
@@ -107,6 +114,8 @@ export default function DashboardPaciente() {
           "Error cargando asignaciones:",
           error,
         );
+      } finally {
+        setLoadingAsignaciones(false);
       }
     };
 
@@ -169,16 +178,11 @@ export default function DashboardPaciente() {
     paciente?.nombre?.trim().split(" ")[0] || "";
 
   if (!paciente) {
-    return (
-      <div
-        className={`global-container ${styles.container}`}
-      >
-        <div className={styles.loading}>
-          <div className={styles.loadingCircle} />
-          <p>Cargando tu información…</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Cargando tu información..." />;
+  }
+
+  if (loadingAsignaciones) {
+    return <LoadingState message="Cargando tus evaluaciones..." />;
   }
 
   return (

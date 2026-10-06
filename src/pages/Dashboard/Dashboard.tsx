@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import styles from "./Dashboard.module.css";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import { db } from "../../firebase/firebase";
 
@@ -371,25 +372,7 @@ export default function Dashboard() {
   ======================================================= */
 
   if (loading) {
-    return (
-      <div
-        className={
-          styles.loading
-        }
-      >
-        <div
-          className={
-            styles.loadingIndicator
-          }
-        >
-          <span />
-        </div>
-
-        <p>
-          Cargando panel...
-        </p>
-      </div>
-    );
+    return <LoadingState message="Cargando panel..." />;
   }
 
   /* =======================================================

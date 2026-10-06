@@ -360,6 +360,12 @@
   font-weight: var(--font-bold);
 }
 
+.questionGrid button[aria-label*="sin responder"] {
+  background: #fff3d6;
+  color: #9a5700;
+  border-color: #f2b94b;
+}
+
 .questionIndex {
   display: grid;
 

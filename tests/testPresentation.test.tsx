@@ -29,7 +29,7 @@ describe('assessment presentation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
     expect((screen.getAllByRole('radio')[2] as HTMLInputElement).checked).toBe(true);
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('1');
-    fireEvent.click(screen.getByRole('button', { name: `Ir a la pregunta ${BFQ_TEST.preguntas.length}, pendiente` }));
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`Pregunta ${BFQ_TEST.preguntas.length}`) }));
     expect((screen.getByRole('button', { name: 'Finalizar evaluación' }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/Faltan .* preguntas por responder/)).toBeTruthy();
     expect(engine.submit).not.toHaveBeenCalled();
@@ -45,7 +45,7 @@ describe('assessment presentation', () => {
   });
   it('preserves K10 answers when navigating and only submits a complete questionnaire', () => {
     render(<MemoryRouter><TestK10 userId="preview" /></MemoryRouter>);
-    expect((screen.getByRole('button', { name: 'Siguiente' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Siguiente' }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getAllByRole('radio')[1]);
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
@@ -53,7 +53,7 @@ describe('assessment presentation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pregunta 10, pendiente' }));
     expect((screen.getByRole('button', { name: 'Finalizar test' }) as HTMLButtonElement).disabled).toBe(true);
     for (let i = 1; i < K10_TEST.preguntas.length; i++) {
-      fireEvent.click(screen.getByRole('button', { name: `Pregunta ${i + 1}, pendiente` }));
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`Pregunta ${i + 1}`) }));
       fireEvent.click(screen.getAllByRole('radio')[1]);
     }
     fireEvent.click(screen.getByRole('button', { name: 'Finalizar test' }));
@@ -65,10 +65,13 @@ describe('assessment presentation', () => {
   it('collects both image groups in one assessment and submits the labelled answers', () => {
     render(<TestLaminas userId="preview" onFinish={vi.fn()} />);
     const fields = screen.getAllByRole('textbox');
-    expect(fields).toHaveLength(11);
+    expect(fields).toHaveLength(1);
     expect((screen.getByRole('button', { name: 'Finalizar evaluación completa' }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.change(fields[0], { target: { value: 'Respuesta Zulliger' } });
-    fireEvent.change(fields[3], { target: { value: 'Respuesta Bender' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Respuesta Bender' } });
     fireEvent.click(screen.getByRole('button', { name: 'Finalizar evaluación completa' }));
     expect(engine.submit).toHaveBeenCalledWith(expect.objectContaining({
       respuestas: expect.arrayContaining([

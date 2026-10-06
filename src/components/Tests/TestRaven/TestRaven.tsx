@@ -20,6 +20,12 @@ export default function TestRaven({ onFinish, userId }: Props) {
   const [respuestas, setRespuestas] = useState<string[]>(
     Array(RAVEN_TEST.imagenes.length).fill(""),
   );
+  const [matrizActual, setMatrizActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(RAVEN_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
 
   const engine = useTestEngine({
     userId,
@@ -81,6 +87,16 @@ export default function TestRaven({ onFinish, userId }: Props) {
     void engine.submit(obtenerResultado()).catch(() => {});
   };
 
+  const irAMatriz = (index: number) => {
+    setMatrizActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
   if (!engine.started) {
     return <TestIntroModal nombre="Evaluación de Raven" descripcion="Observe cada matriz y complete el patrón"
       canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
@@ -96,33 +112,46 @@ export default function TestRaven({ onFinish, userId }: Props) {
       </header>
       {engine.CameraComponent && <engine.CameraComponent />}
       <div className={styles.workspace}>
-        <TestProgress total={totalPreguntas} completadas={respuestas.map(Boolean)} itemLabel="Matriz" />
+        <TestProgress
+          total={totalPreguntas}
+          completadas={respuestas.map(Boolean)}
+          visitadas={visitadas}
+          activa={matrizActual}
+          onSelect={irAMatriz}
+          itemLabel="Matriz"
+        />
         <main className={styles.container}>
-          
-          <div className="container">
-            {RAVEN_TEST.imagenes.map((img: string, i: number) => (
-              <div key={i} id={`test-item-${i}`} className={styles.testCard}>
-                <h2>Matriz {i + 1}</h2>
+          <div className={styles.testCard} id={`test-item-${matrizActual}`}>
+                <h2>Matriz {matrizActual + 1}</h2>
                 <img
-                  src={img}
-                  alt={`Matriz ${i + 1}`}
+                  src={RAVEN_TEST.imagenes[matrizActual]}
+                  alt={`Matriz ${matrizActual + 1}`}
                   className={styles.imagen}
                 />
 
-                <label htmlFor={`raven-${i}`}>Respuesta para la matriz {i + 1} (del 1 al 8)</label>
+                <label htmlFor={`raven-${matrizActual}`}>Respuesta para la matriz {matrizActual + 1} (del 1 al 8)</label>
                 <input
-                  id={`raven-${i}`}
+                  id={`raven-${matrizActual}`}
                   type="number"
                   disabled={engine.inputLocked}
                   min={1}
                   max={8}
-                  value={respuestas[i]}
-                  onChange={(e) => handleChange(i, e.target.value)}
+                  value={respuestas[matrizActual]}
+                  onChange={(e) => handleChange(matrizActual, e.target.value)}
                   placeholder="Respuesta"
                   className={styles.input}
                 />
-              </div>
-            ))}
+          </div>
+
+          <div className={styles.navigation}>
+            <BotonPersonalizado onClick={() => irAMatriz(matrizActual - 1)} disabled={matrizActual === 0 || engine.inputLocked} variant="secondary">
+              Anterior
+            </BotonPersonalizado>
+            {matrizActual < totalPreguntas - 1 && (
+              <BotonPersonalizado onClick={() => irAMatriz(matrizActual + 1)} disabled={engine.inputLocked} variant="primary">
+                Siguiente
+              </BotonPersonalizado>
+            )}
           </div>
 
           <BotonPersonalizado

@@ -82,6 +82,13 @@ export default function TestZulliger({
       Array(ZULLIGER_TEST.imagenes.length).fill(0),
   );
 
+  const [laminaActual, setLaminaActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(ZULLIGER_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+
   const [enviando, setEnviando] = useState(false);
 
   /* =======================================================
@@ -226,6 +233,16 @@ export default function TestZulliger({
       laminaIndex,
       nuevo,
     );
+  };
+
+  const irALamina = (index: number) => {
+    setLaminaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
   };
 
   /* =======================================================
@@ -518,6 +535,9 @@ export default function TestZulliger({
           <TestProgress
             total={totalLaminas}
             completadas={completadas}
+            visitadas={visitadas}
+            activa={laminaActual}
+            onSelect={irALamina}
             titulo="Láminas"
             itemLabel="Lámina"
           />
@@ -532,8 +552,9 @@ export default function TestZulliger({
             styles.testContent
           }
         >
-          {ZULLIGER_TEST.imagenes.map(
-            (img, laminaIndex) => {
+          {ZULLIGER_TEST.imagenes.slice(laminaActual, laminaActual + 1).map(
+            (img) => {
+              const laminaIndex = laminaActual;
               const slideActual =
                 slidesActivos[
                   laminaIndex
@@ -945,6 +966,25 @@ export default function TestZulliger({
               );
             },
           )}
+
+          <div className={styles.finishCard}>
+            <BotonPersonalizado
+              onClick={() => irALamina(laminaActual - 1)}
+              disabled={laminaActual === 0 || engine.inputLocked}
+              variant="secondary"
+            >
+              Lámina anterior
+            </BotonPersonalizado>
+            {laminaActual < totalLaminas - 1 && (
+              <BotonPersonalizado
+                onClick={() => irALamina(laminaActual + 1)}
+                disabled={engine.inputLocked}
+                variant="primary"
+              >
+                Siguiente lámina
+              </BotonPersonalizado>
+            )}
+          </div>
 
           {/* =================================================
               FINALIZAR
