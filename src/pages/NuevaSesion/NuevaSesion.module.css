@@ -41,9 +41,9 @@
 .sectionHeader h3 {
   margin: 0;
 
-  color: #3c4146;
+  color: var(--beige);
 
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-h3);
   font-weight: 700;
 }
 
@@ -52,7 +52,7 @@
 
   color: #959aa0;
 
-  font-size: 0.61rem;
+  font-size: var(--font-size-small);
 
   line-height: 1.45;
 }
@@ -131,47 +131,24 @@ font-size: var(--font-size-xsmall);
 ========================================================= */
 
 .fieldsGrid {
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1.2fr)
-    minmax(0, 0.8fr);
-
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
 }
 
 .fieldCard {
   display: flex;
   flex-direction: column;
-
+flex: 1 1 0;
   min-width: 0;
 
   gap: 0.45rem;
-
-  padding: 0.9rem 0.95rem;
-
-  background: #f9fafb;
-
-  border: 1px solid #e7e9ec;
-
-  border-radius: 10px;
 
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
     box-shadow 0.18s ease;
 }
-
-.fieldCard:hover {
-  background: #ffffff;
-
-  border-color: #dedfe2;
-
-  box-shadow:
-    0 5px 16px
-    rgba(35, 39, 44, 0.04);
-}
-
 .labelRow {
   display: flex;
 
@@ -182,9 +159,9 @@ font-size: var(--font-size-xsmall);
 }
 
 .fieldCard label {
-  color: #565b61;
+  color: var(--beige);
 
-  font-size: 0.64rem;
+  font-size: var(--font-size-mid);
   font-weight: 700;
 }
 
@@ -247,7 +224,7 @@ font-size: var(--font-size-xsmall);
 .fieldHelp {
   min-height: 14px;
 
-  color: #9ca1a6;
+  color: var(--beige);
 
   font-size: var(--font-size-small);
 

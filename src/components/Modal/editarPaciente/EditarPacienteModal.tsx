@@ -630,21 +630,7 @@ export default function EditarPacienteModal({
                   >
                     Estado del usuario
                   </span>
-
-                  <strong>
-                    {activo
-                      ? "Acceso habilitado"
-                      : "Acceso deshabilitado"}
-                  </strong>
                 </div>
-
-                <span
-                  className={`${styles.accessDot} ${
-                    activo
-                      ? styles.accessDotActive
-                      : styles.accessDotInactive
-                  }`}
-                />
               </div>
 
               <div
@@ -750,10 +736,6 @@ export default function EditarPacienteModal({
                   >
                     Fecha de ingreso
                   </span>
-
-                  <strong>
-                    Inicio del acceso
-                  </strong>
                 </div>
 
                 <span
@@ -788,18 +770,6 @@ export default function EditarPacienteModal({
                   }
                 />
               </div>
-
-              <p
-                className={
-                  styles.settingHelp
-                }
-              >
-                El acceso comienza a
-                las 09:00 y permanece
-                habilitado durante 24
-                horas.
-              </p>
-
               {fechaFinCalculada && (
                 <p
                   className={

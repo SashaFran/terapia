@@ -27,7 +27,7 @@ interface Paciente {
   nombre: string;
   archivodni?: string;
 }
-const pageSize = 10;
+const pageSize = 8;
 export default function Sesiones() {
   const [showModal, setShowModal] = useState(false);
 

@@ -38,9 +38,9 @@
 .sectionHeader h3 {
   margin: 0;
 
-  color: #373b40;
+  color: var(--beige);
 
-  font-size: 0.8rem;
+  font-size: var(--font-size-h3);
   font-weight: 700;
 }
 
@@ -95,55 +95,34 @@
 
 /* =========================================================
    ACCESO
-========================================================= */
+   ========================================================= */
 
 .accessGrid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+  width: 100%;
 
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .settingCard {
   position: relative;
 
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 44px 1fr;
 
   min-width: 0;
-  min-height: 142px;
 
-  gap: 0.85rem;
-
-  padding: 1rem;
-
-  background: #f9fafb;
-
-  border: 1px solid #e7e9ec;
-  border-radius: 10px;
-
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.settingCard:hover {
-  background: #ffffff;
-
-  border-color: #dedfe2;
-
-  box-shadow:
-    0 5px 16px
-    rgba(35, 39, 44, 0.045);
+  gap: 1rem;
 }
 
 .settingTop {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+
+  min-height: 24px;
 
   gap: 1rem;
 }
@@ -156,60 +135,32 @@
 }
 
 .settingLabel {
-  color: #999ea4;
+  color: var(--beige);
 
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-mid);
   font-weight: 700;
 
   letter-spacing: 0.045em;
-  text-transform: uppercase;
 }
 
 .settingTop strong {
-  color: #3d4248;
+  color: var(--beige);
 
-  font-size: 0.73rem;
+  font-size: var(--font-size-small);
   font-weight: 700;
-}
-
-
-/* =========================================================
-   PUNTO DE ESTADO
-========================================================= */
-
-.accessDot {
-  flex: 0 0 auto;
-
-  width: 8px;
-  height: 8px;
-
-  margin-top: 0.2rem;
-
-  border-radius: 50%;
-
-  box-shadow:
-    0 0 0 4px
-    rgba(0, 0, 0, 0.035);
-}
-
-.accessDotActive {
-  background: #2c9a69;
-}
-
-.accessDotInactive {
-  background: #d44955;
 }
 
 
 /* =========================================================
    SELECTOR ACTIVO / INACTIVO
-========================================================= */
+   ========================================================= */
 
 .statusSelector {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+  width: 100%;
+  height: 44px;
 
   gap: 0.45rem;
 }
@@ -218,17 +169,17 @@
   display: flex;
   align-items: center;
 
-  min-width: 0;
-  height: 38px;
+  width: 100%;
+  height: 44px;
 
   gap: 0.42rem;
 
-  padding: 0 0.65rem;
+  padding: 0 0.9rem;
 
-  color: #686d73;
-  background: #ffffff;
+  color: var(--font-color);
+  background: #fffdfb;
 
-  border: 1px solid #e1e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 7px;
 
   font-family: inherit;
@@ -245,31 +196,32 @@
 }
 
 .statusOption:hover:not(:disabled) {
-  color: #41464c;
+  color: #f4f2eb;
+  background: #1b1a17;
 
-  border-color: #cfd3d7;
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .statusOptionSelected {
-  color: #267858;
-  background: #f1faf6;
+  color: #72d29d;
+  background: rgba(40, 198, 111, 0.09);
 
-  border-color: #bfe4d3;
+  border-color: rgba(40, 198, 111, 0.22);
 
   box-shadow:
     inset 0 0 0 1px
-    rgba(44, 154, 105, 0.04);
+    rgba(40, 198, 111, 0.03);
 }
 
 .statusOptionSelectedDanger {
-  color: #a94750;
-  background: #fff5f5;
+  color: #ff766d;
+  background: rgba(255, 68, 56, 0.08);
 
-  border-color: #edc9cc;
+  border-color: rgba(255, 68, 56, 0.2);
 
   box-shadow:
     inset 0 0 0 1px
-    rgba(212, 73, 85, 0.035);
+    rgba(255, 68, 56, 0.03);
 }
 
 .statusOption:disabled {
@@ -299,17 +251,19 @@
 .optionCheck {
   margin-left: auto;
 
-  font-size: 0.65rem;
+  font-size: var(--font-size-small);
   font-weight: 800;
 }
 
 
 /* =========================================================
    FECHA
-========================================================= */
+   ========================================================= */
 
 .calendarMark {
   display: grid;
+  place-items: center;
+
   flex: 0 0 auto;
 
   min-width: 30px;
@@ -324,52 +278,42 @@
 
   font-size: var(--font-size-small);
   font-weight: 800;
-
-  place-items: center;
 }
 
 .dateField {
   position: relative;
 
   width: 100%;
+  height: 44px;
 }
 
 .dateField input {
+  display: block;
+
   width: 100%;
-  height: 38px;
+  height: 44px;
 
-  padding: 0 0.75rem;
+  padding: 0 0.9rem;
 
-  color: #44494f;
-  background: #ffffff;
+  color: var(--font-color);
+  background: #fffdfb;
 
-  border: 1px solid #e1e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 7px;
 
   outline: none;
 
-  box-sizing: border-box;
-
   font-family: inherit;
   font-size: var(--font-size-small);
 
-  color-scheme: light;
-
   transition:
     border-color 0.16s ease,
+    background 0.16s ease,
     box-shadow 0.16s ease;
 }
 
 .dateField input:hover {
-  border-color: #cfd3d7;
-}
-
-.dateField input:focus {
-  border-color: #ff9b55;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(255, 126, 31, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .dateField input:disabled {
@@ -378,15 +322,21 @@
   cursor: not-allowed;
 }
 
+
+/* =========================================================
+   TEXTO INFERIOR
+   ========================================================= */
+
 .settingHelp {
-  margin: auto 0 0;
+  align-self: end;
 
-  color: #9ca1a6;
+  margin: 0;
 
-  font-size: 0.59rem;
+  color: #85827a;
+
+  font-size: var(--font-size-small);
   line-height: 1.4;
 }
-
 
 /* =========================================================
    CONTADOR TESTS
@@ -630,6 +580,10 @@
 @media (max-width: 720px) {
   .accessGrid {
     grid-template-columns: 1fr;
+  }
+
+  .settingCard {
+    grid-template-rows: auto 44px auto;
   }
 
   .testsGrid {

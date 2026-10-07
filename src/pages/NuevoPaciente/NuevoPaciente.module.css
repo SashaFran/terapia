@@ -30,19 +30,21 @@
 }
 
 .sectionHeader {
-  display: flex;
+ display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
 
-  gap: 1.5rem;
+  gap: 1rem;
 }
+
 
 .sectionHeader h3 {
   margin: 0;
 
-  color: #373b40;
+  color: var(--beige);
 
-  font-size: 0.8rem;
+  font-size: var(--font-size-h3);
   font-weight: 700;
 }
 
@@ -101,7 +103,7 @@
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
 
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .fieldCard {
@@ -110,15 +112,9 @@
 
   min-width: 0;
 
-  gap: 0.48rem;
+  gap: 0.5rem;
 
-  padding: 0.95rem 1rem;
-
-  background: #f9fafb;
-
-  border: 1px solid #e7e9ec;
-  border-radius: 10px;
-
+  padding: 0.5rem;
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -126,19 +122,13 @@
 }
 
 .fieldCard:hover {
-  background: #ffffff;
-
   border-color: #dedfe2;
-
-  box-shadow:
-    0 5px 16px
-    rgba(35, 39, 44, 0.04);
 }
 
 .fieldCard label {
   color: #565b61;
 
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-h3);
   font-weight: 700;
 }
 
@@ -212,7 +202,7 @@
 
 .fieldHelp {
 min-height: 14px;
-  color: var(--gris-dark);
+  color: var(--beige);
   font-size: var(--font-size-small);
   line-height: 1.4;
   font-weight: var(--font-light);
@@ -256,7 +246,6 @@ min-height: 14px;
 .testsGrid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; 
   flex-direction: row;
   gap: 0.65rem;
   justify-items: center;
@@ -264,7 +253,7 @@ min-height: 14px;
 
 .testCard {
   position: relative;
-  flex: 1 1 0;
+   flex: 1 1 0;
   display: flex;
   flex-direction: column;
 

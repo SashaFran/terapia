@@ -807,11 +807,7 @@ export default function PacientePerfil() {
             styles.metricCard
           }
         >
-          <span
-            className={
-              styles.metricDot
-            }
-          />
+     
 
           <p
             className={
@@ -867,11 +863,7 @@ export default function PacientePerfil() {
             styles.metricCard
           }
         >
-          <span
-            className={
-              styles.metricDot
-            }
-          />
+     
 
           <p
             className={
@@ -911,11 +903,7 @@ export default function PacientePerfil() {
             styles.metricCard
           }
         >
-          <span
-            className={
-              styles.metricDot
-            }
-          />
+     
 
           <p
             className={
@@ -1263,7 +1251,7 @@ export default function PacientePerfil() {
                           >
                             {descargandoEstePdf
                               ? "Generando PDF..."
-                              : "Descargar PDF ↓"}
+                              : <>Descargar PDF <span aria-hidden="true">↓</span></>}
                           </button>
                         </td>
 

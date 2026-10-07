@@ -144,7 +144,7 @@
 
 .adminLayout :global(.boton-primary) {
   color: #201f1b;
-  background: #ffb000;
+  background: linear-gradient(100deg, var(--naranja), var(--naranja2));
 
   border-color: #ffb000;
   border-radius: 11px;

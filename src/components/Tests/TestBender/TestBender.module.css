@@ -1,25 +1,74 @@
 /* Each test consumes the global :root assessment tokens through shared rules. */
-.page { composes: page from "../TestShared.module.css"; }
-.header { composes: header from "../TestShared.module.css"; }
-.workspace { composes: workspace from "../TestShared.module.css"; }
-.container { composes: content from "../TestShared.module.css"; }
-.testCard { composes: card from "../TestShared.module.css"; }
-.containerImg { composes: card from "../TestShared.module.css"; }
-.testCard, .containerImg { display: flex; flex-direction: column; gap: 1rem; }
-.imagen, .img { display: block; max-width: 100%; height: auto; max-height: 480px; object-fit: contain; align-self: center; }
-.img { cursor: grab; }
-.textarea { composes: field from "../TestShared.module.css"; }
-.input { width: 100%; min-height: var(--control-height); height: auto; padding: .75rem; border: 1px solid var(--control-border); border-radius: var(--radius-control); background: var(--surface); }
-.boton { align-self: flex-end; }
+.page {
+  composes: page from "../TestShared.module.css";
+}
+.header {
+  composes: header from "../TestShared.module.css";
+}
+.workspace {
+  composes: workspace from "../TestShared.module.css";
+}
+.container {
+  composes: content from "../TestShared.module.css";
+}
+.testCard {
+  composes: card from "../TestShared.module.css";
+}
+.containerImg {
+  composes: card from "../TestShared.module.css";
+}
+.testCard,
+.containerImg {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.imagen,
+.img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: contain;
+  align-self: center;
+}
+.img {
+  cursor: grab;
+}
+.textarea {
+  composes: field from "../TestShared.module.css";
+}
+.input {
+  width: 100%;
+  min-height: var(--control-height);
+  height: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+.boton {
+  align-self: flex-end;
+}
 
 .navigation {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 /* Shared reading defaults are composed above; local states use root tokens. */
-.input:disabled { color: var(--text-muted); background: var(--surface-muted); }
-.testCard:focus-within, .containerImg:focus-within { border-color: var(--control-border); }
-.input:focus-visible, .textarea:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
+.input:disabled {
+  color: var(--text-muted);
+  background: var(--surface-muted);
+}
+.testCard:focus-within,
+.containerImg:focus-within {
+  border-color: var(--control-border);
+}
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}

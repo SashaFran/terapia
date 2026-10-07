@@ -15,7 +15,7 @@ cursor: pointer;
 
 
 .boton-primary {
-  background: linear-gradient(90deg,rgba(255, 176, 0, 1) 0%, rgba(255, 60, 42, 1) 50%);
+ background: linear-gradient(100deg, var(--naranja), var(--naranja2));
     color: white;
     font-weight: var(--font-bold);
 

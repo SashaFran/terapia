@@ -629,7 +629,6 @@ textarea {
   line-height: var(--line-height-body);
 }
 :is(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus-color);
   outline-offset: 3px;
 }
 input::placeholder,

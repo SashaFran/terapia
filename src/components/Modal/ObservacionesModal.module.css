@@ -30,7 +30,7 @@
 .labelRow span {
   color: #a0a4aa;
 
-  font-size: 0.61rem;
+  font-size: var(--font-size-small);
   font-weight: 500;
 }
 
@@ -41,7 +41,7 @@
   padding: 0.85rem 0.95rem;
 
   color: #363a3f;
-  background: #fafafa;
+  background: var(--gris-med);
 
   border: 1px solid #dfe2e6;
   border-radius: 9px;

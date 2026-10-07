@@ -449,6 +449,17 @@
   text-align: center !important;
 }
 
+.actionCell{
+  /* 🚀 Esto activa Flexbox dentro de la celda */
+  display: flex; 
+  
+  /* 🚀 Centra el contenido horizontalmente (izquierda a derecha) */
+  justify-content: center; 
+  
+  /* 🚀 Centra el contenido verticalmente (arriba a abajo) */
+  align-items: center; 
+
+}
 
 /* =========================================================
    ESTADOS DE TESTS
@@ -558,7 +569,7 @@
   text-decoration: none;
 
   cursor: pointer;
-
+gap: 0.5rem;
   transition: color 0.16s ease;
 }
 
