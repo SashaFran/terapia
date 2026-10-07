@@ -21,139 +21,173 @@ export default function Selector() {
   return (
     <main className={styles.page}>
       <div className={styles.ambientBackground} aria-hidden="true">
-        <span className={`${styles.orb} ${styles.orbYellow}`} />
-        <span className={`${styles.orb} ${styles.orbOrange}`} />
-        <span className={`${styles.orb} ${styles.orbRed}`} />
+        <span className={styles.ambientGlow} />
       </div>
+
       <section className={styles.shell}>
         {/* =====================================================
-            BRAND / PRESENTATION
+            PRESENTACIÓN
         ====================================================== */}
 
         <section className={styles.presentation}>
+          <div className={styles.presentationTexture} aria-hidden="true" />
+
           <header className={styles.brand}>
-            <img src={Logo} alt="Join Solution" className={styles.logo} />
+            <img
+              src={Logo}
+              alt=""
+              aria-hidden="true"
+              className={styles.logo}
+            />
 
             <div className={styles.brandText}>
-              <strong>JOIN SOLUTION</strong>
-              <span>Plataforma de evaluaciones</span>
+              <strong>Join Solution</strong>
             </div>
           </header>
 
           <div className={styles.introduction}>
+
             <h1>
-              Evaluaciones
+              Personas
               <br />
-              psicológicas.
+              correctas.
+              <br />
+
+              <span>
+                Equipos que
+                <br />
+                crecen.
+              </span>
             </h1>
 
             <p className={styles.description}>
-              Un entorno digital para gestionar y realizar evaluaciones
-              psicológicas de forma organizada, simple y segura.
+              Evaluaciones psicológicas simples, humanas y respaldadas por
+              datos.
             </p>
           </div>
 
-          <div className={styles.features}>
-            <div className={styles.feature}>
-              <div>
-                <strong>Entorno protegido</strong>
-                <p>Acceso diferenciado según el perfil.</p>
-              </div>
+          <div className={styles.presentationFooter}>
+            <div className={styles.stat}>
+              <strong>+2.400</strong>
+              <span>evaluaciones completadas</span>
             </div>
 
-            <div className={styles.feature}>
-              <div>
-                <strong>Seguimiento centralizado</strong>
-                <p>Evaluaciones, sesiones y resultados.</p>
-              </div>
+            <div className={styles.stat}>
+              <strong>98%</strong>
+              <span>de procesos acompañados</span>
             </div>
+          </div>
+
+          <div className={styles.decorations} aria-hidden="true">
+            <span className={styles.circleLarge} />
+            <span className={styles.circleSmall} />
           </div>
         </section>
 
         {/* =====================================================
-            ACCESS
+            ACCESO
         ====================================================== */}
 
         <section className={styles.access}>
-          <div className={styles.accessHeader}>
-            <p className={styles.accessEyebrow}>ACCESO</p>
+          <div className={styles.accessInner}>
+            <header className={styles.accessHeader}>
+              <p className={styles.accessEyebrow}>Acceso a la plataforma</p>
 
-            <h2>Bienvenido</h2>
+              <h2>Hola, ¿cómo querés ingresar?</h2>
 
-            <p>Seleccioná cómo querés ingresar a la plataforma.</p>
-          </div>
+              <p>Elegí el espacio que corresponde a tu experiencia.</p>
+            </header>
 
-          <div className={styles.accessOptions}>
-            {/* PACIENTE */}
+            <div className={styles.accessOptions}>
+              {/* PACIENTE */}
 
-            <button
-              type="button"
-              className={`${styles.accessCard} ${styles.patientCard}`}
-              onClick={() => navigate("/login")}
-            >
-              <span className={styles.cardAccent} />
-
-              <span className={styles.cardContent}>
-                <strong className={styles.cardTitle}>Paciente</strong>
-
-                <span className={styles.cardDescription}>
-                  Accedé a tus evaluaciones asignadas y consultá tu actividad
-                  dentro de la plataforma.
+              <button
+                type="button"
+                className={styles.accessCard}
+                onClick={() => navigate("/login")}
+              >
+                <span
+                  className={`${styles.cardIcon} ${styles.patientIcon}`}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="9" cy="7" r="3" />
+                    <path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19" />
+                    <path d="M16 8.5a2.5 2.5 0 1 1 0 5" />
+                    <path d="M17.5 14.5A4 4 0 0 1 21 18.5V19" />
+                  </svg>
                 </span>
-              </span>
 
-              <span className={styles.cardMeta}>
-                <span>Evaluaciones asignadas</span>
+                <span className={styles.cardContent}>
+                  <strong>Soy paciente</strong>
 
-                <span>Seguimiento de progreso</span>
-              </span>
-
-              <span className={styles.cardAction}>
-                <span>Ingresar como paciente</span>
-
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12h13" />
-                  <path d="m14 7 5 5-5 5" />
-                </svg>
-              </span>
-            </button>
-
-            {/* ADMINISTRACIÓN */}
-
-            <button
-              type="button"
-              className={`${styles.accessCard} ${styles.adminCard}`}
-              onClick={() => navigate("/admin/login")}
-            >
-              <span className={styles.cardAccent} />
-
-              <span className={styles.cardContent}>
-                <strong className={styles.cardTitle}>Administración</strong>
-
-                <span className={styles.cardDescription}>
-                  Gestioná pacientes, sesiones, evaluaciones y resultados desde
-                  el panel profesional.
+                  <span>Quiero realizar mis evaluaciones asignadas.</span>
                 </span>
+
+                <span
+                  className={`${styles.cardArrow} ${styles.patientArrow}`}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 12h13" />
+                    <path d="m14 7 5 5-5 5" />
+                  </svg>
+                </span>
+              </button>
+
+              {/* EQUIPO */}
+
+              <button
+                type="button"
+                className={styles.accessCard}
+                onClick={() => navigate("/admin/login")}
+              >
+                <span
+                  className={`${styles.cardIcon} ${styles.teamIcon}`}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="6" height="6" rx="1" />
+                    <rect x="14" y="4" width="6" height="6" rx="1" />
+                    <rect x="4" y="14" width="6" height="6" rx="1" />
+                    <rect x="14" y="14" width="6" height="6" rx="1" />
+                  </svg>
+                </span>
+
+                <span className={styles.cardContent}>
+                  <strong>Soy parte del equipo</strong>
+
+                  <span>Quiero gestionar pacientes y resultados.</span>
+                </span>
+
+                <span
+                  className={`${styles.cardArrow} ${styles.teamArrow}`}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 12h13" />
+                    <path d="m14 7 5 5-5 5" />
+                  </svg>
+                </span>
+              </button>
+            </div>
+
+            <div className={styles.help}>
+              <span className={styles.helpIcon} aria-hidden="true">
+                ?
               </span>
 
-              <span className={styles.cardMeta}>
-                <span>Gestión de pacientes</span>
+              <span>¿No sabés cuál elegir?</span>
 
-                <span>Sesiones y resultados</span>
-              </span>
-
-              <span className={styles.cardAction}>
-                <span>Ingresar al panel</span>
-
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12h13" />
-                  <path d="m14 7 5 5-5 5" />
-                </svg>
-              </span>
-            </button>
+              <a href="mailto:acceso@joinsolution.com.ar">Contactanos</a>
+            </div>
           </div>
         </section>
       </section>
+
+      <footer className={styles.pageFooter}>
+        © {new Date().getFullYear()} JoinSolution · Privacidad · Soporte
+      </footer>
     </main>
   );
 }

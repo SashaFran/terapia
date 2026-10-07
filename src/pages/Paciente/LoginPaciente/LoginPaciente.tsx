@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -26,6 +31,9 @@ export default function LoginPaciente() {
   const [password, setPassword] =
     useState("");
 
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const [error, setError] =
     useState("");
 
@@ -33,6 +41,7 @@ export default function LoginPaciente() {
     useState(false);
 
   const navigate = useNavigate();
+
 
   /* =======================================================
      SESIÓN EXISTENTE
@@ -46,12 +55,13 @@ export default function LoginPaciente() {
     }
   }, [navigate]);
 
+
   /* =======================================================
      LOGIN
   ======================================================= */
 
   const handleLogin = async (
-    e?: React.FormEvent,
+    e?: FormEvent,
   ) => {
     e?.preventDefault();
 
@@ -96,29 +106,18 @@ export default function LoginPaciente() {
     }
   };
 
+
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
     <main className={styles.page}>
-      {/* BACKGROUND */}
-
       <div
         className={styles.ambientBackground}
         aria-hidden="true"
       >
-        <span
-          className={`${styles.orb} ${styles.orbYellow}`}
-        />
-
-        <span
-          className={`${styles.orb} ${styles.orbOrange}`}
-        />
-
-        <span
-          className={`${styles.orb} ${styles.orbRed}`}
-        />
+        <span className={styles.ambientGlow} />
       </div>
 
       <section className={styles.shell}>
@@ -127,67 +126,64 @@ export default function LoginPaciente() {
         ================================================= */}
 
         <aside className={styles.presentation}>
+          <div
+            className={styles.presentationTexture}
+            aria-hidden="true"
+          />
+
           <header className={styles.brand}>
             <img
               src={Logo}
-              alt="Join Solution"
+              alt=""
+              aria-hidden="true"
               className={styles.logo}
             />
 
             <div className={styles.brandText}>
-              <strong>
-                JOIN SOLUTION
-              </strong>
+              <strong>Join Solution</strong>
 
-              <span>
-                Plataforma de evaluaciones
-              </span>
             </div>
           </header>
 
           <div className={styles.introduction}>
-            <h1>
-              Tus
-              <br />
-              evaluaciones.
-            </h1>
 
-            <p className={styles.description}>
-              Un espacio preparado para que
-              realices tus evaluaciones de forma
-              simple, guiada y organizada.
-            </p>
+            <h1>
+              Tu potencial,
+              <br />
+
+              <span>
+                en movimiento.
+              </span>
+            </h1>
           </div>
 
-          <div className={styles.features}>
-            <div className={styles.feature}>
-              <div>
-                <strong>
-                  Evaluaciones asignadas
-                </strong>
+          <div className={styles.presentationFooter}>
+            <div className={styles.stat}>
+              <strong>+2.400</strong>
 
-                <p>
-                  Accedé únicamente a las
-                  evaluaciones preparadas para vos.
-                </p>
-              </div>
+              <span>
+                evaluaciones completadas
+              </span>
             </div>
 
-            <div className={styles.feature}>
-              <div>
-                <strong>
-                  Proceso acompañado
-                </strong>
+            <div className={styles.stat}>
+              <strong>98%</strong>
 
-                <p>
-                  Encontrarás las indicaciones
-                  necesarias antes de comenzar
-                  cada evaluación.
-                </p>
-              </div>
+              <span>
+                de procesos acompañados
+              </span>
             </div>
+          </div>
+
+          <div
+            className={styles.decorations}
+            aria-hidden="true"
+          >
+            <span className={styles.circleLarge} />
+            <span className={styles.circleSmall} />
           </div>
         </aside>
+
 
         {/* =================================================
             LOGIN
@@ -195,19 +191,23 @@ export default function LoginPaciente() {
 
         <section className={styles.loginPanel}>
           <div className={styles.loginContent}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={() => navigate("/")}
+              disabled={loading}
+            >
+              <span aria-hidden="true">←</span>
+
+              Elegir otro acceso
+            </button>
+
             <header className={styles.loginHeader}>
-              <p className={styles.loginEyebrow}>
-                ACCESO A EVALUACIONES
-              </p>
-
-              <h2>Bienvenido</h2>
-
-              <p>
-                Ingresá con los datos que
-                recibiste para acceder a tus
-                evaluaciones.
-              </p>
+              <h2>
+                Todo listo para comenzar.
+              </h2>
             </header>
+
 
             {/* FORM */}
 
@@ -222,65 +222,90 @@ export default function LoginPaciente() {
                   DNI
                 </label>
 
-                <input
-                  id="paciente-dni"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="username"
-                  placeholder="Ingresá tu DNI"
-                  value={dni}
-                  onChange={(e) => {
-                    setDni(e.target.value);
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="paciente-dni"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="username"
+                    placeholder="Ingresá tu DNI"
+                    value={dni}
+                    onChange={(e) => {
+                      setDni(e.target.value);
 
-                    if (error) {
-                      setError("");
-                    }
-                  }}
-                  disabled={loading}
-                />
+                      if (error) {
+                        setError("");
+                      }
+                    }}
+                    disabled={loading}
+                  />
 
-                <span
-                  className={styles.fieldHelp}
-                >
-                  Ingresalo sin puntos ni
-                  espacios.
+                  <span
+                    className={styles.inputSuffix}
+                    aria-hidden="true"
+                  >
+                    #
+                  </span>
+                </div>
+
+                <span className={styles.fieldHelp}>
+                  Sin puntos ni espacios.
                 </span>
               </div>
+
 
               {/* PASSWORD */}
 
               <div className={styles.field}>
-                <label
-                  htmlFor="paciente-password"
-                >
+                <label htmlFor="paciente-password">
                   Contraseña
                 </label>
 
-                <input
-                  id="paciente-password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Ingresá tu contraseña"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(
-                      e.target.value,
-                    );
-
-                    if (error) {
-                      setError("");
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="paciente-password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
                     }
-                  }}
-                  disabled={loading}
-                />
+                    autoComplete="current-password"
+                    placeholder="Contraseña de acceso"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(
+                        e.target.value,
+                      );
 
-                <span
-                  className={styles.fieldHelp}
-                >
-                  Usá la contraseña incluida
-                  en tu correo de acceso.
-                </span>
+                      if (error) {
+                        setError("");
+                      }
+                    }}
+                    disabled={loading}
+                  />
+
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() =>
+                      setShowPassword(
+                        (current) => !current,
+                      )
+                    }
+                    disabled={loading}
+                    aria-label={
+                      showPassword
+                        ? "Ocultar contraseña"
+                        : "Mostrar contraseña"
+                    }
+                  >
+                    {showPassword
+                      ? "Ocultar"
+                      : "Mostrar"}
+                  </button>
+                </div>
               </div>
+
 
               {/* ACCESS POLICY */}
 
@@ -288,15 +313,9 @@ export default function LoginPaciente() {
                 className={styles.accessPolicy}
                 aria-label="Condiciones de acceso"
               >
-                <div
-                  className={
-                    styles.policyHeader
-                  }
-                >
+                <div className={styles.policyHeader}>
                   <span
-                    className={
-                      styles.policyIcon
-                    }
+                    className={styles.policyIcon}
                     aria-hidden="true"
                   >
                     !
@@ -308,39 +327,23 @@ export default function LoginPaciente() {
                     </strong>
 
                     <span>
-                      Información importante
-                      antes de ingresar
+                      Reservá hasta 30 minutos por
+                      evaluación.
                     </span>
                   </div>
                 </div>
 
-                <div
-                  className={styles.policyBody}
-                >
+                <div className={styles.policyBody}>
                   <p>
-                    Al cerrar sesión, cerrar esta
-                    pestaña o ventana, o recargar
-                    la página, su cuenta quedará
-                    inhabilitada. No podrá volver
-                    a ingresar ni completar las
-                    evaluaciones pendientes.
-                  </p>
-
-                  <p>
-                    Antes de ingresar, prepare la
-                    imagen frontal de su DNI
-                    (JPG, JPEG o PNG) y una
-                    computadora con cámara.
-                    Reserve hasta 30 minutos por
-                    evaluación.
+                    Prepará una imagen frontal de tu
+                    DNI y realizá el proceso desde una
+                    computadora con cámara. Al cerrar
+                    esta ventana, el acceso quedará
+                    inhabilitado.
                   </p>
                 </div>
 
-                <label
-                  className={
-                    styles.consentRow
-                  }
-                >
+                <label className={styles.consentRow}>
                   <input
                     type="checkbox"
                     checked={accepted}
@@ -357,56 +360,41 @@ export default function LoginPaciente() {
                   />
 
                   <span
-                    className={
-                      styles.customCheckbox
-                    }
+                    className={styles.customCheckbox}
                     aria-hidden="true"
                   >
-                    <svg
-                      viewBox="0 0 16 16"
-                    >
+                    <svg viewBox="0 0 16 16">
                       <path d="m3.5 8.2 2.7 2.7 6.2-6.2" />
                     </svg>
                   </span>
 
-                  <span
-                    className={
-                      styles.consentText
-                    }
-                  >
-                    He leído las condiciones y
-                    estoy listo/a para completar
-                    las evaluaciones.
+                  <span className={styles.consentText}>
+                    Leí las condiciones y estoy
+                    listo/a para comenzar.
                   </span>
                 </label>
               </section>
+
 
               {/* ERROR */}
 
               {error && (
                 <div
-                  className={
-                    styles.errorMessage
-                  }
+                  className={styles.errorMessage}
                   role="alert"
                 >
                   <span
-                    className={
-                      styles.errorIndicator
-                    }
+                    className={styles.errorIndicator}
                   />
 
                   <p>{error}</p>
                 </div>
               )}
 
+
               {/* LOGIN */}
 
-              <div
-                className={
-                  styles.primaryAction
-                }
-              >
+              <div className={styles.primaryAction}>
                 <BotonPersonalizado
                   variant="primary"
                   type="submit"
@@ -419,20 +407,13 @@ export default function LoginPaciente() {
                 >
                   {loading
                     ? "Ingresando..."
-                    : "Ingresar a mis evaluaciones"}
+                    : "Ingresar a mis evaluaciones →"}
                 </BotonPersonalizado>
               </div>
             </form>
 
-            {/* OTHER ACCESS */}
 
-            <div className={styles.divider}>
-              <span />
-
-              <p>Otro tipo de acceso</p>
-
-              <span />
-            </div>
+            {/* TEAM ACCESS */}
 
             <button
               type="button"
@@ -443,52 +424,31 @@ export default function LoginPaciente() {
               disabled={loading}
             >
               <span
-                className={
-                  styles.adminAccessContent
-                }
+                className={styles.adminAccessContent}
               >
                 <strong>
                   ¿Sos parte del equipo?
                 </strong>
 
                 <span>
-                  Accedé al panel de gestión de
-                  Join Solution.
+                  Ingresá al panel administrativo
                 </span>
               </span>
 
-              <span
-                className={
-                  styles.adminAccessAction
-                }
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                Panel administrativo
-
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h13" />
-                  <path d="m14 7 5 5-5 5" />
-                </svg>
-              </span>
+                <path d="M5 12h13" />
+                <path d="m14 7 5 5-5 5" />
+              </svg>
             </button>
-
-            <footer className={styles.footer}>
-              <span
-                className={
-                  styles.securityDot
-                }
-              />
-
-              <p>
-                Tus datos de acceso son
-                personales y confidenciales
-              </p>
-            </footer>
           </div>
         </section>
       </section>
+            <footer className={styles.pageFooter}>
+        © {new Date().getFullYear()} JoinSolution · Privacidad · Soporte
+      </footer>
     </main>
   );
 }

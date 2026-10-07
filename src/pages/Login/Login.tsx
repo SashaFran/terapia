@@ -1,4 +1,8 @@
-import { useState } from "react";
+import {
+  useState,
+  type FormEvent,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import BotonPersonalizado from "../../components/Boton/Boton";
@@ -11,24 +15,42 @@ import styles from "./Login.module.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [recovering, setRecovering] = useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [recovering, setRecovering] =
+    useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
+
 
   /* =======================================================
      LOGIN
   ======================================================= */
 
-  const handleLogin = async () => {
+  const handleLogin = async (
+    event?: FormEvent,
+  ) => {
+    event?.preventDefault();
+
+    if (loading || recovering) return;
+
     setError("");
     setInfo("");
 
     if (!email.trim() || !password) {
-      setError("Completá email y contraseña.");
+      setError(
+        "Completá email y contraseña.",
+      );
+
       return;
     }
 
@@ -53,23 +75,6 @@ export default function Login() {
     }
   };
 
-  /* =======================================================
-     ENTER
-  ======================================================= */
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (
-      e.key === "Enter" &&
-      email &&
-      password &&
-      !loading &&
-      !recovering
-    ) {
-      void handleLogin();
-    }
-  };
 
   /* =======================================================
      RECUPERAR CONTRASEÑA
@@ -100,10 +105,10 @@ export default function Login() {
       setInfo(
         "Si existe una cuenta administrativa asociada a ese email, recibirás un correo con las instrucciones para crear una nueva contraseña.",
       );
-    } catch (error) {
+    } catch (recoveryError) {
       console.error(
         "Error solicitando recuperación:",
-        error,
+        recoveryError,
       );
 
       setInfo(
@@ -114,131 +119,116 @@ export default function Login() {
     }
   };
 
+
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
     <main className={styles.page}>
-      {/* BACKGROUND */}
-
       <div
         className={styles.ambientBackground}
         aria-hidden="true"
       >
-        <span
-          className={`${styles.orb} ${styles.orbYellow}`}
-        />
-
-        <span
-          className={`${styles.orb} ${styles.orbOrange}`}
-        />
-
-        <span
-          className={`${styles.orb} ${styles.orbRed}`}
-        />
+        <span className={styles.ambientGlow} />
       </div>
 
       <section className={styles.shell}>
-        {/* =================================================
+        {/* ===============================================
             PRESENTATION
-        ================================================= */}
+        =============================================== */}
 
         <aside className={styles.presentation}>
+          <div
+            className={styles.presentationTexture}
+            aria-hidden="true"
+          />
+
           <header className={styles.brand}>
             <img
               src={Logo}
-              alt="Join Solution"
+              alt=""
+              aria-hidden="true"
               className={styles.logo}
             />
 
             <div className={styles.brandText}>
-              <strong>JOIN SOLUTION</strong>
-
-              <span>
-                Plataforma de evaluaciones
-              </span>
+              <strong>Join Solution</strong>
             </div>
           </header>
 
           <div className={styles.introduction}>
             <h1>
-              Gestión
-              clínica.
-            </h1>
+              Talento claro.
+              <br />
 
-            <p className={styles.description}>
-              Acceso al entorno profesional para la
-              administración de pacientes, sesiones,
-              evaluaciones y resultados.
-            </p>
+              <span>
+                Decisiones
+                <br />
+                mejores.
+              </span>
+            </h1>
           </div>
 
-          <div className={styles.features}>
-            <div className={styles.feature}>
-              
+          <div className={styles.presentationFooter}>
+            <div className={styles.stat}>
+              <strong>+2.400</strong>
 
-              <div>
-                <strong>
-                  Gestión centralizada
-                </strong>
-
-                <p>
-                  Pacientes, sesiones y evaluaciones
-                  desde un único entorno.
-                </p>
-              </div>
+              <span>
+                evaluaciones completadas
+              </span>
             </div>
 
-            <div className={styles.feature}>
-              
+            <div className={styles.stat}>
+              <strong>98%</strong>
 
-              <div>
-                <strong>
-                  Acceso restringido
-                </strong>
-
-                <p>
-                  Área destinada al personal
-                  autorizado.
-                </p>
-              </div>
+              <span>
+                de procesos acompañados
+              </span>
             </div>
+          </div>
+
+          <div
+            className={styles.decorations}
+            aria-hidden="true"
+          >
+            <span className={styles.circleLarge} />
+            <span className={styles.circleSmall} />
           </div>
         </aside>
 
-        {/* =================================================
+
+        {/* ===============================================
             LOGIN
-        ================================================= */}
+        =============================================== */}
 
         <section className={styles.loginPanel}>
           <div className={styles.loginContent}>
-{/*             <button
+            <button
               type="button"
               className={styles.backButton}
               onClick={() => navigate("/")}
               disabled={loading || recovering}
             >
               <span aria-hidden="true">←</span>
-              Volver
-            </button> */}
+
+              Elegir otro acceso
+            </button>
 
             <header className={styles.loginHeader}>
-              <p className={styles.loginEyebrow}>
-                ACCESO ADMINISTRATIVO
-              </p>
 
-              <h2>Bienvenido</h2>
-
-              <p>
-                Ingresá tus credenciales para
-                continuar al panel de gestión.
-              </p>
+              <h2>
+                Bienvenido de nuevo.
+              </h2>
             </header>
+
 
             {/* FORM */}
 
-            <div className={styles.form}>
+            <form
+              className={styles.form}
+              onSubmit={handleLogin}
+            >
               {/* EMAIL */}
 
               <div className={styles.field}>
@@ -246,32 +236,39 @@ export default function Login() {
                   Email
                 </label>
 
-                <input
-                  id="admin-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="nombre@joinsolution.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="admin-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="nombre@empresa.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
 
-                    if (error) setError("");
-                    if (info) setInfo("");
-                  }}
-                  onKeyDown={handleKeyDown}
-                  disabled={
-                    loading || recovering
-                  }
-                />
+                      if (error) setError("");
+                      if (info) setInfo("");
+                    }}
+                    disabled={
+                      loading || recovering
+                    }
+                  />
+
+                  <span
+                    className={styles.inputSuffix}
+                    aria-hidden="true"
+                  >
+                    @
+                  </span>
+                </div>
               </div>
+
 
               {/* PASSWORD */}
 
               <div className={styles.field}>
                 <div
-                  className={
-                    styles.passwordHeader
-                  }
+                  className={styles.passwordHeader}
                 >
                   <label htmlFor="admin-password">
                     Contraseña
@@ -279,12 +276,8 @@ export default function Login() {
 
                   <button
                     type="button"
-                    className={
-                      styles.forgotButton
-                    }
-                    onClick={
-                      handleForgotPassword
-                    }
+                    className={styles.forgotButton}
+                    onClick={handleForgotPassword}
                     disabled={
                       loading || recovering
                     }
@@ -295,24 +288,52 @@ export default function Login() {
                   </button>
                 </div>
 
-                <input
-                  id="admin-password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Ingresá tu contraseña"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
+                <div className={styles.inputWrapper}>
+                  <input
+                    id="admin-password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    autoComplete="current-password"
+                    placeholder="Ingresá tu contraseña"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
 
-                    if (error) setError("");
-                    if (info) setInfo("");
-                  }}
-                  onKeyDown={handleKeyDown}
-                  disabled={
-                    loading || recovering
-                  }
-                />
+                      if (error) setError("");
+                      if (info) setInfo("");
+                    }}
+                    disabled={
+                      loading || recovering
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() =>
+                      setShowPassword(
+                        (current) => !current,
+                      )
+                    }
+                    disabled={
+                      loading || recovering
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Ocultar contraseña"
+                        : "Mostrar contraseña"
+                    }
+                  >
+                    {showPassword
+                      ? "Ocultar"
+                      : "Mostrar"}
+                  </button>
+                </div>
               </div>
+
 
               {/* MESSAGES */}
 
@@ -346,16 +367,13 @@ export default function Login() {
                 </div>
               )}
 
+
               {/* LOGIN */}
 
-              <div
-                className={
-                  styles.primaryAction
-                }
-              >
+              <div className={styles.primaryAction}>
                 <BotonPersonalizado
                   variant="primary"
-                  onClick={handleLogin}
+                  type="submit"
                   disabled={
                     loading ||
                     recovering ||
@@ -365,16 +383,19 @@ export default function Login() {
                 >
                   {loading
                     ? "Ingresando..."
-                    : "Ingresar al panel"}
+                    : "Ingresar al panel →"}
                 </BotonPersonalizado>
               </div>
-            </div>
+            </form>
+
 
             {/* OTHER ACCESS */}
 
             <div className={styles.divider}>
               <span />
-              <p>Otro tipo de acceso</p>
+
+              <p>o ingresá como</p>
+
               <span />
             </div>
 
@@ -389,38 +410,26 @@ export default function Login() {
                   styles.patientAccessContent
                 }
               >
-                <strong>
-                  ¿Sos paciente?
-                </strong>
+                <strong>Paciente</strong>
 
                 <span>
                   Accedé a tus evaluaciones
-                  asignadas.
                 </span>
               </span>
 
-              <span
-                className={
-                  styles.patientAccessAction
-                }
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                Portal de pacientes
-
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h13" />
-                  <path d="m14 7 5 5-5 5" />
-                </svg>
-              </span>
+                <path d="M5 12h13" />
+                <path d="m14 7 5 5-5 5" />
+              </svg>
             </button>
+
 
             <footer className={styles.footer}>
               <span
-                className={
-                  styles.securityDot
-                }
+                className={styles.securityDot}
               />
 
               <p>
@@ -431,6 +440,9 @@ export default function Login() {
           </div>
         </section>
       </section>
+            <footer className={styles.pageFooter}>
+        © {new Date().getFullYear()} JoinSolution · Privacidad · Soporte
+      </footer>
     </main>
   );
 }

@@ -444,7 +444,7 @@ export default function AdminTopbar() {
         />
 
         <strong>
-          JoinSolution
+          Join Solution
         </strong>
 
         <span

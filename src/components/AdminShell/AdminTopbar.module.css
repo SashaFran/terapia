@@ -76,16 +76,12 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
 }
 
 .wordmark strong {
-  font-family:
-    var(--font-family-header),
-    sans-serif;
-
   font-size: 14px;
-  font-weight: 800;
+  font-weight: var(--font-light);
 
-  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
-
 .mark {
   display: flex;
   align-items: center;
