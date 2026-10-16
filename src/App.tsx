@@ -28,23 +28,20 @@
 // import styles from "./App.module.css";
 
 // export default function App() {
-  
+
 //   return (
 //     <BrowserRouter basename="/">
 //       <AuthProvider>
 //         <PatientSessionNotice />
 //         <Routes>
 
-          
 //           <Route path="/" element={<Selector />} />
 
 //           <Route path="/login" element={<LoginPaciente />} />
 //           <Route path="/admin/login" element={<LoginAdmin />} />
 
-          
 //           <Route path="/app/*" element={<PrivatePacienteRoute />}>
-  
-              
+
 //               <Route
 //                 element={
 //                   <div className={styles.layout}>
@@ -52,7 +49,7 @@
 //                     {/* <BreadcrumbsNav /> */}
 //                     <div className={styles.mainArea}>
 //                       <main className={`content scrollbar ${styles.mainContent}`}>
-                        
+
 //                         <Outlet />
 //                       </main>
 //                     </div>
@@ -60,19 +57,17 @@
 //                   </div>
 //                 }
 //               >
-                
+
 //                 <Route path="dashboard" element={<PacienteDashboard />} />
 //                 <Route path="dni" element={<SubirDNI />} />
 //                 <Route path="subir-dni" element={<Navigate to="/app/dni" replace />} />
 //                 <Route path="tests" element={<PacienteTests />} />
 //                 <Route path="test/:testId" element={<TestRunner />} />
 
-                
 //                 <Route path="*" element={<Navigate to="dashboard" replace />} />
 //               </Route>
 //             </Route>
 
-          
 //           <Route
 //             path="/admin/*"
 //             element={
@@ -164,68 +159,32 @@ export default function App() {
               PACIENTE
               ===================================================== */}
 
-          <Route
-            path="/app/*"
-            element={<PrivatePacienteRoute />}
-          >
-            <Route
-              element={
-                <div className={styles.layout}>
-                  <Sidebar />
+<Route path="/app/*" element={<PrivatePacienteRoute />}>
+  <Route
+    element={
+      <div className={styles.layout}>
+        <Sidebar />
 
-                  <div className={styles.mainArea}>
-                    <main
-                      className={`content scrollbar ${styles.mainContent}`}
-                    >
-                      <Outlet />
-                    </main>
-                  </div>
-
-                  <Footer />
-                </div>
-              }
-            >
-              <Route
-                path="dashboard"
-                element={<PacienteDashboard />}
-              />
-
-              <Route
-                path="dni"
-                element={<SubirDNI />}
-              />
-
-              <Route
-                path="subir-dni"
-                element={
-                  <Navigate
-                    to="/app/dni"
-                    replace
-                  />
-                }
-              />
-
-              <Route
-                path="tests"
-                element={<PacienteTests />}
-              />
-
-              <Route
-                path="test/:testId"
-                element={<TestRunner />}
-              />
-
-              <Route
-                path="*"
-                element={
-                  <Navigate
-                    to="dashboard"
-                    replace
-                  />
-                }
-              />
-            </Route>
-          </Route>
+        <div className={styles.mainArea}>
+          <main className={styles.mainContent}>
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+      </div>
+    }
+  >
+    <Route path="dashboard" element={<PacienteDashboard />} />
+    <Route path="dni" element={<SubirDNI />} />
+    <Route
+      path="subir-dni"
+      element={<Navigate to="/app/dni" replace />}
+    />
+    <Route path="tests" element={<PacienteTests />} />
+    <Route path="test/:testId" element={<TestRunner />} />
+    <Route path="*" element={<Navigate to="dashboard" replace />} />
+  </Route>
+</Route>
 
           {/* =====================================================
               ADMINISTRACIÓN
@@ -235,9 +194,7 @@ export default function App() {
             path="/admin/*"
             element={
               <PrivateAdminRoute>
-                <div
-                  className={`${styles.layout} ${styles.adminLayout}`}
-                >
+                <div className={`${styles.layout} ${styles.adminLayout}`}>
                   <Sidebar />
 
                   <div className={styles.adminWorkspace}>
@@ -266,19 +223,11 @@ export default function App() {
                             element={<NuevoPaciente />}
                           />
 
-                          <Route
-                            path="sesiones"
-                            element={<AdminSesiones />}
-                          />
+                          <Route path="sesiones" element={<AdminSesiones />} />
 
                           <Route
                             path="*"
-                            element={
-                              <Navigate
-                                to="/admin/dashboard"
-                                replace
-                              />
-                            }
+                            element={<Navigate to="/admin/dashboard" replace />}
                           />
                         </Routes>
                       </main>

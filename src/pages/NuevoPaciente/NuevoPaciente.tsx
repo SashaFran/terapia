@@ -305,7 +305,7 @@ Guardá las credenciales para entregárselas manualmente.`,
               type="text"
               name="nombre"
               id="nombre"
-              placeholder="Ej. Sasha Franchini"
+              placeholder="Ej. Jane Doe"
               value={
                 formData.nombre
               }
@@ -462,7 +462,7 @@ Guardá las credenciales para entregárselas manualmente.`,
               }
             >
               El acceso comenzará a
-              las 00:00 de la fecha
+              las 09:00 de la fecha
               seleccionada.
             </span>
           </div>

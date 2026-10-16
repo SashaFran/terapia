@@ -1,188 +1,71 @@
 import { useEffect, useMemo, useState } from "react";
-
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   query,
   updateDoc,
   where,
 } from "firebase/firestore";
-
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { db } from "../../../firebase/firebase";
 import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../Modal";
-
-import { db } from "../../../firebase/firebase";
-
 import styles from "./EditarPacienteModal.module.css";
 
-/* =========================================================
-   TESTS
-========================================================= */
-
-const TESTS_DISPONIBLES = [
-  {
-    id: "k10",
-    nombre: "K-10",
-    descripcion: "Escala Kessler",
-  },
-  {
-    id: "bfq",
-    nombre: "BFQ",
-    descripcion: "Personalidad",
-  },
-  {
-    id: "zulliger",
-    nombre: "Zulliger",
-    descripcion: "Técnica proyectiva",
-  },
-  {
-    id: "bender",
-    nombre: "Bender",
-    descripcion: "Evaluación visomotora",
-  },
-  {
-    id: "raven",
-    nombre: "Raven",
-    descripcion: "Matrices progresivas",
-  },
+const TESTS = [
+  { id: "k10", nombre: "K-10", descripcion: "Escala Kessler" },
+  { id: "bfq", nombre: "BFQ", descripcion: "Personalidad" },
+  { id: "zulliger", nombre: "Zulliger", descripcion: "Técnica proyectiva" },
+  { id: "bender", nombre: "Bender", descripcion: "Evaluación visomotora" },
+  { id: "raven", nombre: "Raven", descripcion: "Matrices progresivas" },
 ];
-
-/* =========================================================
-   PROPS
-========================================================= */
-
-interface Props {
+type Modo = "ninguno" | "abandonados" | "manual";
+type AsignacionDoc = { id: string; testId: string; estado: string };
+type Props = {
   abierto: boolean;
   onCerrar: () => void;
   onGuardar: (data: any) => void;
   paciente: any;
   asignacionesActuales?: string[];
-}
-
-/* =========================================================
-   FECHAS
-========================================================= */
-
-function convertirFecha(fecha: any): Date | null {
-  if (!fecha) return null;
-
-  if (typeof fecha.toDate === "function") {
-    return fecha.toDate();
-  }
-
-  if (typeof fecha.seconds === "number") {
-    return new Date(fecha.seconds * 1000);
-  }
-
-  const date = new Date(fecha);
-
-  return Number.isNaN(date.getTime())
-    ? null
-    : date;
-}
-
-/*
- * Convierte una fecha Date a YYYY-MM-DD usando
- * componentes LOCALES.
- *
- * Evitamos toISOString() para no introducir
- * desplazamientos por UTC.
- */
-function fechaParaInput(fecha: Date): string {
-  const year = fecha.getFullYear();
-
-  const month = String(
-    fecha.getMonth() + 1,
-  ).padStart(2, "0");
-
-  const day = String(
-    fecha.getDate(),
-  ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-/*
- * Convierte YYYY-MM-DD a una fecha local
- * exactamente a las 09:00.
- */
-function crearInicioAcceso(
-  fecha: string,
-): Date | null {
-  const partes = fecha
-    .split("-")
-    .map(Number);
-
-  if (
-    partes.length !== 3 ||
-    partes.some((parte) =>
-      Number.isNaN(parte),
-    )
-  ) {
-    return null;
-  }
-
-  const [year, month, day] = partes;
-
-  const date = new Date(
-    year,
-    month - 1,
-    day,
-    9,
-    0,
-    0,
-    0,
-  );
-
-  /*
-   * Validamos también que JS no haya normalizado
-   * silenciosamente una fecha inválida.
-   */
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return null;
-  }
-
-  return date;
-}
-
-/*
- * El vencimiento es exactamente 24 horas
- * después del inicio.
- */
-function calcularFinAcceso(
-  inicio: Date,
-): Date {
-  return new Date(
-    inicio.getTime() +
-      24 * 60 * 60 * 1000,
-  );
-}
-
-function formatearFechaHora(
-  fecha: Date | null,
-): string {
-  if (!fecha) return "—";
-
-  return fecha.toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
+};
+const ZONA = "America/Argentina/Buenos_Aires";
+const DIA = 86400000;
+const fechaDe = (v: any): Date | null => {
+  if (!v) return null;
+  const d =
+    typeof v.toDate === "function"
+      ? v.toDate()
+      : typeof v.seconds === "number"
+        ? new Date(v.seconds * 1000)
+        : new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+const fechaInput = (d: Date) =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: ZONA,
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+// Argentina mantiene UTC-03:00; construir a las 09:00 de Buenos Aires, sin depender del equipo del admin.
+function inicioFecha(fecha: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return null;
+  const d = new Date(`${fecha}T09:00:00-03:00`);
+  return Number.isNaN(d.getTime()) || fechaInput(d) !== fecha ? null : d;
 }
-
-/* =========================================================
-   COMPONENTE
-========================================================= */
+const mostrarFecha = (d: Date | null) =>
+  d
+    ? new Intl.DateTimeFormat("es-AR", {
+        timeZone: ZONA,
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(d)
+    : "—";
 
 export default function EditarPacienteModal({
   abierto,
@@ -191,764 +74,443 @@ export default function EditarPacienteModal({
   paciente,
   asignacionesActuales = [],
 }: Props) {
-  const [activo, setActivo] =
-    useState(true);
-
-  /*
-   * Ahora guardamos la FECHA DE INGRESO,
-   * no la fecha de vencimiento.
-   */
-  const [fechaIngreso, setFechaIngreso] =
-    useState("");
-
-  const [
-    testsSeleccionados,
-    setTestsSeleccionados,
-  ] = useState<string[]>([]);
-
-  const [guardando, setGuardando] =
-    useState(false);
-
-  /* =======================================================
-     CARGAR DATOS
-  ======================================================= */
+  const [activo, setActivo] = useState(true);
+  const [reactivar, setReactivar] = useState(false);
+  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
+  const [asignaciones, setAsignaciones] = useState<AsignacionDoc[]>([]);
+  const [modo, setModo] = useState<Modo>("ninguno");
+  const [manual, setManual] = useState<string[]>([]);
+  const [guardando, setGuardando] = useState(false);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState("");
+  const estadoReal =
+    paciente?.accesoEstado ??
+    (paciente?.activo === false ? "inactiva" : "activa");
+  const bloqueada = estadoReal === "abandonada" || estadoReal === "finalizada";
+  const abandonadas = useMemo(
+    () => asignaciones.filter((a) => a.estado === "abandono"),
+    [asignaciones],
+  );
+  const inicio = useMemo(() => inicioFecha(fechaIngreso), [fechaIngreso]);
+  const fin = inicio ? new Date(inicio.getTime() + DIA) : null;
 
   useEffect(() => {
-    if (!abierto || !paciente) return;
-
-    setActivo(
-      paciente.activo !== false,
-    );
-
-    setTestsSeleccionados(
-      asignacionesActuales,
-    );
-
-    /*
-     * Si ya existe fecha de inicio, mostramos
-     * ese mismo día en el input.
-     */
-    const inicioActual = convertirFecha(
-      paciente.fechaInicioAcceso,
-    );
-
-    if (inicioActual) {
-      setFechaIngreso(
-        fechaParaInput(inicioActual),
-      );
-
-      return;
-    }
-
-    /*
-     * Compatibilidad con pacientes antiguos:
-     *
-     * si por algún motivo sólo existe fechaFinAcceso,
-     * inferimos el inicio restando 24 horas.
-     */
-    const finActual = convertirFecha(
-      paciente.fechaFinAcceso,
-    );
-
-    if (finActual) {
-      const inicioInferido = new Date(
-        finActual.getTime() -
-          24 * 60 * 60 * 1000,
-      );
-
-      setFechaIngreso(
-        fechaParaInput(inicioInferido),
-      );
-
-      return;
-    }
-
-    /*
-     * Si no hay ninguna fecha registrada,
-     * proponemos hoy.
-     */
+    if (!abierto || !paciente?.id) return;
+    let vigente = true;
+    setError("");
+    setModo("ninguno");
+    setManual([]);
+    setActivo(paciente.activo !== false);
+    setReactivar(false);
+    setTestsSeleccionados(asignacionesActuales);
+    const inicial = fechaDe(paciente.fechaInicioAcceso);
+    const final = fechaDe(paciente.fechaFinAcceso);
     setFechaIngreso(
-      fechaParaInput(new Date()),
+      fechaInput(
+        inicial ?? (final ? new Date(final.getTime() - DIA) : new Date()),
+      ),
     );
-  }, [
-    abierto,
-    paciente,
-    asignacionesActuales,
-  ]);
+    setCargando(true);
+    getDocs(
+      query(
+        collection(db, "asignaciones"),
+        where("pacienteId", "==", paciente.id),
+      ),
+    )
+      .then((snap) => {
+        if (!vigente) return;
+        const docs = snap.docs.map((d) => ({
+          id: d.id,
+          testId: String(d.data().testId ?? ""),
+          estado: String(d.data().estado ?? ""),
+        }));
+        setAsignaciones(docs);
+        setTestsSeleccionados(docs.map((d) => d.testId));
+      })
+      .catch((e) => {
+        if (vigente)
+          setError(
+            `No se pudieron cargar las asignaciones: ${String(e.message ?? e)}`,
+          );
+      })
+      .finally(() => {
+        if (vigente) setCargando(false);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [abierto, paciente?.id]);
 
-  /* =======================================================
-     REACTIVAR PACIENTE
-  ======================================================= */
-
-  useEffect(() => {
-    if (!abierto || !paciente) return;
-
-    /*
-     * Si estaba inactivo y el administrador
-     * lo reactiva, proponemos hoy como nueva
-     * fecha de ingreso.
-     *
-     * El inicio será hoy a las 09:00 y el
-     * vencimiento mañana a las 09:00.
-     *
-     * El admin igualmente puede cambiar el día
-     * antes de guardar.
-     */
-    if (
-      paciente.activo === false &&
-      activo
-    ) {
-      setFechaIngreso(
-        fechaParaInput(new Date()),
-      );
+  const elegirActivo = () => {
+    setActivo(true);
+    if (bloqueada) {
+      setReactivar(true);
+      setFechaIngreso(fechaInput(new Date()));
     }
-  }, [activo, abierto, paciente]);
-
-  /* =======================================================
-     FECHAS DERIVADAS
-  ======================================================= */
-
-  const fechaInicioCalculada =
-    useMemo(() => {
-      if (!fechaIngreso) {
-        return null;
-      }
-
-      return crearInicioAcceso(
-        fechaIngreso,
-      );
-    }, [fechaIngreso]);
-
-  const fechaFinCalculada =
-    useMemo(() => {
-      if (!fechaInicioCalculada) {
-        return null;
-      }
-
-      return calcularFinAcceso(
-        fechaInicioCalculada,
-      );
-    }, [fechaInicioCalculada]);
-
-  /* =======================================================
-     TOGGLE TEST
-  ======================================================= */
-
-  const toggleTest = (
-    testId: string,
-  ) => {
+  };
+  const elegirInactivo = () => {
+    setActivo(false);
+    setReactivar(false);
+  };
+  const cambiarTest = (id: string) => {
+    const existente = asignaciones.find((a) => a.testId === id);
+    // No permitir borrar historial clínico ni una evaluación en curso.
+    if (existente && !["pendiente"].includes(existente.estado)) return;
     setTestsSeleccionados((prev) =>
-      prev.includes(testId)
-        ? prev.filter(
-            (test) =>
-              test !== testId,
-          )
-        : [...prev, testId],
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
-
-  /* =======================================================
-     GUARDAR
-  ======================================================= */
-
-  const manejarGuardar =
-    async () => {
-      if (!paciente?.id) {
-        console.error(
-          "No se encontró el ID del paciente para actualizar",
+  const guardar = async () => {
+    if (!paciente?.id || !inicio || !fin || cargando || guardando) return;
+    setError("");
+    if (reactivar && !activo) {
+      setError("Para reactivar, seleccioná Activo.");
+      return;
+    }
+    if (bloqueada && activo && !reactivar) {
+      setError(
+        "La cuenta está bloqueada: seleccioná la recuperación administrativa para habilitarla.",
+      );
+      return;
+    }
+    if (reactivar && fin.getTime() <= Date.now()) {
+      setError("El nuevo período de acceso ya estaría vencido.");
+      return;
+    }
+    const quitar = asignaciones.filter(
+      (a) => !testsSeleccionados.includes(a.testId),
+    );
+    if (quitar.some((a) => a.estado !== "pendiente")) {
+      setError(
+        "No se pueden quitar tests iniciados, abandonados o completados.",
+      );
+      return;
+    }
+    // La eliminación de asignaciones queda deshabilitada para no perder trazabilidad.
+    if (quitar.length) {
+      setError(
+        "Para preservar el historial, no se pueden quitar asignaciones existentes desde este modal.",
+      );
+      return;
+    }
+    const ids = modo === "manual" ? manual : [];
+    const recuperar = reactivar || modo !== "ninguno";
+    if (
+      recuperar &&
+      !window.confirm(
+        `¿Confirmás la recuperación administrativa?\nCuenta: ${reactivar ? "nuevo acceso" : "sin cambios"}\nTests: ${modo === "abandonados" ? `todos los abandonados (${abandonadas.length})` : modo === "manual" ? `${ids.length} seleccionados` : "ninguno"}\nLos resultados completados se conservarán.`,
+      )
+    )
+      return;
+    setGuardando(true);
+    try {
+      // Primero recuperación protegida por custom claim de administrador.
+      if (recuperar) {
+        const call = httpsCallable(
+          getFunctions(),
+          "recuperarAccesoPacienteAuth",
         );
-
-        return;
-      }
-
-      if (!fechaIngreso) {
-        alert(
-          "Seleccioná una fecha de ingreso.",
-        );
-
-        return;
-      }
-
-      const inicio =
-        crearInicioAcceso(
-          fechaIngreso,
-        );
-
-      if (!inicio) {
-        alert(
-          "La fecha de ingreso no es válida.",
-        );
-
-        return;
-      }
-
-      const fin =
-        calcularFinAcceso(inicio);
-
-      try {
-        setGuardando(true);
-
-        /* -------------------------
-           PACIENTE
-        ------------------------- */
-
-        const pacienteRef = doc(
-          db,
-          "pacientes",
-          paciente.id,
-        );
-
-        await updateDoc(
-          pacienteRef,
-          {
-            activo,
-
-            /*
-             * Siempre guardamos las dos fechas
-             * juntas para mantener una ventana
-             * exacta de 24 horas.
-             */
-            fechaInicioAcceso:
-              inicio,
-
-            fechaFinAcceso:
-              fin,
-          },
-        );
-
-        /* -------------------------
-           ASIGNACIONES ACTUALES
-        ------------------------- */
-
-        const asignacionesSnap =
-          await getDocs(
-            query(
-              collection(
-                db,
-                "asignaciones",
-              ),
-              where(
-                "pacienteId",
-                "==",
-                paciente.id,
-              ),
-            ),
-          );
-
-        const actuales =
-          asignacionesSnap.docs.map(
-            (documento) => ({
-              id: documento.id,
-
-              testId:
-                documento.data()
-                  .testId,
-            }),
-          );
-
-        /* -------------------------
-           NUEVOS
-        ------------------------- */
-
-        const nuevos =
-          testsSeleccionados.filter(
-            (test) =>
-              !actuales.some(
-                (asignacion) =>
-                  asignacion.testId ===
-                  test,
-              ),
-          );
-
-        /* -------------------------
-           ELIMINADOS
-        ------------------------- */
-
-        const eliminados =
-          actuales.filter(
-            (asignacion) =>
-              !testsSeleccionados.includes(
-                asignacion.testId,
-              ),
-          );
-
-        const crear = nuevos.map(
-          (testId) =>
-            addDoc(
-              collection(
-                db,
-                "asignaciones",
-              ),
-              {
-                pacienteId:
-                  paciente.id,
-
-                testId,
-
-                estado:
-                  "pendiente",
-
-                fechaAsignacion:
-                  new Date(),
-              },
-            ),
-        );
-
-        const borrar =
-          eliminados.map(
-            (asignacion) =>
-              deleteDoc(
-                doc(
-                  db,
-                  "asignaciones",
-                  asignacion.id,
-                ),
-              ),
-          );
-
-        await Promise.all([
-          ...crear,
-          ...borrar,
-        ]);
-
-        /*
-         * Informamos al perfil AMBAS fechas.
-         */
-        onGuardar({
-          activo,
-
-          fechaInicioAcceso:
-            inicio,
-
-          fechaFinAcceso:
-            fin,
-
-          testsSeleccionados,
+        await call({
+          pacienteId: paciente.id,
+          reactivarCuenta: reactivar,
+          modoTests: modo,
+          asignacionIds: ids,
+          ...(reactivar ? { fechaInicioAccesoMs: inicio.getTime() } : {}),
         });
-
-        onCerrar();
-      } catch (error) {
-        console.error(
-          "Error al guardar:",
-          error,
-        );
-
-        alert(
-          "No se pudieron guardar los cambios.",
-        );
-      } finally {
-        setGuardando(false);
       }
-    };
-
-  /* =======================================================
-     RENDER
-  ======================================================= */
+      // No sobrescribir las fechas ni el estado que la recuperación acaba de establecer.
+      if (!reactivar) {
+        await updateDoc(doc(db, "pacientes", paciente.id), {
+          activo: bloqueada ? false : activo,
+          fechaInicioAcceso: inicio,
+          fechaFinAcceso: fin,
+        });
+      }
+      const nuevos = testsSeleccionados.filter(
+        (id) => !asignaciones.some((a) => a.testId === id),
+      );
+      for (const testId of nuevos) {
+        await addDoc(collection(db, "asignaciones"), {
+          pacienteId: paciente.id,
+          testId,
+          estado: "pendiente",
+          fechaAsignacion: new Date(),
+        });
+      }
+      onGuardar({
+        activo: reactivar ? true : bloqueada ? false : activo,
+        accesoEstado: reactivar ? "pendiente" : estadoReal,
+        fechaInicioAcceso: inicio,
+        fechaFinAcceso: fin,
+        testsSeleccionados,
+      });
+      onCerrar();
+    } catch (e: any) {
+      console.error("Error al guardar paciente:", e);
+      setError(e?.message ?? "No se pudieron guardar los cambios.");
+    } finally {
+      setGuardando(false);
+    }
+  };
 
   if (!abierto) return null;
-
   return (
     <Modal
       abierto={abierto}
-      onCerrar={
-        guardando
-          ? () => {}
-          : onCerrar
-      }
-      titulo={`Configurar paciente: ${
-        paciente?.nombre || ""
-      }`}
+      onCerrar={guardando ? () => {} : onCerrar}
+      titulo={`Configurar paciente: ${paciente?.nombre ?? ""}`}
     >
-      <div
-        className={
-          styles.modalLayout
-        }
-      >
-        {/* ===============================================
-            ACCESO
-        =============================================== */}
-
-        <section
-          className={
-            styles.section
-          }
-        >
-          <div
-            className={
-              styles.sectionHeader
-            }
-          >
+      <div className={styles.modalLayout}>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
             <div>
-              <h3>
-                Estado del acceso
-              </h3>
-
-              <p>
-                Configurá la
-                disponibilidad de la
-                cuenta del paciente.
-              </p>
+              <h3>Estado del acceso</h3>
+              <p>Configurá la disponibilidad de la cuenta del paciente.</p>
             </div>
-
             <span
-              className={`${styles.currentStatus} ${
-                activo
-                  ? styles.currentStatusActive
-                  : styles.currentStatusInactive
-              }`}
+              className={`${styles.currentStatus} ${bloqueada ? styles.currentStatusDanger : activo ? styles.currentStatusActive : styles.currentStatusInactive}`}
             >
-              <span />
-
-              {activo
-                ? "Activo"
-                : "Inactivo"}
+              {estadoReal === "abandonada"
+                ? "Abandonada"
+                : estadoReal === "finalizada"
+                  ? "Finalizada"
+                  : activo
+                    ? "Activo"
+                    : "Inactivo"}
             </span>
           </div>
-
-          <div
-            className={
-              styles.accessGrid
-            }
-          >
-            {/* ESTADO */}
-
-            <div
-              className={
-                styles.settingCard
-              }
-            >
-              <div
-                className={
-                  styles.settingTop
-                }
-              >
-                <div>
-                  <span
-                    className={
-                      styles.settingLabel
-                    }
-                  >
-                    Estado del usuario
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={
-                  styles.statusSelector
-                }
-              >
-                <button
-                  type="button"
-                  className={`${styles.statusOption} ${
-                    activo
-                      ? styles.statusOptionSelected
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setActivo(true)
-                  }
-                  disabled={
-                    guardando
-                  }
-                >
-                  <span
-                    className={
-                      styles.optionDotActive
-                    }
-                  />
-
-                  Activo
-
-                  {activo && (
-                    <span
-                      className={
-                        styles.optionCheck
-                      }
-                    >
-                      ✓
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className={`${styles.statusOption} ${
-                    !activo
-                      ? styles.statusOptionSelectedDanger
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setActivo(false)
-                  }
-                  disabled={
-                    guardando
-                  }
-                >
-                  <span
-                    className={
-                      styles.optionDotInactive
-                    }
-                  />
-
-                  Inactivo
-
-                  {!activo && (
-                    <span
-                      className={
-                        styles.optionCheck
-                      }
-                    >
-                      ✓
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              <p
-                className={
-                  styles.settingHelp
-                }
-              >
-                {activo
-                  ? "El paciente puede ingresar mientras su período esté vigente."
-                  : "El paciente no podrá ingresar aunque la fecha de acceso siga vigente."}
+          {bloqueada && (
+            <div className={styles.warning}>
+              <strong>⚠ Cuenta inhabilitada</strong>
+              <p>
+                {estadoReal === "abandonada"
+                  ? "La sesión anterior terminó por abandono o interrupción. Se requiere autorización administrativa."
+                  : "El acceso anterior finalizó. Se requiere autorización administrativa para generar uno nuevo."}
               </p>
             </div>
-
-            {/* FECHA DE INGRESO */}
-
-            <div
-              className={
-                styles.settingCard
-              }
-            >
-              <div
-                className={
-                  styles.settingTop
-                }
-              >
-                <div>
-                  <span
-                    className={
-                      styles.settingLabel
-                    }
-                  >
-                    Fecha de ingreso
-                  </span>
-                </div>
-
-                <span
-                  className={
-                    styles.calendarMark
-                  }
+          )}
+          <div className={styles.accessGrid}>
+            <div className={styles.settingCard}>
+              <span className={styles.settingLabel}>Estado del usuario</span>
+              <div className={styles.statusSelector}>
+                <button
+                  type="button"
+                  disabled={guardando}
+                  className={`${styles.statusOption} ${activo ? styles.statusOptionSelected : ""}`}
+                  onClick={elegirActivo}
                 >
-                  24h
-                </span>
-              </div>
-
-              <div
-                className={
-                  styles.dateField
-                }
-              >
-                <input
-                  type="date"
-                  value={
-                    fechaIngreso
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setFechaIngreso(
-                      event.target
-                        .value,
-                    )
-                  }
-                  disabled={
-                    guardando
-                  }
-                />
-              </div>
-              {fechaFinCalculada && (
-                <p
-                  className={
-                    styles.settingHelp
-                  }
+                  <span className={styles.optionDotActive} />
+                  Activo{" "}
+                  {activo && <span className={styles.optionCheck}>✓</span>}
+                </button>
+                <button
+                  type="button"
+                  disabled={guardando}
+                  className={`${styles.statusOption} ${!activo ? styles.statusOptionSelectedDanger : ""}`}
+                  onClick={elegirInactivo}
                 >
-                  <strong>
-                    Vencimiento
-                    automático:
-                  </strong>{" "}
-                  {formatearFechaHora(
-                    fechaFinCalculada,
-                  )}
+                  <span className={styles.optionDotInactive} />
+                  Inactivo{" "}
+                  {!activo && <span className={styles.optionCheck}>✓</span>}
+                </button>
+              </div>
+              {bloqueada ? (
+                <label className={styles.recoveryCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={reactivar}
+                    disabled={guardando}
+                    onChange={(e) => {
+                      setReactivar(e.target.checked);
+                      if (e.target.checked) {
+                        setActivo(true);
+                        setFechaIngreso(fechaInput(new Date()));
+                      }
+                    }}
+                  />{" "}
+                  Reactivar cuenta y generar nuevo acceso
+                </label>
+              ) : (
+                <p className={styles.settingHelp}>
+                  {activo
+                    ? "El paciente puede ingresar mientras su período esté vigente."
+                    : "El paciente no podrá ingresar mientras permanezca inactivo."}
                 </p>
               )}
             </div>
-          </div>
-        </section>
-
-        {/* ===============================================
-            TESTS
-        =============================================== */}
-
-        <section
-          className={
-            styles.section
-          }
-        >
-          <div
-            className={
-              styles.sectionHeader
-            }
-          >
-            <div>
-              <h3>
-                Tests asignados
-              </h3>
-
-              <p>
-                Seleccioná las
-                evaluaciones
-                disponibles para este
-                paciente.
+            <div className={styles.settingCard}>
+              <div className={styles.settingTop}>
+                <span className={styles.settingLabel}>Fecha de ingreso</span>
+                <span className={styles.calendarMark}>24h</span>
+              </div>
+              <div className={styles.dateField}>
+                <input
+                  type="date"
+                  value={fechaIngreso}
+                  disabled={guardando}
+                  onChange={(e) => setFechaIngreso(e.target.value)}
+                />
+              </div>
+              <p className={styles.settingHelp}>
+                Inicio 09:00 · Vencimiento: {mostrarFecha(fin)}
               </p>
             </div>
-
-            <span
-              className={
-                styles.testCounter
-              }
-            >
-              {
-                testsSeleccionados.length
-              }{" "}
-              de{" "}
-              {
-                TESTS_DISPONIBLES.length
-              }{" "}
-              seleccionados
+          </div>
+        </section>
+        {/* <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h3>Tests asignados</h3>
+              <p>Seleccioná las evaluaciones disponibles para este paciente.</p>
+            </div>
+            <span className={styles.testCounter}>
+              {testsSeleccionados.length} de {TESTS.length} seleccionados
             </span>
           </div>
-
-          <div
-            className={
-              styles.testsGrid
-            }
-          >
-            {TESTS_DISPONIBLES.map(
-              (test) => {
-                const selected =
-                  testsSeleccionados.includes(
-                    test.id,
-                  );
-
+          <div className={styles.testsGrid}>
+            {TESTS.map((t) => {
+              const selected = testsSeleccionados.includes(t.id);
+              const existing = asignaciones.find((a) => a.testId === t.id);
+              const locked = !!existing && existing.estado !== "pendiente";
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`${styles.testCard} ${selected ? styles.testCardSelected : ""}`}
+                  onClick={() => cambiarTest(t.id)}
+                  disabled={guardando || cargando || locked}
+                  title={
+                    locked
+                      ? `No se puede quitar: ${existing?.estado}`
+                      : undefined
+                  }
+                  aria-pressed={selected}
+                >
+                  <span className={styles.testCardTop}>
+                    <strong>{t.nombre}</strong>
+                    <span
+                      className={`${styles.checkCircle} ${selected ? styles.checkCircleSelected : ""}`}
+                    >
+                      {selected ? "✓" : ""}
+                    </span>
+                  </span>
+                  <span className={styles.testDescription}>
+                    {t.descripcion}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section> */}
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <h3>Recuperación de evaluaciones</h3>
+              <p>Elegí cómo restablecer los tests abandonados.</p>
+            </div>
+            <span className={styles.testCounter}>Administración</span>
+          </div>
+          <div className={styles.radioGroup}>
+            <label>
+              <input
+                type="radio"
+                name="modoRecuperacion"
+                checked={modo === "ninguno"}
+                onChange={() => setModo("ninguno")}
+                disabled={guardando}
+              />{" "}
+              Conservar los estados actuales
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="modoRecuperacion"
+                checked={modo === "abandonados"}
+                onChange={() => setModo("abandonados")}
+                disabled={guardando}
+              />{" "}
+              Restablecer todas las abandonadas ({abandonadas.length})
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="modoRecuperacion"
+                checked={modo === "manual"}
+                onChange={() => setModo("manual")}
+                disabled={guardando}
+              />{" "}
+              Seleccionar tests manualmente
+            </label>
+          </div>
+          {modo === "manual" && (
+            <div className={styles.testsGrid}>
+              {TESTS.map((t) => {
+                const a = abandonadas.find((a) => a.testId === t.id);
+                const checked = !!a && manual.includes(a.id);
                 return (
                   <button
+                    key={t.id}
                     type="button"
-                    key={test.id}
-                    className={`${styles.testCard} ${
-                      selected
-                        ? styles.testCardSelected
-                        : ""
-                    }`}
+                    disabled={!a || guardando}
+                    aria-pressed={checked}
+                    className={`${styles.testCard} ${checked ? styles.testCardSelected : ""}`}
                     onClick={() =>
-                      toggleTest(
-                        test.id,
+                      a &&
+                      setManual((prev) =>
+                        checked
+                          ? prev.filter((id) => id !== a.id)
+                          : [...prev, a.id],
                       )
                     }
-                    disabled={
-                      guardando
-                    }
-                    aria-pressed={
-                      selected
-                    }
                   >
-                    <div
-                      className={
-                        styles.testCardTop
-                      }
-                    >
-                      <strong>
-                        {test.nombre}
-                      </strong>
-
+                    <span className={styles.testCardTop}>
+                      <strong>{t.nombre}</strong>
                       <span
-                        className={`${styles.checkCircle} ${
-                          selected
-                            ? styles.checkCircleSelected
-                            : ""
-                        }`}
+                        className={`${styles.checkCircle} ${checked ? styles.checkCircleSelected : ""}`}
                       >
-                        {selected
-                          ? "✓"
-                          : ""}
+                        {checked ? "✓" : ""}
                       </span>
-                    </div>
-
-                    <span
-                      className={
-                        styles.testDescription
-                      }
-                    >
-                      {
-                        test.descripcion
-                      }
+                    </span>
+                    <span className={styles.testDescription}>
+                      {a
+                        ? "Abandonado · recuperable"
+                        : (asignaciones.find((x) => x.testId === t.id)
+                            ?.estado ?? "Sin asignar")}
                     </span>
                   </button>
                 );
-              },
-            )}
-          </div>
-        </section>
-
-        {/* ===============================================
-            FOOTER
-        =============================================== */}
-
-        <footer
-          className={
-            styles.modalFooter
-          }
-        >
-          <p
-            className={
-              styles.footerHint
-            }
-          >
-            Los cambios se aplicarán
-            inmediatamente al perfil.
+              })}
+            </div>
+          )}
+          <p className={styles.protection}>
+            ♢ Los resultados completados se conservan. Solo se reinician
+            evaluaciones abandonadas.
           </p>
-
-          <div
-            className={
-              styles.modalButtons
-            }
-          >
+        </section>
+        {error && (
+          <p role="alert" className={styles.error}>
+            {error}
+          </p>
+        )}
+        <footer className={styles.modalFooter}>
+          <p className={styles.footerHint}>
+            Los cambios se aplicarán al confirmar.
+          </p>
+          <div className={styles.modalButtons}>
             <BotonPersonalizado
               variant="secondary"
               onClick={onCerrar}
-              disabled={
-                guardando
-              }
+              disabled={guardando}
             >
               Cancelar
             </BotonPersonalizado>
-
             <BotonPersonalizado
               variant="primary"
-              onClick={
-                manejarGuardar
-              }
-              disabled={
-                guardando ||
-                !fechaIngreso
-              }
+              onClick={guardar}
+              disabled={guardando || cargando || !inicio}
             >
-              {guardando
-                ? "Guardando..."
-                : "Guardar cambios"}
+              {guardando ? "Guardando..." : "Guardar cambios"}
             </BotonPersonalizado>
           </div>
         </footer>

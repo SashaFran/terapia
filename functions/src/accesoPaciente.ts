@@ -4,11 +4,15 @@ import { HttpsError } from "firebase-functions/v1/https";
 
 export const GRACIA_MS = 120000;
 const DURACION_TEST_MS = 30 * 60000;
-const hash = (value: string) => createHash("sha256").update(value).digest("hex");
-const deny = (message = "Este acceso ya fue utilizado o quedó inhabilitado. Contacte a administración.") =>
-  new HttpsError("failed-precondition", message);
-const millis = (value: admin.firestore.Timestamp | undefined) => value?.toMillis() ?? 0;
-
+const hash = (value: string) =>
+  createHash("sha256").update(value).digest("hex");
+const deny = (
+  message = "Este acceso ya fue utilizado o quedó inhabilitado. Contacte a administración.",
+) => new HttpsError("failed-precondition", message);
+const millis = (value: admin.firestore.Timestamp | undefined) =>
+  value?.toMillis() ?? 0;
+const esMaestro = (data: admin.firestore.DocumentData) =>
+  data.esPacienteMaestro === true;
 export function validarToken(token: unknown): asserts token is string {
   if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) {
     throw new HttpsError("invalid-argument", "Sesión inválida.");
@@ -17,138 +21,382 @@ export function validarToken(token: unknown): asserts token is string {
 
 function perfil(id: string, data: admin.firestore.DocumentData) {
   // Never return the stored password or the session capability to the browser.
-  return { id, uid: data.uid, nombre: data.nombre, dni: data.dni,
-    contacto: data.contacto ?? "", archivodni: data.archivodni ?? null,
-    dni_public_id: data.dni_public_id ?? null, activo: data.activo,
-    fechaInicioAcceso: { seconds: Math.floor(millis(data.fechaInicioAcceso) / 1000) },
-    fechaFinAcceso: { seconds: Math.floor(millis(data.fechaFinAcceso) / 1000) } };
+  return {
+    id,
+    uid: data.uid,
+    nombre: data.nombre,
+    dni: data.dni,
+    contacto: data.contacto ?? "",
+    archivodni: data.archivodni ?? null,
+    dni_public_id: data.dni_public_id ?? null,
+    activo: data.activo,
+    fechaInicioAcceso: {
+      seconds: Math.floor(millis(data.fechaInicioAcceso) / 1000),
+    },
+    fechaFinAcceso: { seconds: Math.floor(millis(data.fechaFinAcceso) / 1000) },
+    esPacienteMaestro: esMaestro(data),
+  };
 }
 
 export async function iniciarAcceso(uid: string, token: string) {
   validarToken(token);
   const db = admin.firestore();
-  const matches = await db.collection("pacientes").where("uid", "==", uid).limit(2).get();
+  const matches = await db
+    .collection("pacientes")
+    .where("uid", "==", uid)
+    .limit(2)
+    .get();
   if (matches.size !== 1) throw deny();
   const ref = matches.docs[0].ref;
   const accessRef = db.collection("accesosPaciente").doc(ref.id);
-  return db.runTransaction(async tx => {
+  return db.runTransaction(async (tx) => {
     const patient = (await tx.get(ref)).data()!;
     const access = (await tx.get(accessRef)).data();
     const now = Date.now();
-    if (patient.activo === false) {
-      if (patient.accesoEstado === "abandonada") {
-        throw deny("El acceso fue inhabilitado porque la evaluación quedó abandonada. Contacte a administración si necesita asistencia.");
+    if (!esMaestro(patient)) {
+      if (patient.activo === false) {
+        if (patient.accesoEstado === "abandonada") {
+          throw deny(
+            "El acceso fue inhabilitado porque la evaluación quedó abandonada. Contacte a administración si necesita asistencia.",
+          );
+        }
+
+        if (patient.accesoEstado === "finalizada") {
+          throw deny(
+            "El acceso fue cerrado porque las evaluaciones ya finalizaron. Contacte a administración si necesita asistencia.",
+          );
+        }
+
+        throw deny(
+          "La cuenta está inhabilitada. Contacte a administración para solicitar asistencia.",
+        );
       }
 
-      if (patient.accesoEstado === "finalizada") {
-        throw deny("El acceso fue cerrado porque las evaluaciones ya finalizaron. Contacte a administración si necesita asistencia.");
+      if (millis(patient.fechaFinAcceso) <= now) {
+        throw deny(
+          "El período de acceso venció. Contacte a administración para solicitar una renovación.",
+        );
       }
+      if (millis(patient.fechaInicioAcceso) > now) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Su período de acceso todavía no comenzó.",
+        );
+      }
+    }
+    // Maestro: el mismo token puede reanudar una sesión y su test.
+    // Una sesión distinta sólo puede reemplazarla si ya expiró o fue cerrada.
+    if (esMaestro(patient)) {
+      if (patient.activo === false)
+        throw deny("La cuenta de pruebas fue revocada.");
+      if (access?.estado === "activa" && access.tokenHash === hash(token)) {
+        const nuevoVencimiento = now + GRACIA_MS;
 
-      throw deny("La cuenta está inhabilitada. Contacte a administración para solicitar asistencia.");
-    }
+        tx.update(accessRef, {
+          hastaMs: nuevoVencimiento,
+          fueraHastaMs: null,
+        });
 
-    if (millis(patient.fechaFinAcceso) <= now) {
-      throw deny("El período de acceso venció. Contacte a administración para solicitar una renovación.");
+        tx.update(ref, {
+          accesoEstado: "activa",
+          sesionHasta: admin.firestore.Timestamp.fromMillis(nuevoVencimiento),
+        });
+
+        return {
+          ...perfil(ref.id, patient),
+          testId: access.testId ?? null,
+          fueraHastaMs: null,
+          inicioTestMs: access.inicioTestMs ?? null,
+        };
+      }
+      if (access?.estado === "activa" && access.hastaMs > now) {
+        throw deny("Ya hay otra sesión de Spiderman abierta.");
+      }
+      tx.set(accessRef, {
+        uid,
+        tokenHash: hash(token),
+        estado: "activa",
+        inicioMs: now,
+        hastaMs: now + GRACIA_MS,
+        fueraHastaMs: null,
+        testId: access?.testId ?? null,
+        inicioTestMs: access?.inicioTestMs ?? null,
+      });
+      tx.update(ref, {
+        accesoEstado: "activa",
+        sesionHasta: admin.firestore.Timestamp.fromMillis(now + GRACIA_MS),
+      });
+      return {
+        ...perfil(ref.id, patient),
+        testId: access?.testId ?? null,
+        fueraHastaMs: null,
+        inicioTestMs:
+          access?.estado === "activa" ? (access.inicioTestMs ?? null) : null,
+      };
     }
-    if (millis(patient.fechaInicioAcceso) > now) {
-      throw new HttpsError("failed-precondition", "Su período de acceso todavía no comenzó.");
-    }
-    // Retry of the same login request is safe; another page cannot resume it.
+    // Los pacientes normales mantienen su acceso de un solo uso.
     if (access) {
-      if (access.tokenHash !== hash(token) || access.estado !== "activa" || access.hastaMs <= now) throw deny();
+      if (
+        access.tokenHash !== hash(token) ||
+        access.estado !== "activa" ||
+        access.hastaMs <= now
+      )
+        throw deny();
       return perfil(ref.id, patient);
     }
-    tx.set(accessRef, { uid, tokenHash: hash(token), estado: "activa", inicioMs: now,
-      hastaMs: now + GRACIA_MS, fueraHastaMs: null, testId: null });
-    tx.update(ref, { accesoEstado: "activa", sesionHasta: admin.firestore.Timestamp.fromMillis(now + GRACIA_MS) });
+    tx.set(accessRef, {
+      uid,
+      tokenHash: hash(token),
+      estado: "activa",
+      inicioMs: now,
+      hastaMs: now + GRACIA_MS,
+      fueraHastaMs: null,
+      testId: null,
+    });
+    tx.update(ref, {
+      accesoEstado: "activa",
+      sesionHasta: admin.firestore.Timestamp.fromMillis(now + GRACIA_MS),
+    });
     return perfil(ref.id, patient);
   });
 }
 
-type Accion = "latido" | "fuera" | "volver" | "cerrar" | "iniciarTest" | "abandonarTest" | "finalizarTest" | "guardarProgreso";
-const acciones: Accion[] = ["latido", "fuera", "volver", "cerrar", "iniciarTest", "abandonarTest", "finalizarTest", "guardarProgreso"];
-type Peticion = { pacienteId: string; token: string; accion: Accion; testId?: string; resultado?: Record<string, unknown>; progreso?: Record<string, unknown> };
+type Accion =
+  | "latido"
+  | "fuera"
+  | "volver"
+  | "cerrar"
+  | "iniciarTest"
+  | "abandonarTest"
+  | "finalizarTest"
+  | "guardarProgreso";
+const acciones: Accion[] = [
+  "latido",
+  "fuera",
+  "volver",
+  "cerrar",
+  "iniciarTest",
+  "abandonarTest",
+  "finalizarTest",
+  "guardarProgreso",
+];
+type Peticion = {
+  pacienteId: string;
+  token: string;
+  accion: Accion;
+  testId?: string;
+  resultado?: Record<string, unknown>;
+  progreso?: Record<string, unknown>;
+};
 
-export async function operarAcceso(uid: string | null, input: Peticion, expiryOnly = false) {
-  if (!input || typeof input.pacienteId !== "string" || !/^[\w-]{1,128}$/.test(input.pacienteId) || !acciones.includes(input.accion)) {
+export async function operarAcceso(
+  uid: string | null,
+  input: Peticion,
+  expiryOnly = false,
+) {
+  if (
+    !input ||
+    typeof input.pacienteId !== "string" ||
+    !/^[\w-]{1,128}$/.test(input.pacienteId) ||
+    !acciones.includes(input.accion)
+  ) {
     throw new HttpsError("invalid-argument", "Solicitud inválida.");
   }
   if (!expiryOnly) validarToken(input.token);
   const db = admin.firestore();
   const patientRef = db.collection("pacientes").doc(input.pacienteId);
   const accessRef = db.collection("accesosPaciente").doc(input.pacienteId);
-  return db.runTransaction(async tx => {
+  return db.runTransaction(async (tx) => {
     const patient = (await tx.get(patientRef)).data();
     const access = (await tx.get(accessRef)).data();
     if (!patient || !access) throw deny();
-    if (!expiryOnly && ((uid !== null && uid !== patient.uid) || access.tokenHash !== hash(input.token))) {
-      throw new HttpsError("permission-denied", "La sesión no corresponde al paciente.");
+    if (
+      !expiryOnly &&
+      ((uid !== null && uid !== patient.uid) ||
+        access.tokenHash !== hash(input.token))
+    ) {
+      throw new HttpsError(
+        "permission-denied",
+        "La sesión no corresponde al paciente.",
+      );
     }
     const now = Date.now();
+    const maestro = esMaestro(patient);
+    // Revocar una cuenta maestra sigue siendo posible desde administración.
+    if (maestro && patient.activo === false)
+      throw deny("La cuenta de pruebas fue revocada.");
     if (expiryOnly && access.hastaMs > now) return { estado: access.estado };
     if (access.estado !== "activa") return { estado: access.estado };
-    const assignments = await tx.get(db.collection("asignaciones").where("pacienteId", "==", input.pacienteId));
-    const target = assignments.docs.find(d => d.data().testId === input.testId);
-    const close = input.accion === "cerrar" || access.hastaMs <= now ||
-      patient.activo === false || millis(patient.fechaFinAcceso) <= now;
+    // El barrido de expiración no destruye la sesión maestra: el mismo token
+    // podrá renovarla al restaurarse la página, pero no ejecutar acciones caducadas.
+    if (expiryOnly && maestro) return { estado: "activa" };
+    if (maestro && access.hastaMs <= now && input.accion !== "cerrar")
+      throw deny("La sesión expiró. Vuelva a ingresar.");
+    const assignments = await tx.get(
+      db.collection("asignaciones").where("pacienteId", "==", input.pacienteId),
+    );
+    const target = assignments.docs.find(
+      (d) => d.data().testId === input.testId,
+    );
+    if (maestro && input.accion === "cerrar") {
+      tx.update(accessRef, {
+        estado: "cerrada",
+        cierreMs: now,
+        motivo: "salida",
+        fueraHastaMs: null,
+      });
+      tx.update(patientRef, { accesoEstado: "pendiente" });
+      return { estado: "cerrada" };
+    }
+    const close =
+      !maestro &&
+      (input.accion === "cerrar" ||
+        access.hastaMs <= now ||
+        patient.activo === false ||
+        millis(patient.fechaFinAcceso) <= now);
     if (close) {
-      const completed = assignments.docs.length > 0 && assignments.docs.every(d => d.data().estado === "completado");
+      const completed =
+        assignments.docs.length > 0 &&
+        assignments.docs.every((d) => d.data().estado === "completado");
       const estado = completed ? "finalizada" : "abandonada";
-      tx.update(accessRef, { estado, cierreMs: now, motivo: input.accion === "cerrar" ? "salida" : "sin_actividad" });
+      tx.update(accessRef, {
+        estado,
+        cierreMs: now,
+        motivo: input.accion === "cerrar" ? "salida" : "sin_actividad",
+      });
       tx.update(patientRef, { activo: false, accesoEstado: estado });
-      assignments.docs.filter(d => d.data().estado !== "completado").forEach(d =>
-        tx.update(d.ref, { estado: "abandono", motivoAbandono: "cierre_sesion", fechaAbandono: admin.firestore.Timestamp.fromMillis(now) }));
+      assignments.docs
+        .filter((d) => d.data().estado !== "completado")
+        .forEach((d) =>
+          tx.update(d.ref, {
+            estado: "abandono",
+            motivoAbandono: "cierre_sesion",
+            fechaAbandono: admin.firestore.Timestamp.fromMillis(now),
+          }),
+        );
       return { estado };
     }
     let currentTest = access.testId as string | null;
     let fueraHastaMs = access.fueraHastaMs as number | null;
     let testAbandonado: string | null = null;
     const abandon = (testId: string, motivo: string) => {
-      assignments.docs.filter(d => d.data().testId === testId && d.data().estado !== "completado").forEach(d =>
-        tx.update(d.ref, { estado: "abandono", motivoAbandono: motivo, fechaAbandono: admin.firestore.Timestamp.fromMillis(now) }));
+      assignments.docs
+        .filter(
+          (d) => d.data().testId === testId && d.data().estado !== "completado",
+        )
+        .forEach((d) =>
+          tx.update(d.ref, {
+            estado: "abandono",
+            motivoAbandono: motivo,
+            fechaAbandono: admin.firestore.Timestamp.fromMillis(now),
+          }),
+        );
       testAbandonado = testId;
       currentTest = null;
       fueraHastaMs = null;
     };
-    if (currentTest && fueraHastaMs !== null && now >= fueraHastaMs) abandon(currentTest, "fuera_de_pantalla");
+    if (!maestro && currentTest && fueraHastaMs !== null && now >= fueraHastaMs)
+      abandon(currentTest, "fuera_de_pantalla");
     if (input.accion === "iniciarTest" && !testAbandonado) {
-      if (!target || target.data().estado !== "pendiente" || currentTest || !patient.archivodni) throw deny();
+      if (
+        !target ||
+        target.data().estado !== "pendiente" ||
+        currentTest ||
+        (!maestro && !patient.archivodni)
+      )
+        throw deny();
       currentTest = input.testId!;
       fueraHastaMs = null;
       tx.update(target.ref, { estado: "en_curso", inicioMs: now });
-    } else if (input.accion === "fuera" && currentTest && fueraHastaMs === null) {
-      fueraHastaMs = now + GRACIA_MS;
+      tx.update(accessRef, { inicioTestMs: now });
+    } else if (
+      input.accion === "fuera" &&
+      currentTest &&
+      fueraHastaMs === null
+    ) {
+      fueraHastaMs = maestro ? null : now + GRACIA_MS;
     } else if (input.accion === "volver") {
       fueraHastaMs = null;
-    } else if (input.accion === "abandonarTest" && currentTest === input.testId) {
+    } else if (
+      input.accion === "abandonarTest" &&
+      currentTest === input.testId
+    ) {
       abandon(currentTest!, "salida_voluntaria");
     } else if (input.accion === "guardarProgreso" && !testAbandonado) {
-      if (!currentTest || currentTest !== input.testId || !input.progreso || typeof input.progreso !== "object" || Array.isArray(input.progreso)) throw deny();
-      if (JSON.stringify(input.progreso).length > 200000) throw new HttpsError("invalid-argument", "Progreso demasiado grande.");
-      tx.set(db.collection("test_progress").doc(`${input.pacienteId}_${currentTest}`), {
-        userId: input.pacienteId, testId: currentTest, data: input.progreso, updatedAt: admin.firestore.Timestamp.fromMillis(now),
-      });
+      if (
+        !currentTest ||
+        currentTest !== input.testId ||
+        !input.progreso ||
+        typeof input.progreso !== "object" ||
+        Array.isArray(input.progreso)
+      )
+        throw deny();
+      if (JSON.stringify(input.progreso).length > 200000)
+        throw new HttpsError("invalid-argument", "Progreso demasiado grande.");
+      tx.set(
+        db
+          .collection("test_progress")
+          .doc(`${input.pacienteId}_${currentTest}`),
+        {
+          userId: input.pacienteId,
+          testId: currentTest,
+          data: input.progreso,
+          updatedAt: admin.firestore.Timestamp.fromMillis(now),
+        },
+      );
     } else if (input.accion === "finalizarTest" && !testAbandonado) {
-      if (target?.data().estado === "completado") return { estado: "activa", completado: true };
-      if (!target || target.data().estado !== "en_curso" || currentTest !== input.testId) throw deny();
+      if (target?.data().estado === "completado")
+        return { estado: "activa", completado: true };
+      if (
+        !target ||
+        target.data().estado !== "en_curso" ||
+        currentTest !== input.testId
+      )
+        throw deny();
       const incoming = input.resultado ?? {};
       const safe: Record<string, unknown> = {};
-      for (const key of ["respuestas", "score", "nivel", "metodo", "dimensiones", "errores", "resumenClinico", "archivoCaptura", "captura_public_id"]) {
+      for (const key of [
+        "respuestas",
+        "score",
+        "nivel",
+        "metodo",
+        "dimensiones",
+        "errores",
+        "resumenClinico",
+        "archivoCaptura",
+        "captura_public_id",
+      ]) {
         if (incoming[key] !== undefined) safe[key] = incoming[key];
       }
-      if (JSON.stringify(safe).length > 300000) throw new HttpsError("invalid-argument", "Resultado demasiado grande.");
+      if (JSON.stringify(safe).length > 300000)
+        throw new HttpsError("invalid-argument", "Resultado demasiado grande.");
       const elapsed = now - target.data().inicioMs;
-      tx.set(db.collection("resultados").doc(`${input.pacienteId}_${target.id}`), {
-        ...safe, pacienteId: input.pacienteId, testId: input.testId,
-        fecha: admin.firestore.Timestamp.fromMillis(now), tiempoTotalMs: Math.min(DURACION_TEST_MS, elapsed),
-        out_of_time: elapsed >= DURACION_TEST_MS,
+      tx.set(
+        db.collection("resultados").doc(`${input.pacienteId}_${target.id}`),
+        {
+          ...safe,
+          pacienteId: input.pacienteId,
+          testId: input.testId,
+          fecha: admin.firestore.Timestamp.fromMillis(now),
+          tiempoTotalMs: Math.min(DURACION_TEST_MS, elapsed),
+          out_of_time: elapsed >= DURACION_TEST_MS,
+        },
+      );
+      tx.update(target.ref, {
+        estado: "completado",
+        fechaCompletado: admin.firestore.Timestamp.fromMillis(now),
       });
-      tx.update(target.ref, { estado: "completado", fechaCompletado: admin.firestore.Timestamp.fromMillis(now) });
       currentTest = null;
       fueraHastaMs = null;
     }
-    tx.update(accessRef, { testId: currentTest, fueraHastaMs, hastaMs: now + GRACIA_MS });
-    tx.update(patientRef, { sesionHasta: admin.firestore.Timestamp.fromMillis(now + GRACIA_MS) });
+    tx.update(accessRef, {
+      testId: currentTest,
+      fueraHastaMs,
+      hastaMs: now + GRACIA_MS,
+    });
+    tx.update(patientRef, {
+      sesionHasta: admin.firestore.Timestamp.fromMillis(now + GRACIA_MS),
+    });
     return { estado: "activa", testAbandonado, fueraHastaMs };
   });
 }
@@ -156,10 +404,17 @@ export async function operarAcceso(uid: string | null, input: Peticion, expiryOn
 export async function expirarAccesos() {
   const db = admin.firestore();
   // Single-field query; no composite index required. Closed entries are skipped.
-  const expired = await db.collection("accesosPaciente").where("estado", "==", "activa").get();
+  const expired = await db
+    .collection("accesosPaciente")
+    .where("estado", "==", "activa")
+    .get();
   for (const access of expired.docs) {
     if (access.data().hastaMs <= Date.now()) {
-      await operarAcceso(null, { pacienteId: access.id, token: "", accion: "cerrar" }, true);
+      await operarAcceso(
+        null,
+        { pacienteId: access.id, token: "", accion: "cerrar" },
+        true,
+      );
     }
   }
 }

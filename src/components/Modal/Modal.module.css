@@ -268,8 +268,6 @@
 .modalContent input,
 .modalContent select,
 .modalContent textarea {
-  color: var(--beige);
-
   border: 1px solid rgba(255, 255, 255, 0.09);
 
   font-family: inherit;

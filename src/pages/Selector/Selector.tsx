@@ -186,7 +186,7 @@ export default function Selector() {
       </section>
 
       <footer className={styles.pageFooter}>
-        © {new Date().getFullYear()} JoinSolution · Privacidad · Soporte
+        © {new Date().getFullYear()} Join Solution · Privacidad · Soporte
       </footer>
     </main>
   );

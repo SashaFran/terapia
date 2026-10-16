@@ -1,0 +1,2401 @@
+﻿
+
+========== src/components/Tests/TestK10/TestK10.tsx ==========
+
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { K10_TEST } from "../../../data/tests/k10";
+import BotonPersonalizado from "../../Boton/Boton";
+import styles from "../TestK10/Testk10.module.css";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
+
+type Props = {
+  onFinish?: (resultado: { score: number; nivel: string; respuestas: number[]; metodo: string }) => void | Promise<void>;
+  userId?: string | number;
+};
+
+export default function TestK10({ onFinish, userId }: Props) {
+  const navigate = useNavigate();
+
+  const [preguntaActual, setPreguntaActual] = useState(0);
+  const questionRef = useRef<HTMLHeadingElement>(null);
+  const [canStart, setCanStart] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [respuestas, setRespuestas] = useState<number[]>(
+    Array(K10_TEST.preguntas.length).fill(0),
+  );
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(K10_TEST.preguntas.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+
+  const pacienteStorage = localStorage.getItem("paciente");
+  const paciente = pacienteStorage ? JSON.parse(pacienteStorage) : null;
+  const resolvedUserId =
+    userId ?? paciente?.id ?? localStorage.getItem("pacienteId");
+
+  const engine = useTestEngine({
+    userId: resolvedUserId,
+    testId: "k10",
+    timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
+    onFinish: async (data) => {
+      if (onFinish) await onFinish(data);
+      navigate("/app/dashboard", { replace: true });
+    },
+  });
+
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
+
+  const responder = (index: number, valor: number) => {
+    setRespuestas((prev) => {
+      const copia = [...prev];
+      copia[index] = valor;
+      return copia;
+    });
+  };
+
+  const irAPregunta = (index: number) => {
+    setPreguntaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  const obtenerResultado = () => {
+    const total = respuestas.reduce((a, b) => a + b, 0);
+
+    let nivel = "";
+    if (total <= 12) nivel = "Malestar psicológico bajo o moderado";
+    else if (total <= 19) nivel = "Malestar psicológico moderado a severo";
+    else if (total <= 29) nivel = "Malestar psicológico severo";
+    else nivel = "Malestar psicológico muy severo";
+    return { score: total, nivel, respuestas, metodo: "K10" };
+  };
+
+  const calcularResultado = async () => {
+    if (!engine.started || enviando) return;
+    setEnviando(true);
+
+    try {
+      await engine.submit(obtenerResultado());
+    } catch (error) {
+      console.error("❌ Error al guardar el K10:", error);
+      setEnviando(false);
+    }
+  };
+
+  const incompleto = respuestas.some((r) => r === 0);
+
+  useEffect(() => {
+    if (!engine.started) return;
+    questionRef.current?.focus({ preventScroll: true });
+    questionRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [preguntaActual, engine.started]);
+
+  if (!engine.started) {
+    return <TestIntroModal nombre="Cuestionario K10" descripcion="Cómo se ha sentido en los últimos 30 días"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={!resolvedUserId} instrucciones={[{ titulo: "Piense en el último mes", texto: <p>Este cuestionario contiene 10 preguntas. Responda según cómo se ha sentido durante los últimos 30 días.</p> },
+{ titulo: "Seleccione una respuesta", texto: <p>Elija la frecuencia que mejor describa su experiencia. Puede volver a las preguntas anteriores para revisar sus respuestas.</p> }]} />;
+  }
+
+  const respondidas = respuestas.filter(Boolean).length;
+  const ultima = preguntaActual === K10_TEST.preguntas.length - 1;
+  return (
+    <main className={styles.page}>
+      {engine.feedback}
+      {engine.CameraComponent && <engine.CameraComponent />}
+      <header className={styles.header}>
+        <div><h1>{K10_TEST.nombre}</h1><p>Piense en los últimos 30 días y seleccione una respuesta para cada pregunta.</p></div>
+        <div><span>Tiempo restante</span><div className={timerClass}>{engine.minutes}:{String(engine.seconds).padStart(2, "0")}</div></div>
+      </header>
+      <p role="status">{respondidas} de {respuestas.length} preguntas respondidas</p>
+      <progress className={styles.progress} aria-label="Preguntas respondidas" value={respondidas} max={respuestas.length} />
+      <div className={styles.workspace}>
+        <nav className={styles.navigator} aria-label="Preguntas del K10">
+          <h2>Preguntas</h2>
+          <div className={styles.questionGrid}>{respuestas.map((r, i) => (
+              <button key={i} type="button" disabled={engine.inputLocked} onClick={() => irAPregunta(i)}
+              aria-current={i === preguntaActual ? "step" : undefined}
+              aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : visitadas[i] ? "sin responder" : "pendiente"}`}>
+              {i + 1}{r ? " ✓" : ""}
+            </button>
+          ))}</div>
+          <p>✓ Respondida. Puede volver a revisar cualquier pregunta.</p>
+        </nav>
+        <section className={styles.content}>
+          <fieldset className={styles.testCard} disabled={engine.inputLocked}>
+            <legend>Pregunta {preguntaActual + 1} de {respuestas.length}</legend>
+            <h2 id="k10-question" ref={questionRef} tabIndex={-1}>{K10_TEST.preguntas[preguntaActual]}</h2>
+            <div className={styles.testCardItems} role="radiogroup" aria-labelledby="k10-question">
+              {K10_TEST.opciones.map(op => (
+                <label key={op.valor}>
+                  <input type="radio" name={`k10-${preguntaActual}`} value={op.valor}
+                    checked={respuestas[preguntaActual] === op.valor} onChange={() => responder(preguntaActual, op.valor)} />
+                  {op.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className={styles.navigation}>
+            <BotonPersonalizado variant="secondary" disabled={preguntaActual === 0 || engine.inputLocked}
+              onClick={() => setPreguntaActual(i => i - 1)}>Anterior</BotonPersonalizado>
+            {ultima ? <BotonPersonalizado variant="primary" disabled={incompleto || enviando || engine.inputLocked} onClick={calcularResultado}>
+              {enviando ? "Guardando..." : "Finalizar test"}
+            </BotonPersonalizado> : <BotonPersonalizado variant="primary" disabled={engine.inputLocked}
+              onClick={() => irAPregunta(preguntaActual + 1)}>Siguiente</BotonPersonalizado>}
+          </div>
+          <p>{ultima && incompleto ? "Responda las preguntas pendientes para finalizar." : "Puede cambiar su respuesta antes de finalizar."}</p>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+
+========== src/components/Tests/TestBFQ/TestBFQ.tsx ==========
+
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
+
+import BotonPersonalizado from "../../Boton/Boton";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+
+import styles from "./TestBFQ.module.css";
+
+import { useTestEngine } from "../helpers/useTestEngine";
+
+type ResultadoBFQ = {
+  dimensiones: {
+    extraversion: number;
+    amabilidad: number;
+    responsabilidad: number;
+    neuroticismo: number;
+    apertura: number;
+  };
+  respuestas: number[];
+  metodo: string;
+  tiempoTotalMs: number;
+};
+
+type Props = {
+  onFinish: (resultado: ResultadoBFQ) => void | Promise<void>;
+  userId: string | number;
+};
+
+export default function TestBFQ({
+  onFinish,
+  userId,
+}: Props) {
+  const navigate = useNavigate();
+
+  const [canStart, setCanStart] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [preguntaActual, setPreguntaActual] = useState(0);
+  const questionRef = useRef<HTMLHeadingElement>(null);
+
+  const [respuestas, setRespuestas] = useState<number[]>(
+    Array(BFQ_TEST.preguntas.length).fill(0),
+  );
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(BFQ_TEST.preguntas.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+
+  const totalPreguntas = BFQ_TEST.preguntas.length;
+
+  /* =======================================================
+     TEST ENGINE
+  ======================================================= */
+
+  const engine = useTestEngine({
+    userId,
+
+    testId: "bfq",
+
+    timeLimitMs: 30 * 60 * 1000,
+
+    getResult: () => obtenerResultado(),
+
+    onFinish: async (data) => {
+      await onFinish(data);
+
+      navigate("/app/tests", {
+        replace: true,
+      });
+    },
+  });
+
+  /* =======================================================
+     RESULTADOS
+  ======================================================= */
+
+  const dimensionesMap = {
+    extraversion: [0, 5],
+    amabilidad: [2, 3],
+    responsabilidad: [4, 6],
+    neuroticismo: [8],
+    apertura: [1, 7, 9],
+  };
+
+  const calcularDimension = (indices: number[]) =>
+    indices.reduce(
+      (acc, i) => acc + (respuestas[i] || 0),
+      0,
+    );
+
+  const obtenerResultado = () => {
+    const resultado = {
+      extraversion: calcularDimension(
+        dimensionesMap.extraversion,
+      ),
+
+      amabilidad: calcularDimension(
+        dimensionesMap.amabilidad,
+      ),
+
+      responsabilidad: calcularDimension(
+        dimensionesMap.responsabilidad,
+      ),
+
+      neuroticismo: calcularDimension(
+        dimensionesMap.neuroticismo,
+      ),
+
+      apertura: calcularDimension(
+        dimensionesMap.apertura,
+      ),
+    };
+
+    return {
+      dimensiones: resultado,
+      respuestas,
+      metodo: "BFQ",
+      nivel: "Perfil Big Five",
+
+      score: Object.values(resultado).reduce(
+        (acc, val) => acc + val,
+        0,
+      ),
+    };
+  };
+
+  /* =======================================================
+     RESPONDER
+  ======================================================= */
+
+  const responder = (
+    index: number,
+    valor: number,
+  ) => {
+    setRespuestas((prev) => {
+      const copia = [...prev];
+
+      copia[index] = valor;
+
+      return copia;
+    });
+  };
+
+  /* =======================================================
+     NAVEGACIÓN
+  ======================================================= */
+
+  const irAnterior = () => {
+    if (preguntaActual === 0) return;
+
+    setPreguntaActual((prev) => prev - 1);
+  };
+
+  const irSiguiente = () => {
+    if (preguntaActual >= totalPreguntas - 1) {
+      return;
+    }
+
+    irAPregunta(preguntaActual + 1);
+  };
+
+  const irAPregunta = (index: number) => {
+    if (engine.inputLocked) return;
+
+    setPreguntaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  /* =======================================================
+     FINALIZAR
+  ======================================================= */
+
+  const incompleto = respuestas.some(
+    (respuesta) => respuesta === 0,
+  );
+
+  const calcularResultado = async () => {
+    if (
+      !engine.started ||
+      enviando ||
+      incompleto
+    ) {
+      return;
+    }
+
+    setEnviando(true);
+
+    try {
+      await engine.submit(
+        obtenerResultado(),
+      );
+    } catch (error) {
+      console.error(
+        "Error al finalizar:",
+        error,
+      );
+
+      setEnviando(false);
+    }
+  };
+
+  /* =======================================================
+     SCROLL AL CAMBIAR DE PREGUNTA
+  ======================================================= */
+
+  useEffect(() => {
+    if (!engine.started) return;
+
+    questionRef.current?.focus({ preventScroll: true });
+    questionRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [preguntaActual, engine.started]);
+
+  /* =======================================================
+     INTRODUCCIÓN
+  ======================================================= */
+
+  if (!engine.started) {
+    return (
+      <TestIntroModal
+        nombre="Test BFQ"
+        descripcion="Evaluación de rasgos de personalidad"
+        duracion="30 minutos"
+        canStart={canStart}
+        onConsentChange={setCanStart}
+        onStart={engine.start}
+        instrucciones={[
+          {
+            titulo: "Lea cada afirmación",
+
+            texto: (
+              <p>
+                Durante la evaluación se
+                presentarán distintas frases
+                relacionadas con formas de pensar,
+                sentir o actuar.
+              </p>
+            ),
+          },
+
+          {
+            titulo: "Seleccione una respuesta",
+
+            texto: (
+              <p>
+                En cada afirmación, elija la opción
+                que mejor describa su forma habitual
+                de ser.
+              </p>
+            ),
+          },
+
+          {
+            titulo: "Responda con naturalidad",
+
+            texto: (
+              <p>
+                No existen respuestas correctas o
+                incorrectas. Procure responder de
+                manera espontánea y sincera.
+              </p>
+            ),
+          },
+        ]}
+      />
+    );
+  }
+
+  /* =======================================================
+     DATOS DE LA PREGUNTA ACTUAL
+  ======================================================= */
+
+  const pregunta =
+    BFQ_TEST.preguntas[preguntaActual];
+
+  const respuestaActual =
+    respuestas[preguntaActual];
+
+  const respondidas =
+    respuestas.filter(
+      (respuesta) => respuesta !== 0,
+    ).length;
+
+  const porcentaje =
+    (respondidas / totalPreguntas) * 100;
+
+  const esPrimera =
+    preguntaActual === 0;
+
+  const esUltima =
+    preguntaActual ===
+    totalPreguntas - 1;
+
+  /* =======================================================
+     TEST
+  ======================================================= */
+
+  return (
+    <main className={styles.page}>
+      {engine.feedback}
+
+      {engine.CameraComponent && (
+        <engine.CameraComponent />
+      )}
+
+      {/* ===================================================
+          CABECERA
+      =================================================== */}
+
+      <header className={styles.header}>
+        <div className={styles.headerCopy}>
+          <p className={styles.eyebrow}>
+            Evaluación en curso
+          </p>
+
+          <h1>
+            Escala de Personalidad BFQ
+          </h1>
+
+          <p className={styles.subtitle}>
+            Seleccione la opción que mejor describa
+            su forma habitual de pensar, sentir o
+            actuar.
+          </p>
+        </div>
+
+        <div className={styles.timer}>
+          <span>Tiempo restante</span>
+
+          <strong>
+            {engine.minutes}:
+            {String(
+              engine.seconds,
+            ).padStart(2, "0")}
+          </strong>
+        </div>
+      </header>
+
+      {/* ===================================================
+          PROGRESO GENERAL
+      =================================================== */}
+
+      <section className={styles.progressSection}>
+        <div className={styles.progressMeta}>
+          <span>
+            Pregunta {preguntaActual + 1} de{" "}
+            {totalPreguntas}
+          </span>
+
+          <span>
+            {respondidas} respondidas
+          </span>
+        </div>
+
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalPreguntas}
+          aria-valuenow={respondidas}
+          aria-label={`${respondidas} de ${totalPreguntas} preguntas respondidas`}
+        >
+          <div
+            className={styles.progressFill}
+            style={{
+              width: `${porcentaje}%`,
+            }}
+          />
+        </div>
+      </section>
+
+      {/* ===================================================
+          LAYOUT PRINCIPAL
+      =================================================== */}
+
+      <div className={styles.testLayout}>
+        {/* =================================================
+            NAVEGADOR DE PREGUNTAS
+        ================================================= */}
+
+        <aside className={styles.questionNavigator}>
+          <div className={styles.navigatorHeader}>
+            <div>
+              <p>Evaluación</p>
+
+              <h2>Preguntas</h2>
+            </div>
+
+            <span className={styles.navigatorCount}>
+              {respondidas}/{totalPreguntas}
+            </span>
+          </div>
+
+          <div className={styles.navigatorProgress}>
+            <div
+              style={{
+                width: `${porcentaje}%`,
+              }}
+            />
+          </div>
+
+          <p className={styles.navigatorStatus}>
+            {respondidas} de {totalPreguntas} respondidas
+          </p>
+
+          {/* ===============================================
+              NÚMEROS
+          =============================================== */}
+
+<div className={styles.questionGrid}>
+  {respuestas.map((r, i) => (
+    <button
+      key={i}
+      type="button"
+      disabled={engine.inputLocked}
+      onClick={() => irAPregunta(i)}
+      aria-current={i === preguntaActual ? "step" : undefined}
+      aria-label={`Pregunta ${i + 1}, ${r ? "respondida" : visitadas[i] ? "sin responder" : "pendiente"}`}
+    >
+      {i + 1}
+    </button>
+  ))}
+</div>
+
+          {/* ===============================================
+              LEYENDA
+          =============================================== */}
+
+          <div className={styles.navigatorLegend}>
+            <span>
+              <i
+                className={
+                  styles.legendAnswered
+                }
+              />
+
+              Respondida
+            </span>
+
+            <span>
+              <i
+                className={
+                  styles.legendCurrent
+                }
+              />
+
+              Actual
+            </span>
+          </div>
+        </aside>
+
+        {/* =================================================
+            PREGUNTA ACTUAL
+        ================================================= */}
+
+        <section className={styles.questionArea}>
+          <div className={styles.questionCard}>
+            <div className={styles.questionHeader}>
+              <span className={styles.questionNumber}>
+                Pregunta{" "}
+                {String(
+                  preguntaActual + 1,
+                ).padStart(2, "0")}
+              </span>
+
+              {respuestaActual !== 0 && (
+                <span className={styles.answered}>
+                  <span />
+
+                  Respondida
+                </span>
+              )}
+            </div>
+
+            <h2 id="bfq-question" ref={questionRef} tabIndex={-1} className={styles.question}>
+              {pregunta}
+            </h2>
+
+            {/* =============================================
+                OPCIONES
+            ============================================= */}
+
+            <div
+              className={styles.options}
+              role="radiogroup"
+              aria-labelledby="bfq-question"
+            >
+              {BFQ_TEST.opciones.map(
+                (op) => {
+                  const seleccionada =
+                    respuestaActual ===
+                    op.valor;
+
+                  return (
+                    <label
+                      key={op.valor}
+                      className={`${
+                        styles.option
+                      } ${
+                        seleccionada
+                          ? styles.optionSelected
+                          : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`pregunta-${preguntaActual}`}
+                        value={op.valor}
+                        checked={
+                          seleccionada
+                        }
+                        disabled={
+                          engine.inputLocked
+                        }
+                        onChange={() =>
+                          responder(
+                            preguntaActual,
+                            op.valor,
+                          )
+                        }
+                      />
+
+                      <span
+                        className={
+                          styles.radioVisual
+                        }
+                        aria-hidden="true"
+                      >
+                        <span />
+                      </span>
+
+                      <span
+                        className={
+                          styles.optionLabel
+                        }
+                      >
+                        {op.label}
+                      </span>
+                    </label>
+                  );
+                },
+              )}
+            </div>
+          </div>
+
+          {/* ===============================================
+              NAVEGACIÓN INFERIOR
+          =============================================== */}
+
+          <div className={styles.navigation}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={irAnterior}
+              disabled={
+                esPrimera ||
+                engine.inputLocked
+              }
+            >
+              <span aria-hidden="true">
+                ←
+              </span>
+
+              Anterior
+            </button>
+
+            <div className={styles.navigationStatus}>
+              <span>
+                {preguntaActual + 1}
+              </span>
+
+              <span>/</span>
+
+              <span>
+                {totalPreguntas}
+              </span>
+            </div>
+
+            {!esUltima ? (
+              <button
+                type="button"
+                className={styles.nextButton}
+                onClick={irSiguiente}
+                disabled={
+                  engine.inputLocked
+                }
+              >
+                Siguiente
+
+                <span aria-hidden="true">
+                  →
+                </span>
+              </button>
+            ) : (
+              <div
+                className={
+                  styles.finishButton
+                }
+              >
+                <BotonPersonalizado
+                  variant="primary"
+                  disabled={
+                    incompleto ||
+                    enviando ||
+                    engine.inputLocked
+                  }
+                  onClick={
+                    calcularResultado
+                  }
+                >
+                  {enviando
+                    ? "Guardando..."
+                    : "Finalizar evaluación"}
+                </BotonPersonalizado>
+              </div>
+            )}
+          </div>
+
+          <p className={styles.helper}>
+            {esUltima && incompleto
+              ? `Faltan ${totalPreguntas - respondidas} preguntas por responder. Seleccione una pregunta pendiente en el navegador para completarla.`
+              : respuestaActual === 0
+                ? "Seleccione una opción para continuar. No hay respuestas correctas o incorrectas."
+                : "Puede volver a cualquier pregunta para revisar o cambiar su respuesta antes de finalizar."}
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+
+========== src/components/Tests/TestRaven/TestRaven.tsx ==========
+
+import TestProgress from "../helpers/TestProgress";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+import { useState } from "react";
+import BotonPersonalizado from "../../Boton/Boton";
+import styles from "./TestRaven.module.css";
+import { RAVEN_TEST } from "../../../data/tests/raven_test";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
+
+type Props = {
+  onFinish: (resultado: any) => void;
+  userId: string | number; // Prop necesaria para las fotos
+};
+
+const RESPUESTAS_CORRECTAS = [1, 7, 8, 5, 5, 7, 6, 8, 1, 1, 6, 3];
+
+export default function TestRaven({ onFinish, userId }: Props) {
+  const [canStart, setCanStart] = useState(false);
+  const totalPreguntas = RAVEN_TEST.imagenes.length;
+  const [respuestas, setRespuestas] = useState<string[]>(
+    Array(RAVEN_TEST.imagenes.length).fill(""),
+  );
+  const [matrizActual, setMatrizActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(RAVEN_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+
+  const engine = useTestEngine({
+    userId,
+    testId: "raven",
+    timeLimitMs: 30 * 60 * 1000,
+    getResult: () => obtenerResultado(),
+    onFinish,
+  });
+
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
+
+
+  const handleChange = (index: number, value: string) => {
+      const val = value.toString();
+      if (val === "") {
+        const nuevas = [...respuestas];
+        nuevas[index] = "";
+        setRespuestas(nuevas);
+        return;
+      }
+      if (!/^\d+$/.test(val)) return; // solo dígitos
+      let n = Number(val);
+      if (n > 8) n = 8;
+      if (n < 1) n = 1;
+      const nuevas = [...respuestas];
+      nuevas[index] = String(n);
+      setRespuestas(nuevas);
+    };
+
+  const obtenerResultado = () => {
+    let errores = 0;
+    respuestas.forEach((r, i) => {
+      if (Number(r) !== RESPUESTAS_CORRECTAS[i]) {
+        errores++;
+      }
+    });
+
+    let nivel = "Inferior";
+    if (errores === 0) nivel = "Superior";
+    else if (errores <= 2) nivel = "Normal Superior";
+    else if (errores <= 4) nivel = "Normal Promedio";
+
+    return {
+      score: 12 - errores,
+      errores,
+      nivel,
+      respuestas: respuestas.map((r, i) => ({
+        pregunta: `Matriz ${i + 1}`,
+        respuesta: r || "Sin respuesta",
+      })),
+      metodo: "Test Raven",
+    };
+  };
+
+  const finalizar = () => {
+    void engine.submit(obtenerResultado()).catch(() => {});
+  };
+
+  const irAMatriz = (index: number) => {
+    setMatrizActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  if (!engine.started) {
+    return <TestIntroModal nombre="Evaluación de Raven" descripcion="Observe cada matriz y complete el patrón"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={false} instrucciones={[{ titulo: "Observe la imagen", texto: <p>En cada matriz falta una pieza. Compare las opciones que aparecen debajo de la imagen.</p> },
+{ titulo: "Escriba el número de su respuesta", texto: <p>Ingrese un número del 1 al 8 en el campo de cada matriz. Puede revisar sus respuestas antes de finalizar.</p> }]} />;
+  }
+
+  return (
+    <div className={styles.page}>
+      {engine.feedback}
+      <header className={styles.header}><div><h1>Evaluación de Raven</h1><p>Observe cada matriz e ingrese el número de la pieza que completa el patrón, del 1 al 8.</p></div>
+        <div><span>Tiempo restante</span><div className={timerClass}>{engine.minutes}:{String(engine.seconds).padStart(2, "0")}</div></div>
+      </header>
+      {engine.CameraComponent && <engine.CameraComponent />}
+      <div className={styles.workspace}>
+        <TestProgress
+          total={totalPreguntas}
+          completadas={respuestas.map(Boolean)}
+          visitadas={visitadas}
+          activa={matrizActual}
+          onSelect={irAMatriz}
+          itemLabel="Matriz"
+        />
+        <main className={styles.container}>
+          <div className={styles.testCard} id={`test-item-${matrizActual}`}>
+                <h2>Matriz {matrizActual + 1}</h2>
+                <img
+                  src={RAVEN_TEST.imagenes[matrizActual]}
+                  alt={`Matriz ${matrizActual + 1}`}
+                  className={styles.imagen}
+                />
+
+                <label htmlFor={`raven-${matrizActual}`}>Respuesta para la matriz {matrizActual + 1} (del 1 al 8)</label>
+                <input
+                  id={`raven-${matrizActual}`}
+                  type="number"
+                  disabled={engine.inputLocked}
+                  min={1}
+                  max={8}
+                  value={respuestas[matrizActual]}
+                  onChange={(e) => handleChange(matrizActual, e.target.value)}
+                  placeholder="Respuesta"
+                  className={styles.input}
+                />
+          </div>
+
+          <div className={styles.navigation}>
+            <BotonPersonalizado onClick={() => irAMatriz(matrizActual - 1)} disabled={matrizActual === 0 || engine.inputLocked} variant="secondary">
+              Anterior
+            </BotonPersonalizado>
+            {matrizActual < totalPreguntas - 1 && (
+              <BotonPersonalizado onClick={() => irAMatriz(matrizActual + 1)} disabled={engine.inputLocked} variant="primary">
+                Siguiente
+              </BotonPersonalizado>
+            )}
+          </div>
+
+          <BotonPersonalizado
+            className={styles.boton}
+            onClick={finalizar}
+            disabled={engine.inputLocked || respuestas.some((r) => r === "")}
+            variant="primary"
+          >
+            Finalizar test
+          </BotonPersonalizado>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+
+========== src/components/Tests/TestZulliger/TestZulliger.tsx ==========
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { ZULLIGER_TEST } from "../../../data/tests/zulliger_test";
+
+import BotonPersonalizado from "../../Boton/Boton";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+import TestProgress from "../helpers/TestProgress";
+
+import styles from "./TestZulliger.module.css";
+import relojStyle from "../helpers/countdown.module.css";
+
+import { useTestEngine } from "../helpers/useTestEngine";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type Rotacion = 0 | 90 | 180 | 270;
+
+type RespuestaOrientacion = {
+  rotacion: Rotacion;
+  respuesta: string;
+};
+
+type RespuestaLamina = {
+  lamina: number;
+  orientaciones: RespuestaOrientacion[];
+};
+
+type Props = {
+  onFinish: (resultado: any) => void | Promise<void>;
+  userId: string | number;
+};
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
+const ROTACIONES: Rotacion[] = [0, 90, 180, 270];
+
+const crearRespuestasIniciales = (): RespuestaLamina[] =>
+  ZULLIGER_TEST.imagenes.map((_, index) => ({
+    lamina: index + 1,
+
+    orientaciones: ROTACIONES.map((rotacion) => ({
+      rotacion,
+      respuesta: "",
+    })),
+  }));
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
+export default function TestZulliger({
+  onFinish,
+  userId,
+}: Props) {
+  const navigate = useNavigate();
+
+  const [canStart, setCanStart] = useState(false);
+
+  const [respuestas, setRespuestas] =
+    useState<RespuestaLamina[]>(
+      crearRespuestasIniciales,
+    );
+
+  /*
+   * Guarda qué orientación está viendo actualmente
+   * el paciente para cada lámina.
+   *
+   * Ejemplo:
+   * [0, 2, 1]
+   *
+   * Lámina 1 -> orientación 0°
+   * Lámina 2 -> orientación 180°
+   * Lámina 3 -> orientación 90°
+   */
+  const [slidesActivos, setSlidesActivos] = useState<number[]>(
+    () =>
+      Array(ZULLIGER_TEST.imagenes.length).fill(0),
+  );
+
+  const [laminaActual, setLaminaActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(ZULLIGER_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+
+  const [enviando, setEnviando] = useState(false);
+
+  /* =======================================================
+     ENGINE
+  ======================================================= */
+
+  const engine = useTestEngine({
+    userId,
+
+    testId: "zulliger",
+
+    timeLimitMs: 30 * 60 * 1000,
+
+    onFinish: async (data) => {
+      await onFinish(data);
+
+      navigate("/app/tests", {
+        replace: true,
+      });
+    },
+  });
+
+  /* =======================================================
+     TIMER
+  ======================================================= */
+
+  const tiempoRestante =
+    engine.minutes * 60 +
+    engine.seconds;
+
+  let timerClass =
+    relojStyle.timer;
+
+  if (tiempoRestante < 60) {
+    timerClass +=
+      ` ${relojStyle.danger}`;
+  } else if (tiempoRestante < 300) {
+    timerClass +=
+      ` ${relojStyle.warning}`;
+  }
+
+  /* =======================================================
+     RESPUESTAS
+  ======================================================= */
+
+  const handleChange = (
+    laminaIndex: number,
+    orientacionIndex: number,
+    texto: string,
+  ) => {
+    const nuevasRespuestas =
+      respuestas.map(
+        (lamina, index) => {
+          if (index !== laminaIndex) {
+            return lamina;
+          }
+
+          return {
+            ...lamina,
+
+            orientaciones:
+              lamina.orientaciones.map(
+                (orientacion, indexOrientacion) => {
+                  if (
+                    indexOrientacion !==
+                    orientacionIndex
+                  ) {
+                    return orientacion;
+                  }
+
+                  return {
+                    ...orientacion,
+                    respuesta: texto,
+                  };
+                },
+              ),
+          };
+        },
+      );
+
+    setRespuestas(nuevasRespuestas);
+
+    /*
+     * Guardamos la estructura completa.
+     *
+     * Esto permite identificar:
+     * - qué lámina es,
+     * - qué orientación tiene,
+     * - qué respondió el paciente.
+     */
+    engine.update({
+      respuestas: nuevasRespuestas,
+    });
+  };
+
+  /* =======================================================
+     CAROUSEL
+  ======================================================= */
+
+  const cambiarSlide = (
+    laminaIndex: number,
+    nuevoSlide: number,
+  ) => {
+    setSlidesActivos((prev) => {
+      const copia = [...prev];
+
+      copia[laminaIndex] = nuevoSlide;
+
+      return copia;
+    });
+  };
+
+  const slideAnterior = (
+    laminaIndex: number,
+  ) => {
+    const actual =
+      slidesActivos[laminaIndex];
+
+    const nuevo =
+      actual === 0
+        ? ROTACIONES.length - 1
+        : actual - 1;
+
+    cambiarSlide(
+      laminaIndex,
+      nuevo,
+    );
+  };
+
+  const slideSiguiente = (
+    laminaIndex: number,
+  ) => {
+    const actual =
+      slidesActivos[laminaIndex];
+
+    const nuevo =
+      actual === ROTACIONES.length - 1
+        ? 0
+        : actual + 1;
+
+    cambiarSlide(
+      laminaIndex,
+      nuevo,
+    );
+  };
+
+  const irALamina = (index: number) => {
+    setLaminaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  /* =======================================================
+     PROGRESO
+  ======================================================= */
+
+  /*
+   * Una orientación está respondida solamente
+   * cuando contiene texto real.
+   */
+  const orientacionRespondida = (
+    laminaIndex: number,
+    orientacionIndex: number,
+  ) =>
+    respuestas[laminaIndex]
+      .orientaciones[orientacionIndex]
+      .respuesta
+      .trim()
+      .length > 0;
+
+  const cantidadOrientacionesRespondidas = (
+    laminaIndex: number,
+  ) =>
+    respuestas[laminaIndex]
+      .orientaciones
+      .filter(
+        (orientacion) =>
+          orientacion.respuesta
+            .trim()
+            .length > 0,
+      )
+      .length;
+
+  /*
+   * La lámina se considera COMPLETA únicamente
+   * cuando sus cuatro orientaciones tienen respuesta.
+   */
+  const completadas =
+    respuestas.map(
+      (lamina) =>
+        lamina.orientaciones.every(
+          (orientacion) =>
+            orientacion.respuesta
+              .trim()
+              .length > 0,
+        ),
+    );
+
+  const cantidadCompletadas =
+    completadas.filter(Boolean).length;
+
+  const totalLaminas =
+    ZULLIGER_TEST.imagenes.length;
+
+  const totalOrientaciones =
+    totalLaminas *
+    ROTACIONES.length;
+
+  const orientacionesCompletadas =
+    respuestas.reduce(
+      (total, lamina) =>
+        total +
+        lamina.orientaciones.filter(
+          (orientacion) =>
+            orientacion.respuesta
+              .trim()
+              .length > 0,
+        ).length,
+      0,
+    );
+
+  const testCompleto =
+    orientacionesCompletadas ===
+    totalOrientaciones;
+
+  /* =======================================================
+     FINALIZAR
+  ======================================================= */
+
+  const finalizar = async () => {
+    if (
+      !engine.started ||
+      enviando ||
+      engine.inputLocked ||
+      !testCompleto
+    ) {
+      return;
+    }
+
+    setEnviando(true);
+
+    try {
+      await engine.submit({
+        /*
+         * Estructura preparada para persistencia y PDF:
+         *
+         * respuestas: [
+         *   {
+         *     lamina: 1,
+         *     orientaciones: [
+         *       {
+         *         rotacion: 0,
+         *         respuesta: "..."
+         *       },
+         *       ...
+         *     ]
+         *   }
+         * ]
+         */
+        respuestas,
+
+        nivel:
+          "Interpretación Láminas",
+
+        metodo: "Zulliger",
+
+        totalLaminas,
+
+        orientacionesPorLamina:
+          ROTACIONES.length,
+
+        totalRespuestas:
+          orientacionesCompletadas,
+      });
+    } catch (error) {
+      console.error(
+        "Error al finalizar:",
+        error,
+      );
+
+      setEnviando(false);
+    }
+  };
+
+  /* =======================================================
+     INTRODUCCIÓN
+  ======================================================= */
+
+  if (!engine.started) {
+    return (
+      <TestIntroModal
+        nombre="Test Zulliger"
+        descripcion="Evaluación mediante interpretación de láminas"
+        duracion="30 minutos"
+        canStart={canStart}
+        onConsentChange={
+          setCanStart
+        }
+        onStart={
+          engine.start
+        }
+        instrucciones={[
+          {
+            titulo:
+              "Observe cada lámina",
+
+            texto: (
+              <p>
+                Durante la evaluación se
+                presentarán distintas
+                láminas. Cada una podrá
+                observarse en cuatro
+                orientaciones diferentes.
+              </p>
+            ),
+          },
+
+          {
+            titulo:
+              "Observe las cuatro orientaciones",
+
+            texto: (
+              <p>
+                Utilice las flechas del
+                carrusel para observar cada
+                lámina en 0°, 90°, 180° y
+                270°. Cada orientación tiene
+                su propio campo de respuesta.
+              </p>
+            ),
+          },
+
+          {
+            titulo:
+              "Describa su percepción",
+
+            texto: (
+              <p>
+                Para cada orientación,
+                escriba qué ve, qué
+                interpreta y qué siente o
+                piensa al observarla. No es
+                necesario buscar una
+                respuesta específica.
+              </p>
+            ),
+          },
+
+          {
+            titulo:
+              "Responda con tranquilidad",
+
+            texto: (
+              <p>
+                Utilice sus propias palabras
+                y procure describir su
+                percepción de la forma más
+                clara posible.
+              </p>
+            ),
+          },
+        ]}
+      />
+    );
+  }
+
+  /* =======================================================
+     TEST
+  ======================================================= */
+
+  return (
+    <main className={styles.page}>
+      {engine.feedback}
+
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
+      <header
+        className={styles.testHeader}
+      >
+        <div>
+          <span
+            className={styles.eyebrow}
+          >
+            Evaluación en curso
+          </span>
+
+          <h1>
+            {ZULLIGER_TEST.nombre}
+          </h1>
+
+          <p>
+            Observe cada lámina en sus
+            cuatro orientaciones y escriba
+            qué percibe en cada una.
+          </p>
+        </div>
+
+        <div
+          className={styles.timeBlock}
+        >
+          <span>
+            Tiempo restante
+          </span>
+
+          <div
+            className={timerClass}
+          >
+            {engine.minutes}:
+            {String(
+              engine.seconds,
+            ).padStart(2, "0")}
+          </div>
+        </div>
+      </header>
+
+      {/* ===================================================
+          CAMERA
+      =================================================== */}
+
+      {engine.CameraComponent && (
+        <engine.CameraComponent />
+      )}
+
+      {/* ===================================================
+          WORKSPACE
+      =================================================== */}
+
+      <div
+        className={styles.workspace}
+      >
+        {/* =================================================
+            SIDEBAR
+        ================================================= */}
+
+        <div
+          className={styles.sidebar}
+        >
+          <TestProgress
+            total={totalLaminas}
+            completadas={completadas}
+            visitadas={visitadas}
+            activa={laminaActual}
+            onSelect={irALamina}
+            titulo="Láminas"
+            itemLabel="Lámina"
+          />
+        </div>
+
+        {/* =================================================
+            CONTENT
+        ================================================= */}
+
+        <section
+          className={
+            styles.testContent
+          }
+        >
+          {ZULLIGER_TEST.imagenes.slice(laminaActual, laminaActual + 1).map(
+            (img) => {
+              const laminaIndex = laminaActual;
+              const slideActual =
+                slidesActivos[
+                  laminaIndex
+                ];
+
+              const rotacion =
+                ROTACIONES[
+                  slideActual
+                ];
+
+              const respuestaActual =
+                respuestas[
+                  laminaIndex
+                ].orientaciones[
+                  slideActual
+                ].respuesta;
+
+              const respondidasLamina =
+                cantidadOrientacionesRespondidas(
+                  laminaIndex,
+                );
+
+              const estaCompleta =
+                completadas[
+                  laminaIndex
+                ];
+
+              return (
+                <article
+                  id={`test-item-${laminaIndex}`}
+                  key={laminaIndex}
+                  className={`${
+                    styles.laminaCard
+                  } ${
+                    estaCompleta
+                      ? styles.laminaCompleted
+                      : ""
+                  }`}
+                >
+                  {/* =======================================
+                      HEADER LÁMINA
+                  ======================================= */}
+
+                  <header
+                    className={
+                      styles.laminaHeader
+                    }
+                  >
+                    <div>
+                      <span
+                        className={
+                          styles.laminaEyebrow
+                        }
+                      >
+                        Lámina{" "}
+                        {String(
+                          laminaIndex +
+                            1,
+                        ).padStart(
+                          2,
+                          "0",
+                        )}{" "}
+                        · de{" "}
+                        {String(
+                          totalLaminas,
+                        ).padStart(
+                          2,
+                          "0",
+                        )}
+                      </span>
+
+                      <h2>
+                        Observe la imagen
+                        desde cada
+                        orientación
+                      </h2>
+                    </div>
+
+                    <div
+                      className={
+                        styles.laminaProgress
+                      }
+                    >
+                      <span
+                        className={`${styles.status} ${
+                          estaCompleta
+                            ? styles.statusCompleted
+                            : styles.statusPending
+                        }`}
+                        title={
+                          estaCompleta
+                            ? "Las cuatro orientaciones tienen respuesta"
+                            : `${respondidasLamina} de 4 orientaciones respondidas`
+                        }
+                      >
+                        <span />
+
+                        {estaCompleta
+                          ? "Completa"
+                          : `${respondidasLamina}/4`}
+                      </span>
+                    </div>
+                  </header>
+
+                  {/* =======================================
+                      ORIENTATION INFO
+                  ======================================= */}
+
+                  <div
+                    className={
+                      styles.orientationHeader
+                    }
+                  >
+                    <div>
+                      <span
+                        className={
+                          styles.orientationEyebrow
+                        }
+                      >
+                        Orientación actual
+                      </span>
+
+                      <strong>
+                        {rotacion}°
+                      </strong>
+                    </div>
+
+                    <span
+                      className={
+                        styles.slideCounter
+                      }
+                    >
+                      Vista{" "}
+                      {slideActual + 1} de{" "}
+                      {ROTACIONES.length}
+                    </span>
+                  </div>
+
+                  {/* =======================================
+                      CAROUSEL
+                  ======================================= */}
+
+                  <div
+                    className={
+                      styles.carousel
+                    }
+                  >
+                    <button
+                      type="button"
+                      className={
+                        styles.carouselArrow
+                      }
+                      onClick={() =>
+                        slideAnterior(
+                          laminaIndex,
+                        )
+                      }
+                      disabled={
+                        engine.inputLocked
+                      }
+                      aria-label={`Ver orientación anterior de la lámina ${
+                        laminaIndex + 1
+                      }`}
+                    >
+                      ‹
+                    </button>
+
+                    <div
+                      className={
+                        styles.imageArea
+                      }
+                    >
+                      <div
+                        className={
+                          styles.imageFrame
+                        }
+                      >
+                        <img
+                          src={img}
+                          alt={`Lámina ${
+                            laminaIndex +
+                            1
+                          }, orientación ${rotacion} grados`}
+                          style={{
+                            transform: `rotate(${rotacion}deg)`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={
+                        styles.carouselArrow
+                      }
+                      onClick={() =>
+                        slideSiguiente(
+                          laminaIndex,
+                        )
+                      }
+                      disabled={
+                        engine.inputLocked
+                      }
+                      aria-label={`Ver orientación siguiente de la lámina ${
+                        laminaIndex + 1
+                      }`}
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  {/* =======================================
+                      CAROUSEL DOTS / ORIENTATIONS
+                  ======================================= */}
+
+                  <div
+                    className={
+                      styles.orientationNav
+                    }
+                    aria-label={`Orientaciones de la lámina ${
+                      laminaIndex + 1
+                    }`}
+                  >
+                    {ROTACIONES.map(
+                      (
+                        angulo,
+                        orientacionIndex,
+                      ) => {
+                        const activa =
+                          orientacionIndex ===
+                          slideActual;
+
+                        const respondida =
+                          orientacionRespondida(
+                            laminaIndex,
+                            orientacionIndex,
+                          );
+
+                        return (
+                          <button
+                            key={
+                              angulo
+                            }
+                            type="button"
+                            disabled={
+                              engine.inputLocked
+                            }
+                            onClick={() =>
+                              cambiarSlide(
+                                laminaIndex,
+                                orientacionIndex,
+                              )
+                            }
+                            className={`${styles.orientationButton} ${
+                              activa
+                                ? styles.orientationButtonActive
+                                : ""
+                            } ${
+                              respondida
+                                ? styles.orientationButtonAnswered
+                                : ""
+                            }`}
+                            aria-current={
+                              activa
+                                ? "true"
+                                : undefined
+                            }
+                            title={
+                              respondida
+                                ? `Orientación ${angulo}° · Respondida`
+                                : `Orientación ${angulo}° · Pendiente`
+                            }
+                          >
+                            <span
+                              className={
+                                styles.orientationDot
+                              }
+                            />
+
+                            <strong>
+                              {angulo}°
+                            </strong>
+
+                            <small>
+                              {respondida
+                                ? "Respondida"
+                                : "Pendiente"}
+                            </small>
+                          </button>
+                        );
+                      },
+                    )}
+                  </div>
+
+                  {/* =======================================
+                      ANSWER
+                  ======================================= */}
+
+                  <div
+                    className={
+                      styles.answerArea
+                    }
+                  >
+                    <div
+                      className={
+                        styles.answerHeader
+                      }
+                    >
+                      <div>
+                        <label
+                          htmlFor={`respuesta-${laminaIndex}-${rotacion}`}
+                        >
+                          Respuesta ·
+                          Lámina{" "}
+                          {laminaIndex +
+                            1}{" "}
+                          · {rotacion}°
+                        </label>
+
+                        <p
+                          className={
+                            styles.answerHint
+                          }
+                        >
+                          Describa qué ve,
+                          siente o piensa al
+                          observar esta
+                          orientación.
+                        </p>
+                      </div>
+
+                      <span>
+                        {
+                          respuestaActual.length
+                        }{" "}
+                        caracteres
+                      </span>
+                    </div>
+
+                    <textarea
+                      id={`respuesta-${laminaIndex}-${rotacion}`}
+                      disabled={
+                        engine.inputLocked
+                      }
+                      placeholder={`¿Qué ve en la Lámina ${
+                        laminaIndex + 1
+                      } observada a ${rotacion}°?`}
+                      value={
+                        respuestaActual
+                      }
+                      onChange={(e) =>
+                        handleChange(
+                          laminaIndex,
+                          slideActual,
+                          e.target.value,
+                        )
+                      }
+                      className={
+                        styles.textarea
+                      }
+                    />
+
+                    <div
+                      className={
+                        styles.answerFooter
+                      }
+                    >
+                      <span>
+                        Lámina{" "}
+                        {laminaIndex +
+                          1}
+                      </span>
+
+                      <span
+                        aria-hidden="true"
+                      >
+                        ·
+                      </span>
+
+                      <strong>
+                        Orientación{" "}
+                        {rotacion}°
+                      </strong>
+
+                      {orientacionRespondida(
+                        laminaIndex,
+                        slideActual,
+                      ) && (
+                        <>
+                          <span
+                            aria-hidden="true"
+                          >
+                            ·
+                          </span>
+
+                          <span
+                            className={
+                              styles.savedIndicator
+                            }
+                          >
+                            <i />
+                            Respondida
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            },
+          )}
+
+          <div className={styles.finishCard}>
+            <BotonPersonalizado
+              onClick={() => irALamina(laminaActual - 1)}
+              disabled={laminaActual === 0 || engine.inputLocked}
+              variant="secondary"
+            >
+              Lámina anterior
+            </BotonPersonalizado>
+            {laminaActual < totalLaminas - 1 && (
+              <BotonPersonalizado
+                onClick={() => irALamina(laminaActual + 1)}
+                disabled={engine.inputLocked}
+                variant="primary"
+              >
+                Siguiente lámina
+              </BotonPersonalizado>
+            )}
+          </div>
+
+          {/* =================================================
+              FINALIZAR
+          ================================================= */}
+
+          <footer
+            className={
+              styles.finishCard
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.finishEyebrow
+                }
+              >
+                Progreso
+              </span>
+
+              <strong>
+                {
+                  orientacionesCompletadas
+                }{" "}
+                de{" "}
+                {
+                  totalOrientaciones
+                }{" "}
+                respuestas completadas
+              </strong>
+
+              <p>
+                Cada lámina debe tener
+                respuesta en sus cuatro
+                orientaciones antes de
+                finalizar la evaluación.
+              </p>
+
+              <span
+                className={
+                  styles.finishSecondary
+                }
+              >
+                {
+                  cantidadCompletadas
+                }{" "}
+                de {totalLaminas}{" "}
+                láminas completas
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.finishAction
+              }
+            >
+              <BotonPersonalizado
+                onClick={finalizar}
+                disabled={
+                  enviando ||
+                  engine.inputLocked ||
+                  !testCompleto
+                }
+                variant="primary"
+              >
+                {enviando
+                  ? "Enviando..."
+                  : testCompleto
+                    ? "Finalizar Test"
+                    : `Faltan ${
+                        totalOrientaciones -
+                        orientacionesCompletadas
+                      }`}
+              </BotonPersonalizado>
+            </div>
+          </footer>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+========== src/components/Tests/TestBender/TestBender.tsx ==========
+
+import TestProgress from "../helpers/TestProgress";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BENDER_TEST } from "../../../data/tests/bender_test";
+import RotatableImage from "./RotatableImage";
+import BotonPersonalizado from "../../Boton/Boton";
+import styles from "./TestBender.module.css";
+import relojStyle from "../helpers/countdown.module.css";
+import { useTestEngine } from "../helpers/useTestEngine";
+
+type Props = {
+  onFinish: (resultado: any) => void | Promise<void>;
+  userId: string | number;
+};
+
+export default function TestBender({ onFinish, userId }: Props) {
+  const navigate = useNavigate();
+  const [canStart, setCanStart] = useState(false);
+  const [respuestas, setRespuestas] = useState<string[]>(
+    Array(BENDER_TEST.imagenes.length).fill("")
+  );
+  const [laminaActual, setLaminaActual] = useState(0);
+  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
+    const iniciales = Array(BENDER_TEST.imagenes.length).fill(false);
+    iniciales[0] = true;
+    return iniciales;
+  });
+  const [enviando, setEnviando] = useState(false);
+
+  const engine = useTestEngine({
+    userId,
+    testId: "bender",
+    timeLimitMs: 30 * 60 * 1000,
+    onFinish: async (data) => {
+      await onFinish(data);
+      navigate("/app/tests", { replace: true });
+    },
+  });
+
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
+  let timerClass = relojStyle.timer;
+  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
+  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
+
+  const handleChange = (index: number, texto: string) => {
+    const copy = [...respuestas];
+    copy[index] = texto;
+    setRespuestas(copy);
+    engine.update({ respuestas: copy });
+  };
+
+  const finalizar = async () => {
+    if (!engine.started || enviando) return;
+    setEnviando(true);
+
+    try {
+      await engine.submit({
+        respuestas,
+        nivel: "Interpretación Láminas",
+        metodo: "Bender",
+      });
+    } catch (error) {
+      console.error("Error al finalizar:", error);
+      setEnviando(false);
+    }
+  };
+
+  const irALamina = (index: number) => {
+    setLaminaActual(index);
+    setVisitadas((prev) => {
+      if (prev[index]) return prev;
+      const copia = [...prev];
+      copia[index] = true;
+      return copia;
+    });
+  };
+
+  const irSiguiente = () => {
+    if (laminaActual < respuestas.length - 1) {
+      irALamina(laminaActual + 1);
+    }
+  };
+
+  const irAnterior = () => {
+    if (laminaActual > 0) {
+      irALamina(laminaActual - 1);
+    }
+  };
+
+  if (!engine.started) {
+    return <TestIntroModal nombre="Test Bender" descripcion="Observe las láminas y escriba su respuesta"
+      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
+      startDisabled={false} instrucciones={[{ titulo: "Observe cada lámina", texto: <p>Mire cada imagen con atención.</p> },
+{ titulo: "Escriba su respuesta", texto: <p>Describa qué ve y qué siente o piensa al observarla. Puede revisar lo escrito antes de finalizar.</p> }]} />;
+  }
+
+  return (
+    <div className={styles.page}>
+      {engine.feedback}
+      <header className={styles.header}>
+        <div><h1>{BENDER_TEST.nombre}</h1><p>Observe cada lámina y escriba qué ve, siente o piensa al verla.</p></div>
+        <div aria-label="Tiempo restante" className={timerClass}>
+          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
+        </div>
+      </header>
+      {engine.CameraComponent && <engine.CameraComponent />}
+
+      <div className={styles.workspace}>
+      <TestProgress
+        total={respuestas.length}
+        completadas={respuestas.map((r) => Boolean(r.trim()))}
+        visitadas={visitadas}
+        activa={laminaActual}
+        onSelect={irALamina}
+      />
+      <div className={styles.container}>
+        <div id={`test-item-${laminaActual}`} className={styles.containerImg}>
+            <h2>Lámina {laminaActual + 1}</h2>
+            <RotatableImage src={BENDER_TEST.imagenes[laminaActual]} />
+            <label htmlFor={`bender-${laminaActual}`}>Su respuesta para la lámina {laminaActual + 1}</label>
+            <textarea
+              id={`bender-${laminaActual}`}
+              disabled={engine.inputLocked}
+              placeholder="¿Qué ves en esta lámina? ¿Qué sientes o piensas al verla?"
+              value={respuestas[laminaActual]}
+              onChange={(e) => handleChange(laminaActual, e.target.value)}
+              className={styles.textarea}
+            />
+        </div>
+
+        <div className={styles.navigation}>
+          <BotonPersonalizado onClick={irAnterior} disabled={laminaActual === 0 || engine.inputLocked} variant="secondary">
+            Anterior
+          </BotonPersonalizado>
+          {laminaActual < respuestas.length - 1 && (
+            <BotonPersonalizado onClick={irSiguiente} disabled={engine.inputLocked} variant="primary">
+              Siguiente
+            </BotonPersonalizado>
+          )}
+        </div>
+
+        <BotonPersonalizado
+          onClick={finalizar}
+          disabled={enviando || engine.inputLocked}
+          variant="primary"
+        >
+          {enviando ? "Enviando..." : "Finalizar Test"}
+        </BotonPersonalizado>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+
+========== src/utils/patientAccess.ts ==========
+
+import { browserLocalPersistence, inMemoryPersistence, setPersistence, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { auth, firebaseConfig } from "../firebase/firebase";
+import { clearPacienteSession, setPacienteSession } from "./pacienteSession";
+
+const esDesarrollo = import.meta.env.DEV;
+const MASTER_KEY = "join_master_access_v1";
+type Session = { pacienteId: string; token: string };
+type Status = { active: boolean; restoring: boolean; master: boolean; testId: string | null; awayUntil: number | null; message: string; connectionLost: boolean };
+let session: Session | null = null;
+let status: Status = { active: false, restoring: true, master: false, testId: null, awayUntil: null, message: "", connectionLost: false };
+const listeners = new Set<() => void>();
+const functions = getFunctions(auth.app);
+type StartResult = { id: string; esPacienteMaestro?: boolean; testId?: string | null; [key: string]: unknown };
+const startCall = httpsCallable<{ token: string }, StartResult>(functions, "iniciarAccesoPaciente");
+const actionCall = httpsCallable<Record<string, unknown>, { estado: string; testAbandonado?: string; fueraHastaMs?: number | null }>(functions, "actualizarAccesoPaciente", { timeout: 20000 });
+let cleanup: (() => void) | null = null;
+let audio: AudioContext | null = null;
+let lastContact = 0;
+let queue: Promise<unknown> = Promise.resolve();
+let pendingAbandon: string | null = null;
+let checkActivity: (() => void) | null = null;
+const emit = (change: Partial<Status>) => { status = { ...status, ...change }; listeners.forEach(fn => fn()); };
+export const accessStore = { subscribe: (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; }, snapshot: () => status };
+export const hasPatientAccess = () => session !== null && status.active;
+export const isMasterPatient = () => status.active && status.master;
+
+function clearAccess(message: string) {
+  cleanup?.(); cleanup = null;
+  session = null; pendingAbandon = null;
+  localStorage.removeItem(MASTER_KEY);
+  clearPacienteSession();
+  void signOut(auth).catch(() => {});
+  emit({ active: false, restoring: false, master: false, testId: null, awayUntil: null, message, connectionLost: false });
+}
+export function closeBeacon() {
+  if (!session || status.master) return;
+  const body = JSON.stringify(session);
+  const url = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/cerrarAccesoPaciente`;
+  let sent = false;
+  try { sent = navigator.sendBeacon(url, new Blob([body], { type: "text/plain" })); } catch { /* fallback */ }
+  if (!sent) void fetch(url, { method: "POST", body, headers: { "Content-Type": "text/plain" }, keepalive: true }).catch(() => {});
+}
+export function accessAction(accion: string, extra: Record<string, unknown> = {}) {
+  const requestSession = session;
+  const run = async () => {
+    if (!requestSession || session !== requestSession) throw new Error("No hay una sesión de evaluación activa.");
+    const { data } = await actionCall({ ...requestSession, accion, ...extra });
+    if (session !== requestSession) return data;
+    lastContact = Date.now(); emit({ connectionLost: false });
+    if (data.estado !== "activa") clearAccess(status.master ? "Sesión de pruebas cerrada." : "Su sesión finalizó. El acceso quedó inhabilitado; contacte a administración si necesita asistencia.");
+    else if (data.testAbandonado) emit({ testId: null, awayUntil: null, message: "La evaluación se marcó como abandonada y no puede retomarse." });
+    else if (data.fueraHastaMs !== undefined) emit({ awayUntil: data.fueraHastaMs });
+    return data;
+  };
+  const promise = queue.then(run); queue = promise.catch(() => {}); return promise;
+}
+function reportFailure() {
+  emit({ connectionLost: true });
+  if (Date.now() - lastContact >= 120000) {
+    if (!status.master) closeBeacon();
+    clearAccess(status.master ? "La conexión se perdió. Ingresá nuevamente para recuperar la sesión de pruebas." : "No se pudo mantener la conexión. El acceso quedó bloqueado. Contacte a administración.");
+  }
+}
+function warnSound() {
+  if (!audio || audio.state !== "running") return;
+  const oscillator = audio.createOscillator(); const gain = audio.createGain();
+  oscillator.connect(gain); gain.connect(audio.destination); oscillator.frequency.value = 660;
+  gain.gain.setValueAtTime(0.08, audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.35);
+  oscillator.start(); oscillator.stop(audio.currentTime + 0.35);
+}
+function attachLifecycle() {
+  cleanup?.();
+  let hidden = false; let observedTest: string | null = null;
+  const activity = () => {
+    if (status.master) return;
+    if (observedTest !== status.testId) { hidden = false; observedTest = status.testId; }
+    if (!status.testId) return;
+    const away = document.visibilityState === "hidden" || !document.hasFocus();
+    if (away === hidden) return;
+    hidden = away;
+    if (away) { emit({ awayUntil: status.awayUntil ?? Date.now() + 120000 }); warnSound(); void accessAction("fuera").catch(reportFailure); }
+    else void accessAction("volver").catch(reportFailure);
+  };
+  const pagehide = () => {
+    if (esDesarrollo || status.master) return;
+    closeBeacon(); clearAccess("La sesión se cerró. Contacte a administración si necesita volver a ingresar.");
+  };
+  const beforeunload = (event: BeforeUnloadEvent) => {
+    if (esDesarrollo || status.master || !session || !status.testId) return;
+    event.preventDefault(); event.returnValue = "";
+  };
+  const interval = window.setInterval(() => {
+    if (!session) return;
+    if (Date.now() - lastContact >= 120000) { reportFailure(); return; }
+    if (pendingAbandon) void abandonPatientTest(pendingAbandon).catch(reportFailure);
+    else void accessAction("latido").catch(reportFailure);
+  }, 15000);
+  checkActivity = activity;
+  window.addEventListener("pagehide", pagehide); window.addEventListener("beforeunload", beforeunload);
+  window.addEventListener("blur", activity); window.addEventListener("focus", activity);
+  document.addEventListener("visibilitychange", activity);
+  cleanup = () => {
+    checkActivity = null; clearInterval(interval);
+    window.removeEventListener("pagehide", pagehide); window.removeEventListener("beforeunload", beforeunload);
+    window.removeEventListener("blur", activity); window.removeEventListener("focus", activity);
+    document.removeEventListener("visibilitychange", activity);
+  };
+}
+const newToken = () => [...crypto.getRandomValues(new Uint8Array(32))].map(n => n.toString(16).padStart(2, "0")).join("");
+let pendingLoginToken: string | null = null;
+let restorePromise: Promise<void> | null = null;
+export function restorePatientAccess(): Promise<void> {
+  if (restorePromise) return restorePromise;
+  restorePromise = (async () => {
+    try {
+      const raw = localStorage.getItem(MASTER_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Session;
+      if (!saved || typeof saved.pacienteId !== "string" || !/^[a-f0-9]{64}$/.test(saved.token)) throw new Error("Sesión inválida");
+      await auth.authStateReady();
+      if (!auth.currentUser) throw new Error("No hay autenticación persistente");
+      const { data: patient } = await startCall({ token: saved.token });
+      if (patient.esPacienteMaestro !== true || patient.id !== saved.pacienteId) throw new Error("La cuenta no es maestra");
+      session = saved; setPacienteSession(patient, patient.id);
+      lastContact = Date.now();
+      emit({ active: true, master: true, testId: typeof patient.testId === "string" ? patient.testId : null, awayUntil: null, message: "", connectionLost: false });
+      attachLifecycle();
+    } catch {
+      localStorage.removeItem(MASTER_KEY); clearPacienteSession();
+      await signOut(auth).catch(() => {});
+    } finally { emit({ restoring: false }); }
+  })();
+  return restorePromise;
+}
+void restorePatientAccess();
+export async function loginPatient(dni: string, password: string) {
+  await restorePatientAccess();
+  if (session) clearAccess("");
+  // Only the server can grant master status. Use in-memory authentication for all other accounts.
+  await setPersistence(auth, inMemoryPersistence);
+  await signInWithEmailAndPassword(auth, `${dni}@paciente.com`, password);
+  pendingLoginToken ??= newToken();
+  try {
+    const { data: patient } = await startCall({ token: pendingLoginToken });
+    const master = patient.esPacienteMaestro === true;
+    if (master) await setPersistence(auth, browserLocalPersistence);
+    session = { pacienteId: patient.id, token: pendingLoginToken };
+    if (master) localStorage.setItem(MASTER_KEY, JSON.stringify(session));
+    else localStorage.removeItem(MASTER_KEY);
+    pendingLoginToken = null;
+    setPacienteSession(patient, patient.id);
+    lastContact = Date.now();
+    emit({ active: true, restoring: false, master, testId: master && typeof patient.testId === "string" ? patient.testId : null, awayUntil: null, message: "", connectionLost: false });
+    attachLifecycle();
+  } catch (error) { await signOut(auth).catch(() => {}); throw error; }
+}
+export async function logoutPatient() {
+  if (!session) return;
+  if (!status.master) closeBeacon();
+  try { await accessAction("cerrar"); }
+  finally { clearAccess(status.master ? "Sesión de pruebas cerrada." : "Su sesión finalizó y el acceso quedó inhabilitado."); }
+}
+export async function beginPatientTest(testId: string) {
+  if (status.master && status.testId === testId) return;
+  if (pendingAbandon || status.testId) throw new Error("Espere a que finalice la evaluación anterior.");
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error("Necesita una computadora con cámara y un navegador compatible.");
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  stream.getTracks().forEach(track => track.stop());
+  try { audio ??= new AudioContext(); await audio.resume(); } catch { /* visual warning */ }
+  const result = await accessAction("iniciarTest", { testId });
+  if (result.estado !== "activa" || result.testAbandonado) throw new Error("La evaluación no está disponible.");
+  emit({ testId, message: "", awayUntil: null }); checkActivity?.();
+}
+export async function abandonPatientTest(testId: string) {
+  if (status.testId !== testId) { if (pendingAbandon === testId) pendingAbandon = null; return; }
+  pendingAbandon = testId;
+  await accessAction("abandonarTest", { testId }); pendingAbandon = null;
+  emit({ testId: null, awayUntil: null, message: "La evaluación quedó abandonada y no puede retomarse." });
+}
+export async function finishPatientTest(testId: string, resultado: unknown, onSaved?: () => void) {
+  const data = await accessAction("finalizarTest", { testId, resultado });
+  if (data.estado !== "activa" || data.testAbandonado) throw new Error("La evaluación quedó bloqueada.");
+  onSaved?.(); emit({ testId: null, awayUntil: null, message: "" });
+}
+
