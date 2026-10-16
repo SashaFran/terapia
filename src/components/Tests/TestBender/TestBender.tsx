@@ -1,4 +1,4 @@
-import TestProgress from "../helpers/TestProgress";
+﻿import TestProgress from "../helpers/TestProgress";
 import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +32,39 @@ export default function TestBender({ onFinish, userId }: Props) {
     userId,
     testId: "bender",
     timeLimitMs: 30 * 60 * 1000,
+    getResult: () => ({
+      respuestas,
+      laminaActual,
+      visitadas,
+    }),
+
+    onRestore: (data: any) => {
+      const total = BENDER_TEST.imagenes.length;
+
+      if (Array.isArray(data.respuestas)) {
+        setRespuestas(
+          Array.from({ length: total }, (_, i) =>
+            typeof data.respuestas[i] === "string"
+              ? data.respuestas[i]
+              : ""
+          )
+        );
+      }
+
+      if (Number.isInteger(data.laminaActual)) {
+        setLaminaActual(
+          Math.max(0, Math.min(total - 1, data.laminaActual))
+        );
+      }
+
+      if (Array.isArray(data.visitadas)) {
+        setVisitadas(
+          Array.from({ length: total }, (_, i) =>
+            Boolean(data.visitadas[i])
+          )
+        );
+      }
+    },
     onFinish: async (data) => {
       await onFinish(data);
       navigate("/app/tests", { replace: true });
@@ -152,3 +185,4 @@ export default function TestBender({ onFinish, userId }: Props) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+﻿import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { K10_TEST } from "../../../data/tests/k10";
@@ -37,7 +37,34 @@ export default function TestK10({ onFinish, userId }: Props) {
     userId: resolvedUserId,
     testId: "k10",
     timeLimitMs: 30 * 60 * 1000,
-    getResult: () => obtenerResultado(),
+    getResult: () => ({ ...obtenerResultado(), preguntaActual, visitadas }),
+    onRestore: (data: any) => {
+      const total = K10_TEST.preguntas.length;
+
+      if (Array.isArray(data.respuestas)) {
+        setRespuestas(
+          Array.from({ length: total }, (_, i) =>
+            typeof data.respuestas[i] === "number"
+              ? data.respuestas[i]
+              : 0
+          )
+        );
+      }
+
+      if (Number.isInteger(data.preguntaActual)) {
+        setPreguntaActual(
+          Math.max(0, Math.min(total - 1, data.preguntaActual))
+        );
+      }
+
+      if (Array.isArray(data.visitadas)) {
+        setVisitadas(
+          Array.from({ length: total }, (_, i) =>
+            Boolean(data.visitadas[i])
+          )
+        );
+      }
+    },
     onFinish: async (data) => {
       if (onFinish) await onFinish(data);
       navigate("/app/dashboard", { replace: true });
@@ -160,3 +187,4 @@ export default function TestK10({ onFinish, userId }: Props) {
     </main>
   );
 }
+

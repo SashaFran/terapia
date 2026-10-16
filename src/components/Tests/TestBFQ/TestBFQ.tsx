@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BFQ_TEST } from "../../../data/tests/BFQ_TEST";
@@ -61,7 +61,34 @@ export default function TestBFQ({
 
     timeLimitMs: 30 * 60 * 1000,
 
-    getResult: () => obtenerResultado(),
+    getResult: () => ({ ...obtenerResultado(), preguntaActual, visitadas }),
+    onRestore: (data: any) => {
+      const total = BFQ_TEST.preguntas.length;
+
+      if (Array.isArray(data.respuestas)) {
+        setRespuestas(
+          Array.from({ length: total }, (_, i) =>
+            typeof data.respuestas[i] === "number"
+              ? data.respuestas[i]
+              : 0
+          )
+        );
+      }
+
+      if (Number.isInteger(data.preguntaActual)) {
+        setPreguntaActual(
+          Math.max(0, Math.min(total - 1, data.preguntaActual))
+        );
+      }
+
+      if (Array.isArray(data.visitadas)) {
+        setVisitadas(
+          Array.from({ length: total }, (_, i) =>
+            Boolean(data.visitadas[i])
+          )
+        );
+      }
+    },
 
     onFinish: async (data) => {
       await onFinish(data);
@@ -637,3 +664,4 @@ export default function TestBFQ({
     </main>
   );
 }
+

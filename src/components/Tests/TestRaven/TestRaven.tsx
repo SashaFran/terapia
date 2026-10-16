@@ -1,4 +1,4 @@
-import TestProgress from "../helpers/TestProgress";
+﻿import TestProgress from "../helpers/TestProgress";
 import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
 import { useState } from "react";
 import BotonPersonalizado from "../../Boton/Boton";
@@ -31,7 +31,43 @@ export default function TestRaven({ onFinish, userId }: Props) {
     userId,
     testId: "raven",
     timeLimitMs: 30 * 60 * 1000,
-    getResult: () => obtenerResultado(),
+    getResult: () => ({ ...obtenerResultado(), matrizActual, visitadas }),
+    onRestore: (data: any) => {
+      const total = RAVEN_TEST.imagenes.length;
+
+      if (Array.isArray(data.respuestas)) {
+        setRespuestas(
+          Array.from({ length: total }, (_, i) => {
+            const item = data.respuestas[i];
+            const valor =
+              typeof item === "object" && item !== null
+                ? item.respuesta
+                : item;
+
+            if (valor === "Sin respuesta" || valor == null) {
+              return "";
+            }
+
+            const texto = String(valor);
+            return /^[1-8]$/.test(texto) ? texto : "";
+          })
+        );
+      }
+
+      if (Number.isInteger(data.matrizActual)) {
+        setMatrizActual(
+          Math.max(0, Math.min(total - 1, data.matrizActual))
+        );
+      }
+
+      if (Array.isArray(data.visitadas)) {
+        setVisitadas(
+          Array.from({ length: total }, (_, i) =>
+            Boolean(data.visitadas[i])
+          )
+        );
+      }
+    },
     onFinish,
   });
 
@@ -167,3 +203,4 @@ export default function TestRaven({ onFinish, userId }: Props) {
     </div>
   );
 }
+

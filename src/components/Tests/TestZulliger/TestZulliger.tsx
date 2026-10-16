@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ZULLIGER_TEST } from "../../../data/tests/zulliger_test";
@@ -101,6 +101,63 @@ export default function TestZulliger({
     testId: "zulliger",
 
     timeLimitMs: 30 * 60 * 1000,
+    getResult: () => ({
+      respuestas,
+      laminaActual,
+      visitadas,
+      slidesActivos,
+    }),
+
+    onRestore: (data: any) => {
+      const total = ZULLIGER_TEST.imagenes.length;
+
+      if (Array.isArray(data.respuestas)) {
+        const iniciales = crearRespuestasIniciales();
+
+        const recuperadas = iniciales.map((lamina, i) => ({
+          ...lamina,
+          orientaciones: lamina.orientaciones.map((orientacion, j) => {
+            const guardada =
+              data.respuestas[i]?.orientaciones?.[j];
+
+            return {
+              ...orientacion,
+              respuesta:
+                typeof guardada?.respuesta === "string"
+                  ? guardada.respuesta
+                  : "",
+            };
+          }),
+        }));
+
+        setRespuestas(recuperadas);
+      }
+
+      if (Number.isInteger(data.laminaActual)) {
+        setLaminaActual(
+          Math.max(0, Math.min(total - 1, data.laminaActual))
+        );
+      }
+
+      if (Array.isArray(data.visitadas)) {
+        setVisitadas(
+          Array.from({ length: total }, (_, i) =>
+            Boolean(data.visitadas[i])
+          )
+        );
+      }
+
+      if (Array.isArray(data.slidesActivos)) {
+        setSlidesActivos(
+          Array.from({ length: total }, (_, i) => {
+            const valor = data.slidesActivos[i];
+            return Number.isInteger(valor)
+              ? Math.max(0, Math.min(3, valor))
+              : 0;
+          })
+        );
+      }
+    },
 
     onFinish: async (data) => {
       await onFinish(data);
