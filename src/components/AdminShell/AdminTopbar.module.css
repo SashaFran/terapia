@@ -8,9 +8,7 @@
 
   display: grid;
   grid-template-columns:
-    minmax(220px, auto)
-    minmax(240px, 430px)
-    minmax(220px, auto);
+    minmax(220px, auto) minmax(240px, 430px) minmax(220px, auto);
 
   align-items: center;
 
@@ -21,12 +19,11 @@
 
   padding: 0 30px;
 
-  color: #f7f4ed;
 
   border-bottom:
-    1px solid
-    rgba(255, 255, 255, 0.09);
+    1px solid rgba(255, 255, 255, 0.09);
 }
+
 
 /* =========================================================
    DASHBOARD
@@ -35,7 +32,7 @@
 .heroTopbar {
   color: #20170c;
 
-background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naranja2) 68%, #ff4938 100% );
+  background: linear-gradient(110deg, #ffc52f 0%, var(--naranja) 38%, var(--naranja2) 68%, #ff4938 100%);
   border-bottom-color:
     rgba(61, 37, 8, 0.12);
 }
@@ -82,6 +79,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }
+
 .mark {
   display: flex;
   align-items: center;
@@ -130,9 +128,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
 
   color: #858178;
 
-  border-left:
-    1px solid
-    rgba(255, 255, 255, 0.13);
+border-left: 1px solid currentColor;
 
   font-size: var(--font-size-mid);
   font-weight: 600;
@@ -177,8 +173,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
     rgba(255, 255, 255, 0.055);
 
   border:
-    1px solid
-    rgba(255, 255, 255, 0.09);
+    1px solid rgba(255, 255, 255, 0.09);
 
   border-radius: 10px;
 
@@ -198,11 +193,10 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
     rgba(255, 176, 0, 0.5);
 
   box-shadow:
-    0 0 0 3px
-    rgba(255, 176, 0, 0.08);
+    0 0 0 3px rgba(255, 176, 0, 0.08);
 }
 
-.search > svg {
+.search>svg {
   width: 18px;
   height: 18px;
 
@@ -226,11 +220,12 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   font-size: var(--font-size-mid);
 }
 
- input:focus,
+input:focus,
 .search input:focus-visible {
   outline: none;
   border: 0;
 }
+
 .search input::placeholder {
   color: currentColor;
   opacity: 0.65;
@@ -251,8 +246,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
     rgba(255, 255, 255, 0.05);
 
   border:
-    1px solid
-    rgba(255, 255, 255, 0.08);
+    1px solid rgba(255, 255, 255, 0.08);
 
   border-radius: 5px;
 
@@ -289,8 +283,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
     rgba(51, 31, 9, 0.25);
 
   box-shadow:
-    0 0 0 3px
-    rgba(255, 255, 255, 0.11);
+    0 0 0 3px rgba(255, 255, 255, 0.11);
 }
 
 .heroTopbar .search kbd {
@@ -327,8 +320,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   border-radius: 14px;
 
   box-shadow:
-    0 18px 45px
-    rgba(10, 10, 8, 0.2);
+    0 18px 45px rgba(10, 10, 8, 0.2);
 }
 
 .results a {
@@ -445,8 +437,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   background: #ff3c2a;
 
   border:
-    1px solid
-    currentColor;
+    1px solid currentColor;
 
   border-radius: 50%;
 }
@@ -525,11 +516,9 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   color: #201f1b;
 
   background:
-    linear-gradient(
-      145deg,
+    linear-gradient(145deg,
       #ffd262,
-      #ff8800
-    );
+      #ff8800);
 
   border-radius: 50%;
 
@@ -542,8 +531,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
     rgba(255, 255, 255, 0.38);
 
   border:
-    1px solid
-    rgba(58, 37, 13, 0.12);
+    1px solid rgba(58, 37, 13, 0.12);
 }
 
 
@@ -610,15 +598,42 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
   transform: rotate(180deg);
 }
 
-.adminLogo{
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  border-radius: 14px;
-  text-decoration: none;
-  transition: background 0.18s ease, transform 0.18s ease;
+
+
+.brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 10px;
+}
+
+.brand img {
+    object-fit: contain;
+}
+
+.brandSymbol {
+    flex-shrink: 0;
+    width: 30px;
+    height: 3rem;
+    position: relative;
+}
+
+.brandText {
+width: 145px;
+  height: auto;
+  margin-left: -10px;
+}
+
+
+.brand span {
+    max-width: 170px;
+    overflow: hidden;
+    padding-left: 14px;
+    border-left: 1px solid currentColor;
+    font-size: var(--font-size-mid);
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* =========================================================
@@ -626,7 +641,7 @@ background: linear-gradient( 110deg, #ffc52f 0%, var(--naranja) 38%, var(--naran
    ========================================================= */
 
 .profileMenu {
-position: absolute;
+  position: absolute;
   top: calc(100% + 10px);
   right: 0;
   z-index: 1700;
@@ -644,16 +659,14 @@ position: absolute;
     opacity: 0;
 
     transform:
-      translateY(-5px)
-      scale(0.985);
+      translateY(-5px) scale(0.985);
   }
 
   to {
     opacity: 1;
 
     transform:
-      translateY(0)
-      scale(1);
+      translateY(0) scale(1);
   }
 }
 
@@ -683,19 +696,17 @@ position: absolute;
   color: #201f1b;
 
   background:
-    linear-gradient(
-      145deg,
+    linear-gradient(145deg,
       #ffd262,
-      #ff8800
-    );
+      #ff8800);
 
   border-radius: 50%;
 
-  font-size: 11px;
+  font-size: var(--font-size-mid);
   font-weight: 800;
 }
 
-.menuIdentity > div {
+.menuIdentity>div {
   display: flex;
   flex-direction: column;
 
@@ -733,7 +744,7 @@ position: absolute;
    ========================================================= */
 
 .menuRole {
-padding: 1.5rem;
+  padding: 1.5rem;
   background: #211f1b;
   border-top: 1px solid var(--control-border);
   border-bottom: 1px solid var(--control-border);
@@ -753,8 +764,7 @@ padding: 1.5rem;
   background: #fff0cf;
 
   border:
-    1px solid
-    #ffd77a;
+    1px solid #ffd77a;
 
   border-radius: 999px;
 
@@ -772,7 +782,7 @@ padding: 1.5rem;
    ========================================================= */
 
 .logoutButton {
-display: flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 13px 16px;
@@ -784,8 +794,10 @@ display: flex;
   cursor: pointer;
   transition: color 0.16s ease, background 0.16s ease;
   margin: 0.5rem;
-    width: calc(100% - 1rem); /* Ocupa todo el ancho menos el margen de 0.5rem de cada lado */
-  justify-content: center;   /* Ahora sí centrará el contenido adentro */
+  width: calc(100% - 1rem);
+  /* Ocupa todo el ancho menos el margen de 0.5rem de cada lado */
+  justify-content: center;
+  /* Ahora sí centrará el contenido adentro */
 }
 
 .logoutButton:hover {
@@ -807,6 +819,7 @@ display: flex;
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+
   .profileChevron,
   .profileMenu {
     animation: none;
@@ -821,9 +834,7 @@ display: flex;
 @media (max-width: 1100px) {
   .topbar {
     grid-template-columns:
-      auto
-      minmax(200px, 1fr)
-      auto;
+      auto minmax(200px, 1fr) auto;
 
     gap: 16px;
 
@@ -840,8 +851,7 @@ display: flex;
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns:
-      minmax(0, 1fr)
-      auto;
+      minmax(0, 1fr) auto;
 
     gap: 12px;
 
@@ -880,4 +890,11 @@ display: flex;
   .topbar {
     gap: 8px;
   }
+}
+
+.brandTextHero{
+    color: #34210ca8;
+}
+.brandTextDark{
+    color: var(--beige);
 }

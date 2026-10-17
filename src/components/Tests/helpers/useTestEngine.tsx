@@ -1,4 +1,7 @@
 ﻿
+/** @jsxRuntime classic */
+/** @jsx createElement */
+
 import {
   accessAction,
   accessStore,
@@ -9,6 +12,7 @@ import {
 } from "../../../utils/patientAccess";
 
 import {
+  createElement,
   useEffect,
   useRef,
   useState,

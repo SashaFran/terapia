@@ -1,615 +1,310 @@
+
+/* =====================================================
+   JOIN SOLUTION — DOCUMENTACIÓN
+   Tarjetas estilo administración
+   ===================================================== */
+
 .container {
+  --patient-bg: #11110f;
+  --patient-panel: #211f1c;
+  --patient-text: #f7f4ed;
+  --patient-muted: #9c9a92;
+  --patient-accent: #ffad00;
+  --patient-border: rgba(255, 255, 255, 0.075);
+
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2.5rem 2rem 4rem;
-
-  color: var(--font-color);
+  max-width: none;
+  min-height: 100%;
+  margin: 0;
+  padding: 24px 32px 48px;
+  background: var(--patient-bg);
+  color: var(--patient-text);
 }
 
-/* =========================
-   HEADER
-========================= */
+/* Encabezado compacto, sin degradado */
 
-.header {
-  max-width: 700px;
-  margin-bottom: 2.25rem;
-}
-
-.eyebrow,
-.sectionLabel,
-.successLabel {
+.container .header {
+  min-height: 0;
+  margin: 0 0 28px;
+  padding: 0;
+  background: transparent;
   display: block;
+}
 
-  margin-bottom: 0.5rem;
+.container .header::before,
+.container .header::after {
+  display: none;
+}
 
-  color: #ff7900;
-
-  font-size: 0.7rem;
+.container .header .eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--patient-accent);
+  font-size: var(--font-size-xsmall);
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
-.header h1 {
+.container .header h1 {
   margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: 700;
-  line-height: 1.1;
+  color: var(--patient-text);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.header p {
-  max-width: 650px;
-
-  margin: 0.75rem 0 0;
-
-  color: var(--gris-med);
-
-  font-size: 0.95rem;
+.container .header p {
+  margin-top: 8px;
+  color: var(--patient-muted);
+  font-size: 12px;
   line-height: 1.6;
 }
 
-/* =========================
-   REQUISITOS
-========================= */
+/* Tres tarjetas en una fila */
 
-.infoGrid {
+.container .infoGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 
-  gap: 1rem;
-
-  margin-bottom: 1.25rem;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 24px;
+  padding: 0;
 }
 
-.infoItem {
+/* Tarjetas compactas como las del admin */
+
+.container .infoGrid .infoItem {
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
 
-  gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 112px;
+  margin: 0;
+  padding: 20px;
 
-  padding: 1rem 1.1rem;
-
-  background: #ffffff;
-
-  border: 1px solid #edf0f4;
+  background: #211f1c;
+  border: 1px solid var(--patient-border);
   border-radius: 14px;
 }
 
-.infoItem > span {
-  display: flex;
-  flex: 0 0 34px;
-  align-items: center;
-  justify-content: center;
+/* Número destacado */
 
-  width: 34px;
-  height: 34px;
-
-  color: #ff7900;
-  background: #fff5eb;
-
-  border-radius: 9px;
-
-  font-size: 0.65rem;
-  font-weight: 800;
-}
-
-.infoItem h3 {
-  margin: 0 0 0.2rem;
-
-  color: var(--gris-dark);
-
-  font-size: 0.85rem;
-}
-
-.infoItem p {
-  margin: 0;
-
-  color: var(--gris-med);
-
-  font-size: var(--font-size-small);
-  line-height: 1.45;
-}
-
-/* =========================
-   CARD DE CARGA
-========================= */
-
-.uploadCard {
-  padding: 2rem;
-
-  background: #ffffff;
-
-  border: 1px solid #edf0f4;
-  border-radius: 18px;
-
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.02),
-    0 12px 35px rgba(32, 40, 50, 0.05);
-}
-
-.uploadHeader {
-  margin-bottom: 1.5rem;
-}
-
-.uploadHeader h2 {
-  margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 1.25rem;
-}
-
-.uploadHeader p {
-  margin: 0.4rem 0 0;
-
-  color: var(--gris-med);
-
-  font-size: 0.85rem;
-}
-
-.hiddenInput {
-  position: absolute;
-
-  width: 1px;
-  height: 1px;
-
-  overflow: hidden;
-
-  opacity: 0;
-
-  pointer-events: none;
-}
-
-.dropArea {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 180px;
-
-  padding: 2rem;
-
-  cursor: pointer;
-
-  background: #fafbfc;
-
-  border: 1.5px dashed #d7dce2;
-  border-radius: 14px;
-
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.dropArea:hover {
-  background: #fffaf5;
-  border-color: #ffad6b;
-}
-
-.uploadIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.container .infoGrid .infoItem > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
 
   width: 44px;
   height: 44px;
+  margin: 0;
 
-  margin-right: 1rem;
+  background: #38201d;
+  color: #ffad00;
+  border-radius: 11px;
 
-  color: #ff7900;
+  font-size: 12px;
+  font-weight: 800;
+}
 
-  background: #fff1e4;
+/* Contenido de las tarjetas */
 
+.container .infoGrid .infoItem > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.container .infoGrid .infoItem h3 {
+  margin: 0;
+  color: #f7f4ed;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.container .infoGrid .infoItem p {
+  margin: 0;
+  color: #9c9a92;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Panel de carga con borde y divisiones */
+
+.container .uploadCard {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+
+  background: #211f1c;
+  border: 1px solid var(--patient-border);
+  border-radius: 14px;
+}
+
+.container .uploadHeader {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--patient-border);
+}
+
+input.hiddenInput{
+font-size: var(--font-size-small);
+  color: var(--text-muted);
+  margin: 0 0 2rem 0;
+  font-family: var(--font-family-body);
+}
+
+input.hiddenInput::file-selector-button{
+border: 1px solid var(--patient-border);
+  border-radius: 8px;
+  padding: 0.5rem 2rem;
+  margin: 0 1rem 0 0;
+}
+.container .uploadHeader .sectionLabel {
+  color: #ffad00;
+  font-size: var(--font-size-small);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+}
+
+.container .uploadHeader h2 {
+  margin: 0;
+  color: #f7f4ed;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.container .uploadHeader p {
+  margin: 8px 0 0;
+  color: #9c9a92;
+  font-size: 12px;
+}
+
+/* Zona para seleccionar el documento */
+
+.container .dropArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 24px;
+  gap: 0.5rem;
+  background: #1a1a18;
+  border: 1px dashed rgba(255, 173, 0, 0.3);
   border-radius: 12px;
+}
 
-  font-size: 1.4rem;
-  font-weight: 500;
+.container .dropArea:hover {
+  background: #24221e;
+  border-color: #ffad00;
 }
 
 .selectText {
   display: flex;
-  flex-direction: column;
-
-  gap: 0.25rem;
-}
-
-.selectText strong {
-  color: var(--gris-dark);
-
-  font-size: 0.9rem;
-}
-
-.selectText span {
-  color: var(--gris-med);
-
-  font-size: 0.75rem;
-}
-
-/* =========================
-   ARCHIVO SELECCIONADO
-========================= */
-
-.fileSelected {
-  justify-content: flex-start;
-
-  min-height: 100px;
-
-  background: #fffaf5;
-
-  border-style: solid;
-  border-color: #ffd7b3;
-}
-
-.fileIcon {
-  display: flex;
-  flex: 0 0 48px;
   align-items: center;
   justify-content: center;
-
-  width: 48px;
-  height: 48px;
-
-  margin-right: 1rem;
-
-  color: #ff7900;
-
-  background: #fff0e1;
-
-  border-radius: 10px;
-
-  font-size: 0.65rem;
-  font-weight: 800;
+  text-align: center;
+  gap: 0.5rem;
 }
 
-.fileInfo {
+.container .selectText strong,
+.container .fileInfo strong {
+  color: #f7f4ed;
+}
+
+.container .selectText span,
+.container .fileInfo span {
+  color: #9c9a92;
+}
+
+.privacy{
   display: flex;
-  flex: 1;
-  flex-direction: column;
-
-  min-width: 0;
-
-  gap: 0.25rem;
+  align-items: center;
+  flex-direction: row;
+  gap: 0.5rem;
 }
+/* Separador inferior del panel */
 
-.fileInfo strong {
-  overflow: hidden;
-
-  color: var(--gris-dark);
-
-  font-size: 0.85rem;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fileInfo span {
-  color: var(--gris-med);
-
-  font-size: 0.75rem;
-}
-
-.changeFile {
-  margin-left: 1rem;
-
-  color: #e56d00;
-
-  font-size: var(--font-size-small);
-  font-weight: 700;
-}
-
-/* =========================
-   FOOTER DE CARGA
-========================= */
-
-.uploadFooter {
+.container .uploadFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 
-  gap: 2rem;
-
-  margin-top: 1.5rem;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--patient-border);
 }
 
-.privacy {
-  display: flex;
-  align-items: flex-start;
-
-  max-width: 570px;
-
-  gap: 0.65rem;
-}
-
-.privacy p {
-  margin: 0;
-
-  color: var(--gris-med);
-
-  font-size: 0.72rem;
-  line-height: 1.5;
-}
-
-.lock {
-  margin-top: 0.15rem;
-
-  color: #6f9b83;
-
-  font-size: 0.55rem;
-}
-
-/* =========================
-   ERROR
-========================= */
-
-.errorMessage {
-  margin-top: 0.75rem;
-  padding: 0.75rem 1rem;
-
-  color: #9f3636;
-  background: #fff5f5;
-
-  border: 1px solid #f3d5d5;
-  border-radius: 9px;
-
-  font-size: var(--font-size-small);
-}
-
-/* =========================
-   DNI YA CARGADO
-========================= */
-
-.documentReady {
-  display: grid;
-
-  grid-template-columns:
-    auto
-    minmax(0, 1fr)
-    auto;
-
-  align-items: center;
-
-  gap: 1.5rem;
-
-  padding: 2rem;
-
-  background: #ffffff;
-
-  border: 1px solid #dcefe4;
-  border-radius: 18px;
-
-  box-shadow:
-    0 12px 35px rgba(32, 40, 50, 0.05);
-}
-
-.successIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 48px;
-  height: 48px;
-
-  color: #357557;
-  background: #eaf7f0;
-
-  border-radius: 50%;
-
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.documentReadyContent h2 {
-  margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 1.2rem;
-}
-
-.documentReadyContent p {
-  max-width: 550px;
-
-  margin: 0.4rem 0 0;
-
-  color: var(--gris-med);
-
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-
-.readyActions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  gap: 0.65rem;
-}
-
-.replaceButton {
-  padding: 0;
-
-  cursor: pointer;
-
-  color: var(--gris-med);
-  background: transparent;
-
-  border: none;
-
-  font-family: inherit;
-  font-size: 0.72rem;
-
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* =========================
-   ÉXITO
-========================= */
-
-.uploadComplete {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1000px;
-
-  margin: 2rem auto 0;
-  padding: 3rem;
-
-  text-align: center;
-
-  background: #ffffff;
-
-  border: 1px solid #dcefe4;
-  border-radius: 20px;
-
-  box-shadow:
-    0 12px 35px rgba(32, 40, 50, 0.05);
-}
-
-.successIconLarge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 58px;
-  height: 58px;
-
-  margin-bottom: 1.25rem;
-
-  color: #357557;
-  background: #eaf7f0;
-
-  border-radius: 50%;
-
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.uploadComplete h2 {
-  margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 1.35rem;
-}
-
-.uploadComplete p {
-  max-width: 520px;
-
-  margin: 0.65rem 0 0;
-
-  color: var(--gris-med);
-
-  font-size: 0.88rem;
+.container .privacy p {
+  color: #9c9a92;
+  font-size: 12px;
   line-height: 1.6;
 }
 
-.successActions {
-  display: flex;
+/* Estados de documento cargado */
 
-  gap: 0.75rem;
-
-  margin-top: 1.75rem;
+.container .documentReady,
+.container .uploadComplete {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  background: #211f1c;
+  border: 1px solid var(--patient-border);
+  border-radius: 14px;
 }
 
-/* =========================
-   LOADING
-========================= */
-
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 60vh;
-
-  color: var(--gris-med);
-
-  font-size: 0.9rem;
+.container .documentReadyContent h2,
+.container .uploadComplete h2 {
+  color: #f7f4ed;
 }
 
-.loadingCircle {
-  width: 32px;
-  height: 32px;
-
-  margin-bottom: 0.75rem;
-
-  border: 3px solid #eeeeee;
-  border-top-color: #ff7900;
-  border-radius: 50%;
-
-  animation: spin 0.8s linear infinite;
+.container .documentReadyContent p,
+.container .uploadComplete p {
+  color: #9c9a92;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* Responsive */
 
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .container {
-    padding: 2rem 1.25rem 3rem;
+    padding: 24px 20px 40px;
   }
 
-  .infoGrid {
+  .container .infoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .container {
+    padding: 20px 16px 32px;
+  }
+
+  .container .infoGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .uploadFooter {
-    align-items: stretch;
+  .container .infoGrid .infoItem {
+    min-height: 90px;
+    padding: 16px;
+  }
+
+  .container .uploadCard {
+    padding: 18px;
+  }
+
+  .container .uploadFooter {
     flex-direction: column;
-  }
-
-  .documentReady {
-    grid-template-columns: auto 1fr;
-  }
-
-  .readyActions {
-    grid-column: 1 / -1;
-
     align-items: stretch;
-  }
-}
-
-@media (max-width: 600px) {
-  .container {
-    padding: 1.5rem 1rem 2.5rem;
-  }
-
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .uploadCard {
-    padding: 1.25rem;
-  }
-
-  .dropArea {
-    min-height: 150px;
-    padding: 1.25rem;
-  }
-
-  .uploadComplete {
-    padding: 2rem 1.25rem;
-  }
-
-  .successActions {
-    width: 100%;
-
-    flex-direction: column;
-  }
-
-  .documentReady {
-    padding: 1.5rem;
   }
 }

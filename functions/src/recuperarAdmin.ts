@@ -102,7 +102,7 @@ async function enviarEmailRecuperacion(
                 style="
                   margin: 0 0 8px;
                   color: #ff7900;
-                  font-size: 11px;
+                  font-size: var(--font-size-mid);
                   font-weight: bold;
                   letter-spacing: 1.5px;
                   text-transform: uppercase;

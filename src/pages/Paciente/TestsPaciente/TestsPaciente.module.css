@@ -1,463 +1,564 @@
+
+/* =====================================================
+   JOIN SOLUTION — MIS EVALUACIONES
+   Diseño unificado con Pacientes / Mi Documentación
+   ===================================================== */
+
 .container {
+  --patient-bg: #11110f;
+  --patient-panel: #211f1c;
+  --patient-elevated: #24231f;
+  --patient-text: #f7f4ed;
+  --patient-muted: #9c9a92;
+  --patient-accent: #ffad00;
+  --patient-orange: #ff7900;
+  --patient-danger: #ff4938;
+  --patient-border: rgba(255, 255, 255, 0.075);
+
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2.5rem 2rem 4rem;
-  color: var(--font-color);
-}
-
-/* =========================
-   HEADER
-========================= */
-
-.header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-
-  margin-bottom: 2rem;
-}
-
-.eyebrow {
-  display: block;
-  margin-bottom: 0.45rem;
-
-  color: #ff7900;
-
-  font-size: var(--font-size-h3);
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-
-.header h1 {
+  max-width: none;
+  min-height: 100%;
   margin: 0;
+  padding: 24px 32px 48px;
+  overflow: visible;
 
-  color: var(--gris-dark);
-
-  font-size: clamp(
-    2rem,
-    4vw,
-    2.8rem
-  );
-
-  font-weight: 700;
-  line-height: 1.1;
+  background: var(--patient-bg);
+  color: var(--patient-text);
 }
 
-.header p {
-  margin: 0.65rem 0 0;
+/* =====================================================
+   ENCABEZADO — SIN HERO
+   ===================================================== */
 
-  color: var(--gris-dark);
+/* =========================================================
+   HERO
+   ========================================================= */
 
-  font-size: 0.95rem;
-  line-height: 1.55;
-}
+.hero {
+  position: relative;
+  isolation: isolate;
 
-.deadline {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
 
-  flex-shrink: 0;
-}
-
-.deadline span {
-  margin-bottom: 0.25rem;
-
-  color: var(--gris-dark);
-
-  font-size: var(--font-size-small);
-}
-
-.deadline strong {
-  color: var(--gris-dark);
-
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.deadline small {
-  margin-top: 0.15rem;
-
-  color: var(--gris-dark);
-
-  font-size: 0.75rem;
-}
-
-/* =========================
-   PROGRESO
-========================= */
-
-.progressCard {
-  padding: 1.5rem 1.75rem;
-
-  background: #ffffff;
-
-  border: 1px solid #edf0f4;
-  border-radius: 16px;
-
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.02),
-    0 8px 24px rgba(32, 40, 50, 0.04);
-}
-
-.progressTop {
-  display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-}
 
-.progressTop > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
+  min-height: 198px;
 
-.progressTop span {
-  color: var(--gris-dark);
+  gap: var(--space-6);
 
-  font-size: var(--font-size-small);
-}
-
-.progressTop strong {
-  color: var(--gris-dark);
-
-  font-size: 1rem;
-}
-
-.percentage {
-  color: #ff7900 !important;
-
-  font-size: 1rem !important;
-  font-weight: 800;
-}
-
-.progressTrack {
-  width: 100%;
-  height: 7px;
-
-  margin-top: 1rem;
+  padding:
+    38px
+    32px
+    74px;
 
   overflow: hidden;
 
-  background: #f0f1f3;
+  color: #21190d;
 
+  background:
+    linear-gradient(
+      110deg,
+      #ffc52f 0%,
+      var(--naranja) 38%,
+      var(--naranja2) 68%,
+      #ff4938 100%
+    );
+}
+
+.hero::before,
+.hero::after {
+  position: absolute;
+
+  z-index: -1;
+
+  content: "";
+
+  border:
+    1px solid
+    rgba(123, 40, 27, 0.19);
+
+  border-radius: 50%;
+}
+
+.hero::before {
+  top: -258px;
+  right: -170px;
+
+  width: 370px;
+  height: 370px;
+}
+
+.hero::after {
+  top: -285px;
+  right: -220px;
+
+  width: 420px;
+  height: 420px;
+
+  box-shadow:
+    0 0 0 58px
+    rgba(123, 40, 27, 0.13);
+}
+
+.heroCopy {
+  position: relative;
+
+  z-index: 1;
+}
+
+.container .header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+
+  min-height: 0;
+  margin: 0 0 28px;
+  padding: 0;
+  overflow: visible;
+
+  background: transparent;
+  color: var(--patient-text);
+  isolation: auto;
+}
+
+.container .header::before,
+.container .header::after {
+  display: none;
+}
+
+.container .header .eyebrow {
+  display: block;
+  margin-bottom: 10px;
+
+  color: var(--patient-accent);
+  font-size: var(--font-size-xsmall);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.container .header h1 {
+  margin: 0;
+  color: var(--patient-text);
+
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+}
+
+.container .header p {
+  margin: 8px 0 0;
+  color: var(--patient-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   FECHA LÍMITE
+   ===================================================== */
+
+.container .deadline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 4px;
+
+  padding: 1rem 3rem;
+
+  background: var(--patient-panel);
+  border: 1px solid var(--patient-border);
+  border-radius: 12px;
+}
+
+.container .deadline span {
+  color: var(--patient-muted);
+  font-size: var(--font-size-mid);
+}
+
+.container .deadline strong {
+  color: var(--patient-text);
+  font-size: var(--font-size-h2);
+  font-weight: 800;
+}
+
+.container .deadline small {
+  color: var(--patient-muted);
+  font-size: var(--font-size-mid);
+}
+
+/* =====================================================
+   ANCHO Y ALINEACIÓN DE SECCIONES
+   ===================================================== */
+
+.container .progressCard,
+.container .identityNotice,
+.container .evaluations,
+.container .completedCard {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* =====================================================
+   TARJETA DE PROGRESO
+   ===================================================== */
+
+.container .progressCard {
+  margin-top: 0;
+  padding: 24px;
+
+  background: var(--patient-panel);
+  border: 1px solid var(--patient-border);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.container .progressTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.container .progressTop > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.container .progressTop span {
+  color: var(--patient-muted);
+  font-size: 12px;
+}
+
+.container .progressTop strong {
+  color: var(--patient-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.container .progressTop .percentage {
+  color: var(--patient-accent);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+/* Barra de progreso */
+
+.container .progressTrack {
+  width: 100%;
+  height: 7px;
+  margin-top: 20px;
+
+  overflow: hidden;
+  background: #393732;
   border-radius: 999px;
 }
 
-.progressBar {
+.container .progressBar {
   height: 100%;
+  border-radius: inherit;
 
   background: linear-gradient(
     90deg,
-    #ffad00,
-    #ff7900,
-    #ff4438
+    #ffad00 0%,
+    #ff7900 55%,
+    #ff4938 100%
   );
-
-  border-radius: inherit;
 
   transition: width 0.35s ease;
 }
 
-/* =========================
-   DNI
-========================= */
+/* =====================================================
+   AVISO DE DOCUMENTACIÓN
+   ===================================================== */
 
-.identityNotice {
+.container .identityNotice {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 24px;
 
-  margin-top: 1rem;
-  padding: 1.35rem 1.75rem;
+  margin-top: 20px;
+  padding: 24px;
 
-  background: #fffaf5;
-
-  border: 1px solid #ffe3c6;
-  border-radius: 16px;
+  background: #30201e;
+  border: 1px solid rgba(255, 173, 0, 0.16);
+  border-radius: 14px;
 }
 
-.noticeLabel {
+.container .noticeLabel {
   display: block;
+  margin-bottom: 8px;
 
-  margin-bottom: 0.25rem;
-
-  color: #d96600;
-
-  font-size: 0.65rem;
+  color: var(--patient-accent);
+  font-size: var(--font-size-mid);
   font-weight: 800;
   letter-spacing: 0.12em;
 }
 
-.identityNotice h2 {
+.container .identityNotice h2 {
   margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 1rem;
+  color: var(--patient-text);
+  font-size: 18px;
+  font-weight: 800;
 }
 
-.identityNotice p {
-  margin: 0.35rem 0 0;
-
-  color: var(--gris-dark);
-
-  font-size: 0.85rem;
-  line-height: 1.5;
+.container .identityNotice p {
+  margin: 8px 0 0;
+  color: var(--patient-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-/* =========================
-   EVALUACIONES
-========================= */
+/* =====================================================
+   ENCABEZADO DE EVALUACIONES
+   ===================================================== */
 
-.evaluations {
-  margin-top: 3rem;
+.container .evaluations {
+  margin-top: 32px;
 }
 
-.sectionHeader {
+.container .sectionHeader {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 20px;
 
-  margin-bottom: 1.25rem;
+  margin-bottom: 20px;
 }
 
-.sectionHeader h2 {
+.container .sectionHeader h2 {
   margin: 0;
 
-  color: var(--gris-dark);
-
-  font-size: 1.35rem;
+  color: var(--patient-text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
-.sectionHeader p {
-  margin: 0.4rem 0 0;
-
-  color: var(--gris-dark);
-
-  font-size: 0.88rem;
+.container .sectionHeader p {
+  margin: 6px 0 0;
+  color: var(--patient-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-.testCount {
+.container .testCount {
   flex-shrink: 0;
-  color: var(--font-color);
-  font-size: var(--font-size-regular);
+
+  padding: 7px 12px;
+  background: var(--patient-panel);
+  border: 1px solid var(--patient-border);
+  border-radius: 9px;
+
+  color: var(--patient-muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.testList {
+/* =====================================================
+   LISTADO — ESTILO TABLA DE ADMINISTRACIÓN
+   ===================================================== */
+
+.container .testList {
+  width: 100%;
   overflow: hidden;
 
-  background: #ffffff;
-
-  border: 1px solid #edf0f4;
-  border-radius: 16px;
-
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.02),
-    0 8px 24px rgba(32, 40, 50, 0.04);
+  background: var(--patient-panel);
+  border: 1px solid var(--patient-border);
+  border-radius: 14px;
+  box-shadow: none;
 }
 
-.testCard {
+.container .testCard {
   display: grid;
-
-  grid-template-columns:
-    48px
-    minmax(0, 1fr)
-    auto;
-
-  gap: 1.25rem;
-
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
+  gap: 20px;
 
+  width: 100%;
   min-height: 100px;
+  padding: 20px 24px;
 
-  padding: 1.25rem 1.5rem;
+  background: transparent;
+  border-bottom: 1px solid var(--patient-border);
 
-  border-bottom:
-    1px solid #edf0f4;
-
-  transition:
-    background 0.2s ease;
+  transition: background 0.2s ease;
 }
 
-.testCard:last-child {
+.container .testCard:last-child {
   border-bottom: none;
 }
 
-.testCard:hover {
-  background: #fafbfc;
+.container .testCard:hover {
+  background: #292723;
 }
 
-.testNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Número de evaluación */
 
-  width: 42px;
-  height: 42px;
+.container .testNumber {
+  display: grid;
+  place-items: center;
 
-  color: #ff7900;
+  width: 44px;
+  height: 44px;
 
-  background: #fff5eb;
+  background: #38201d;
+  color: var(--patient-accent);
+  border-radius: 11px;
 
-  border-radius: 10px;
-
-  font-size: var(--font-size-h3);
+  font-size: 13px;
   font-weight: 800;
 }
 
-.testContent {
+/* Texto de la evaluación */
+
+.container .testContent {
   min-width: 0;
 }
 
-.testTitle {
+.container .testTitle {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 10px;
 
-  margin-bottom: 0.35rem;
+  margin-bottom: 6px;
 }
 
-.testTitle h3 {
+.container .testTitle h3 {
   margin: 0;
 
-  color: var(--gris-dark);
-
-  font-size: 0.95rem;
-  font-weight: 700;
+  color: var(--patient-text);
+  font-size: 14px;
+  font-weight: 800;
 }
 
-.testContent > p {
+.container .testContent > p {
   margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 0.82rem;
-  line-height: 1.45;
+  color: var(--patient-muted);
+  font-size: 12px;
+  line-height: 1.55;
 }
 
-/* =========================
-   ESTADOS
-========================= */
+/* =====================================================
+   ESTADOS DE EVALUACIONES
+   ===================================================== */
 
-.status {
+.container .status {
   display: inline-flex;
-  align-items: center;
-
-  padding: 0.3rem 0.55rem;
-
-  border-radius: 999px;
-
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.pending {
-  color: #8a5a00;
-  background: #fff4d6;
-}
-
-.completed {
-  color: #216e47;
-  background: #eaf7f0;
-}
-
-.abandoned {
-  color: #a33a3a;
-  background: #faecec;
-}
-
-.testAction {
-  display: flex;
   align-items: center;
   justify-content: center;
 
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: var(--font-size-mid);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.container .pending {
+  color: #ffca61;
+  background: rgba(255, 173, 0, 0.12);
+}
+
+.container .completed {
+  color: #73c98f;
+  background: rgba(115, 201, 143, 0.12);
+}
+
+.container .abandoned {
+  color: #ff8c85;
+  background: rgba(255, 73, 56, 0.13);
+}
+
+.container .locked {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* =====================================================
+   ACCIONES
+   ===================================================== */
+
+.container .testAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   min-width: 150px;
 }
 
-.doneText {
-  color: #357557;
-
-  font-size: var(--font-size-small);
+.container .doneText {
+  color: #73c98f;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.blockedText {
-  color: #a33a3a;
-
-  font-size: var(--font-size-small);
+.container .blockedText {
+  color: #ff8c85;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.lockedText {
-  color: var(--gris-dark);
-
-  font-size: var(--font-size-small);
+.container .lockedText {
+  color: var(--patient-muted);
+  font-size: 12px;
   font-weight: 600;
 }
 
-.locked {
-  background: #fbfbfc;
-}
+/* =====================================================
+   TODAS LAS EVALUACIONES COMPLETADAS
+   ===================================================== */
 
-/* =========================
-   COMPLETADO
-========================= */
-
-.completedCard {
+.container .completedCard {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 24px;
 
-  margin-top: 1.5rem;
-  padding: 1.5rem 1.75rem;
+  margin-top: 24px;
+  padding: 24px;
 
-  background: #f7fbf9;
-
-  border: 1px solid #dcefe4;
-  border-radius: 16px;
+  background: #202b24;
+  border: 1px solid rgba(115, 201, 143, 0.2);
+  border-radius: 14px;
 }
 
-.completedLabel {
+.container .completedLabel {
   display: block;
+  margin-bottom: 8px;
 
-  margin-bottom: 0.25rem;
-
-  color: #357557;
-
-  font-size: 0.65rem;
+  color: #73c98f;
+  font-size: var(--font-size-mid);
   font-weight: 800;
   letter-spacing: 0.12em;
 }
 
-.completedCard h2 {
+.container .completedCard h2 {
   margin: 0;
-
-  color: var(--gris-dark);
-
-  font-size: 1.05rem;
+  color: var(--patient-text);
+  font-size: 18px;
+  font-weight: 800;
 }
 
-.completedCard p {
-  margin: 0.4rem 0 0;
-
-  color: var(--gris-dark);
-
-  font-size: 0.85rem;
+.container .completedCard p {
+  margin: 8px 0 0;
+  color: var(--patient-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-/* =========================
-   LOADING
-========================= */
+/* =====================================================
+   CARGA
+   ===================================================== */
 
-.loading {
+.container .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -465,98 +566,107 @@
 
   min-height: 60vh;
 
-  color: var(--gris-dark);
-
-  font-size: 0.9rem;
+  color: var(--patient-muted);
+  font-size: 13px;
 }
 
-.loadingCircle {
+.container .loadingCircle {
   width: 32px;
   height: 32px;
+  margin-bottom: 12px;
 
-  margin-bottom: 0.75rem;
-
-  border: 3px solid #eeeeee;
-  border-top-color: #ff7900;
+  border: 3px solid #393732;
+  border-top-color: var(--patient-accent);
   border-radius: 50%;
 
-  animation: spin 0.8s linear infinite;
+  animation: patientSpin 0.8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes patientSpin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* =========================
+/* =====================================================
    RESPONSIVE
-========================= */
+   ===================================================== */
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .container {
-    padding: 2rem 1.25rem 3rem;
+    margin: 0;
+    padding: 24px 20px 40px;
   }
 
-  .header {
+  .container .testCard {
+    gap: 16px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 650px) {
+  .container {
+    margin: 0;
+    padding: 20px 16px 32px;
+  }
+
+  .container .header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 16px;
   }
 
-  .deadline {
+  .container .header h1 {
+    font-size: 30px;
+  }
+
+  .container .deadline {
     align-items: flex-start;
   }
 
-  .identityNotice,
-  .completedCard {
+  .container .progressCard,
+  .container .identityNotice,
+  .container .evaluations,
+  .container .completedCard {
+    width: 100%;
+  }
+
+  .container .progressCard,
+  .container .identityNotice,
+  .container .completedCard {
+    padding: 18px;
+  }
+
+  .container .identityNotice,
+  .container .completedCard {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .testCard {
-    grid-template-columns:
-      42px
-      minmax(0, 1fr);
+  .container .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .testAction {
+  .container .testCard {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+
+    padding: 16px;
+  }
+
+  .container .testAction {
     grid-column: 2;
-
-    justify-content: center;
-
+    justify-content: flex-start;
     min-width: 0;
   }
 }
 
-@media (max-width: 600px) {
-  .container {
-    padding: 1.5rem 1rem 2.5rem;
-  }
-
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .progressCard {
-    padding: 1.25rem;
-  }
-
-  .evaluations {
-    margin-top: 2rem;
-  }
-
-  .sectionHeader {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .testCard {
-    padding: 1.1rem;
-  }
-
-  .testTitle {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.4rem;
+@media (prefers-reduced-motion: reduce) {
+  .container *,
+  .container *::before,
+  .container *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

@@ -378,7 +378,7 @@ export default function SubirDNI() {
                     <strong>
                       Seleccionar imagen
                     </strong>
-
+                    <br />
                     <span>
                       JPG, JPEG o PNG · Máximo 10 MB
                     </span>

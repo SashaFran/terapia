@@ -31,6 +31,8 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 import logo from "../../assets/images/logo.svg";
+import logoText from "../../assets/icons/JOIN SOLUTION -  Nombre.svg";
+import logoTextDark from "../../assets/icons/JOIN SOLUTION -  Nombre (para darkmode).svg";
 
 import styles from "./AdminTopbar.module.css";
 
@@ -142,7 +144,7 @@ export default function AdminTopbar() {
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
-      .map((part) =>
+      .map((part: any) =>
         part.charAt(0).toUpperCase(),
       )
       .join("") || "A";
@@ -434,22 +436,14 @@ export default function AdminTopbar() {
           BRAND
           =================================================== */}
 
-      <div
-        className={styles.wordmark}
-      >
+<div className={styles.brand}>
+        <img className={styles.brandSymbol} src={logo} alt="" />
         <img
-          className={styles.adminLogo}
-          src={logo}
-          alt=""
+          className={styles.brandText}
+          src={isDashboard ? logoText : logoTextDark}
+          alt="JOIN SOLUTION"
         />
-
-        <strong>
-          Join Solution
-        </strong>
-
-        <span
-          className={styles.section}
-        >
+        <span className={isDashboard ? styles.brandTextHero : styles.brandTextDark}>
           {title}
         </span>
       </div>

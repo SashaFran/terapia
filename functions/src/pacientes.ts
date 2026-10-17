@@ -81,9 +81,10 @@ export function validarAlta(data: Record<string, unknown>) {
     );
   }
 
-  const inicio = new Date(
-    `${fechaIngreso}T00:00:00-03:00`,
-  );
+
+const inicio = new Date(
+  `${fechaIngreso}T09:00:00-03:00`,
+);
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaIngreso) ||
       !Number.isFinite(inicio.getTime()) ||
@@ -292,7 +293,7 @@ async function enviarEmailAcceso({
                 "
               >
                 <a
-                  href="https://joinsolution.com.ar"
+                  href="https://plataforma.joinsolution.com.ar"
                   style="
                     display: inline-block;
                     padding: 14px 24px;

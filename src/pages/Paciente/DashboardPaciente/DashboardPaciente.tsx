@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+  AssignmentOutlined,
+  TaskAltOutlined,
+  PendingActionsOutlined,
+  TrendingUpOutlined,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import styles from "./DashboardPaciente.module.css";
 import BotonPersonalizado from "../../../components/Boton/Boton";
@@ -50,7 +53,7 @@ function formatearFecha(fecha: unknown) {
   return date
     .toLocaleDateString("es-AR", {
       day: "2-digit",
-      month: "short",
+      month: "long",
       year: "numeric",
     })
     .replace(".", "");
@@ -74,6 +77,15 @@ export default function DashboardPaciente() {
   const [asignaciones, setAsignaciones] = useState<Asignacion[]>([]);
   const [loadingAsignaciones, setLoadingAsignaciones] = useState(true);
   const [errorAsignaciones, setErrorAsignaciones] = useState(false);
+  const [mesVisible, setMesVisible] = useState(() => {
+    const hoy = new Date();
+    return new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  });
+
+  const hour = new Date().getHours();
+
+  const greeting =
+    hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches";
 
   useEffect(() => {
     const data = localStorage.getItem("paciente");
@@ -87,7 +99,10 @@ export default function DashboardPaciente() {
       const parsed = JSON.parse(data) as Paciente;
       const fin = convertirFecha(parsed.fechaFinAcceso);
 
-      if (!parsed.id || (!parsed.esPacienteMaestro && (!fin || new Date() >= fin))) {
+      if (
+        !parsed.id ||
+        (!parsed.esPacienteMaestro && (!fin || new Date() >= fin))
+      ) {
         localStorage.removeItem("paciente");
         localStorage.removeItem("pacienteId");
         localStorage.removeItem("rol");
@@ -167,9 +182,28 @@ export default function DashboardPaciente() {
 
   const pendientes = total - realizados;
 
-  const porcentaje =
-    total > 0 ? Math.round((realizados / total) * 100) : 0;
+  const porcentaje = total > 0 ? Math.round((realizados / total) * 100) : 0;
 
+  const fechaFin = convertirFecha(paciente.fechaFinAcceso);
+  const hoy = new Date();
+  const primerDia = new Date(
+    mesVisible.getFullYear(),
+    mesVisible.getMonth(),
+    1,
+  );
+  const diasDelMes = new Date(
+    mesVisible.getFullYear(),
+    mesVisible.getMonth() + 1,
+    0,
+  ).getDate();
+  const espacios = (primerDia.getDay() + 6) % 7;
+  const celdas = Array.from({ length: espacios + diasDelMes }, (_, i) =>
+    i < espacios ? null : i - espacios + 1,
+  );
+  const mismoDia = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
   const primerNombre =
     paciente.nombre?.trim().split(/\s+/)[0] || "bienvenido/a";
 
@@ -190,21 +224,23 @@ export default function DashboardPaciente() {
       {/* ENCABEZADO */}
       <header className={styles.pageHeader}>
         <div className={styles.headerContent}>
-          <span className={styles.eyebrow}>
-            PORTAL DEL PACIENTE
-          </span>
+          <p className={styles.eyebrow}>PORTAL DEL PACIENTE</p>
 
-          <h1>
-            Hola, {primerNombre}
-            <span className={styles.wave} aria-hidden="true">
-              👋
-            </span>
+        <h1>
+            {greeting}
+
+            {primerNombre ? (
+              <>
+                , <span>{primerNombre}.</span>
+              </>
+            ) : (
+              "."
+            )}
           </h1>
 
           <p>
-            Bienvenido a tu espacio de evaluación.
-            Desde acá podés consultar tu progreso y
-            acceder a tus evaluaciones.
+            Bienvenido a tu espacio de evaluación. Desde acá podés consultar tu
+            progreso y acceder a tus evaluaciones.
           </p>
         </div>
 
@@ -221,10 +257,10 @@ export default function DashboardPaciente() {
       >
         <article className={styles.statCard}>
           <div className={styles.statTop}>
-            <span className={styles.statLabel}>
-              EVALUACIONES ASIGNADAS
+            <span className={styles.statLabel}>EVALUACIONES ASIGNADAS</span>
+            <span className={styles.statIcon}>
+              <AssignmentOutlined fontSize="small" />
             </span>
-            <span className={styles.statIcon}>01</span>
           </div>
 
           <strong className={styles.statValue}>
@@ -238,10 +274,10 @@ export default function DashboardPaciente() {
 
         <article className={styles.statCard}>
           <div className={styles.statTop}>
-            <span className={styles.statLabel}>
-              COMPLETADAS
+            <span className={styles.statLabel}>COMPLETADAS</span>
+            <span className={styles.statIcon}>
+              <TaskAltOutlined fontSize="small" />
             </span>
-            <span className={styles.statIcon}>02</span>
           </div>
 
           <strong className={styles.statValue}>
@@ -255,10 +291,10 @@ export default function DashboardPaciente() {
 
         <article className={styles.statCard}>
           <div className={styles.statTop}>
-            <span className={styles.statLabel}>
-              PENDIENTES
+            <span className={styles.statLabel}>PENDIENTES</span>
+            <span className={styles.statIcon}>
+              <PendingActionsOutlined fontSize="small" />
             </span>
-            <span className={styles.statIcon}>03</span>
           </div>
 
           <strong className={styles.statValue}>
@@ -269,6 +305,20 @@ export default function DashboardPaciente() {
             Evaluaciones por completar
           </span>
         </article>
+        <article className={styles.statCard}>
+          <div className={styles.statTop}>
+            <span className={styles.statLabel}>AVANCE GENERAL</span>
+            <span className={styles.statIcon}>
+              <TrendingUpOutlined fontSize="small" />
+            </span>
+          </div>
+          <strong className={styles.statValue}>
+            {errorAsignaciones ? "—" : `${porcentaje}%`}
+          </strong>
+          <span className={styles.statDescription}>
+            De tu proceso de evaluación
+          </span>
+        </article>
       </section>
 
       {/* PROGRESO Y ACCESO */}
@@ -276,9 +326,7 @@ export default function DashboardPaciente() {
         <article className={styles.panel}>
           <div className={styles.panelHeading}>
             <div>
-              <span className={styles.eyebrow}>
-                SEGUIMIENTO
-              </span>
+              <p className={styles.eyebrow}>SEGUIMIENTO</p>
               <h2>Tu progreso</h2>
             </div>
 
@@ -307,9 +355,7 @@ export default function DashboardPaciente() {
             />
           </div>
 
-          <p className={styles.progressMessage}>
-            {mensajeProgreso}
-          </p>
+          <p className={styles.progressMessage}>{mensajeProgreso}</p>
 
           <button
             type="button"
@@ -323,114 +369,161 @@ export default function DashboardPaciente() {
 
         <article className={styles.panel}>
           <div className={styles.panelHeading}>
-            <div>
-              <span className={styles.eyebrow}>
-                VIGENCIA
-              </span>
+            <header className={styles.panelHeader}>
+
+            
+            <div >
+              <p className={styles.eyebrow}>VIGENCIA</p>
               <h2>Tu acceso</h2>
             </div>
-
-            <span className={styles.accessIndicator}>
-              ACTIVO
-            </span>
+</header>
+            <span className={styles.accessIndicator}>ACTIVO</span>
           </div>
 
-          <p className={styles.panelDescription}>
-            Tu acceso a la plataforma está disponible hasta:
-          </p>
+
+          <article className={styles.calendarPanel}>
+            <div className={styles.calendarGrid}>
+              {["L", "M", "X", "J", "V", "S", "D"].map((dia, i) => (
+                <span className={styles.weekday} key={i}>
+                  {dia}
+                </span>
+              ))}
+              {celdas.map((dia, i) => {
+                if (dia === null) return <span key={`vacio-${i}`} />;
+                const fecha = new Date(
+                  mesVisible.getFullYear(),
+                  mesVisible.getMonth(),
+                  dia,
+                );
+                const actual = mismoDia(fecha, hoy);
+                const vencimiento =
+                  fechaFin !== null && mismoDia(fecha, fechaFin);
+                return (
+                  <span
+                    key={dia}
+                    title={
+                      vencimiento
+                        ? "Vencimiento de tu acceso"
+                        : actual
+                          ? "Hoy"
+                          : undefined
+                    }
+                    className={`${styles.calendarDay} ${actual ? styles.calendarToday : ""} ${vencimiento ? styles.calendarDeadline : ""}`}
+                  >
+                    {dia}
+                    {vencimiento && <i aria-label="Vencimiento" />}
+                  </span>
+                );
+              })}
+            </div>
 
           <div className={styles.accessDeadline}>
-            <span className={styles.deadlineLabel}>
-              FECHA DE FINALIZACIÓN
-            </span>
-
+            <span className={styles.deadlineLabel}>FECHA DE FINALIZACIÓN</span>
+              <div>
             <strong className={styles.deadline}>
               {formatearFecha(paciente.fechaFinAcceso)}
             </strong>
 
             <span className={styles.deadlineTime}>
-              Hasta las {formatearHora(paciente.fechaFinAcceso)} hs
+              Hasta las 9:00 a.m. HS
             </span>
+            </div>
           </div>
-
-          <p className={styles.accessNote}>
-            Te recomendamos completar tus evaluaciones
-            antes de que finalice tu período de acceso.
-          </p>
+          </article>
+                      <div className={styles.calendarLegend}>
+              <span>
+                <b className={styles.legendToday} /> Hoy
+              </span>
+              <span>
+                <b className={styles.legendDeadline} /> Fin de acceso
+              </span>
+            </div>
         </article>
+        
       </section>
+
+      {/*       <section className={styles.calendarSection} aria-label="Tu calendario de acceso">
+        <article className={styles.calendarPanel}>
+          <div className={styles.calendarHead}>
+            <div><p className={styles.eyebrow}>AGENDA</span><h2>Tu calendario</h2></div>
+            <div className={styles.calendarControls}>
+              <button type="button" aria-label="Mes anterior" onClick={() => setMesVisible(new Date(mesVisible.getFullYear(), mesVisible.getMonth()-1, 1))}><ChevronLeft fontSize="small" /></button>
+              <strong>{mesVisible.toLocaleDateString("es-AR", {month:"long", year:"numeric"})}</strong>
+              <button type="button" aria-label="Mes siguiente" onClick={() => setMesVisible(new Date(mesVisible.getFullYear(), mesVisible.getMonth()+1, 1))}><ChevronRight fontSize="small" /></button>
+            </div>
+          </div>
+          <div className={styles.calendarGrid}>
+            {['L','M','X','J','V','S','D'].map((dia, i) => <span className={styles.weekday} key={i}>{dia}</span>)}
+            {celdas.map((dia, i) => {
+              if (dia === null) return <span key={`vacio-${i}`} />;
+              const fecha = new Date(mesVisible.getFullYear(), mesVisible.getMonth(), dia);
+              const actual = mismoDia(fecha, hoy);
+              const vencimiento = fechaFin !== null && mismoDia(fecha, fechaFin);
+              return <span key={dia} title={vencimiento ? 'Vencimiento de tu acceso' : actual ? 'Hoy' : undefined} className={`${styles.calendarDay} ${actual ? styles.calendarToday : ''} ${vencimiento ? styles.calendarDeadline : ''}`}>{dia}{vencimiento && <i aria-label="Vencimiento" />}</span>;
+            })}
+          </div>
+          <div className={styles.calendarLegend}><span><b className={styles.legendToday} /> Hoy</span><span><b className={styles.legendDeadline} /> Fin de acceso</span></div>
+          <p className={styles.calendarNote}>{paciente.esPacienteMaestro ? 'Cuenta de pruebas: el acceso puede renovarse según su configuración.' : fechaFin ? `Tu acceso finaliza el ${formatearFecha(paciente.fechaFinAcceso)} a las ${formatearHora(paciente.fechaFinAcceso)}.` : 'Sin fecha de finalización informada.'}</p>
+        </article>
+      </section> */}
 
       {/* INDICACIONES */}
       <section className={styles.instructionsSection}>
         <div className={styles.sectionHeading}>
           <div>
-            <span className={styles.eyebrow}>
-              INFORMACIÓN IMPORTANTE
-            </span>
+            <p className={styles.eyebrow}>INFORMACIÓN IMPORTANTE</p>
             <h2>Antes de comenzar</h2>
             <p>
-              Seguí estas recomendaciones para realizar
-              tus evaluaciones sin inconvenientes.
+              Seguí estas recomendaciones para realizar tus evaluaciones sin
+              inconvenientes.
             </p>
           </div>
         </div>
 
         <div className={styles.instructionsGrid}>
           <article className={styles.instructionCard}>
-            <span className={styles.instructionNumber}>
-              01
-            </span>
+            <span className={styles.instructionNumber}>01</span>
 
             <div>
               <h3>Sin interrupciones</h3>
               <p>
-                Una vez iniciado un test, no podrás
-                pausarlo ni cerrar la página hasta
-                finalizarlo.
+                Una vez iniciado un test, no podrás pausarlo ni cerrar la página
+                hasta finalizarlo.
               </p>
             </div>
           </article>
 
           <article className={styles.instructionCard}>
-            <span className={styles.instructionNumber}>
-              02
-            </span>
+            <span className={styles.instructionNumber}>02</span>
 
             <div>
               <h3>Reservá tu tiempo</h3>
               <p>
-                Te recomendamos disponer de al menos
-                2 horas de tranquilidad para completar
-                el proceso.
+                Te recomendamos disponer de al menos 2 horas de tranquilidad
+                para completar el proceso.
               </p>
             </div>
           </article>
 
           <article className={styles.instructionCard}>
-            <span className={styles.instructionNumber}>
-              03
-            </span>
+            <span className={styles.instructionNumber}>03</span>
 
             <div>
               <h3>Leé con atención</h3>
               <p>
-                Algunas evaluaciones tienen tiempo
-                límite. Leé cada instrucción antes
-                de comenzar.
+                Algunas evaluaciones tienen tiempo límite. Leé cada instrucción
+                antes de comenzar.
               </p>
             </div>
           </article>
 
           <article className={styles.instructionCard}>
-            <span className={styles.instructionNumber}>
-              04
-            </span>
+            <span className={styles.instructionNumber}>04</span>
 
             <div>
               <h3>Validá tu identidad</h3>
               <p>
-                Para completar el proceso te
-                solicitaremos una foto de tu DNI.
+                Para completar el proceso te solicitaremos una foto de tu DNI.
               </p>
             </div>
           </article>
@@ -440,15 +533,12 @@ export default function DashboardPaciente() {
       {/* ACCIONES */}
       <section className={styles.actionsPanel}>
         <div className={styles.actionsContent}>
-          <span className={styles.eyebrow}>
-            SIGUIENTE PASO
-          </span>
+          <p className={styles.eyebrow}>SIGUIENTE PASO</p>
 
           <h2>¿Todo listo para comenzar?</h2>
 
           <p>
-            Accedé a tus evaluaciones o completá
-            la validación de tu identidad.
+            Accedé a tus evaluaciones o completá la validación de tu identidad.
           </p>
         </div>
 
