@@ -68,7 +68,6 @@ export default function TestIntroModal({
           </div>
 
           <span className={styles.readyBadge}>
-            <span />
             Preparación
           </span>
         </header>

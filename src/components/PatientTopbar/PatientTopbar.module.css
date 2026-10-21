@@ -206,6 +206,9 @@ width: 145px;
 }
 
 @media(max-width:600px) {
+    .menuAvatar {
+        margin: 0;
+    }
     .topbar {
         padding: 0 14px;
     }

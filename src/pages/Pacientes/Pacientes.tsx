@@ -196,6 +196,7 @@ export default function Pacientes() {
           onClick={() => setShowModal(true)}
           tooltip="Registrar un paciente y asignarle sus tests."
           disabled={false}
+          className={styles.nuevoPacienteButton}
         >
           + Nuevo paciente
         </BotonPersonalizado>

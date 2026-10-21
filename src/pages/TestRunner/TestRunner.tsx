@@ -5,7 +5,11 @@ import TestBFQ from "../../components/Tests/TestBFQ/TestBFQ";
 import TestRaven from "../../components/Tests/TestRaven/TestRaven";
 import TestZulliger from "../../components/Tests/TestZulliger/TestZulliger";
 import TestBender from "../../components/Tests/TestBender/TestBender";
-import { accessStore, abandonPatientTest, finishPatientTest } from "../../utils/patientAccess";
+import {
+  accessStore,
+  abandonPatientTest,
+  finishPatientTest,
+} from "../../utils/patientAccess";
 import { getPacienteSession } from "../../utils/pacienteSession";
 import { generarResumenLaminas } from "../../utils/generarResumenLaminas";
 
@@ -16,7 +20,10 @@ export default function TestRunner() {
 
 function Assessment({ testId }: { testId: string | undefined }) {
   const navigate = useNavigate();
-  const access = useSyncExternalStore(accessStore.subscribe, accessStore.snapshot);
+  const access = useSyncExternalStore(
+    accessStore.subscribe,
+    accessStore.snapshot,
+  );
   const started = useRef(false);
   const completed = useRef(false);
   const [error, setError] = useState("");
@@ -37,14 +44,21 @@ function Assessment({ testId }: { testId: string | undefined }) {
 
   const cancel = async () => {
     if (!testId) return;
-    if (!window.confirm(esMaestro
-      ? "¿Querés abandonar esta evaluación de prueba?"
-      : "Si abandona esta evaluación, no podrá retomarla. ¿Desea continuar?")) return;
+    if (
+      !window.confirm(
+        esMaestro
+          ? "¿Querés abandonar esta evaluación de prueba?"
+          : "Si abandona esta evaluación, no podrá retomarla. ¿Desea continuar?",
+      )
+    )
+      return;
     try {
       await abandonPatientTest(testId);
       navigate("/app/tests");
     } catch {
-      setError("No se pudo registrar el abandono. Verifique la conexión e intente nuevamente.");
+      setError(
+        "No se pudo registrar el abandono. Verifique la conexión e intente nuevamente.",
+      );
     }
   };
 
@@ -61,7 +75,9 @@ function Assessment({ testId }: { testId: string | undefined }) {
         }),
       };
     }
-    await finishPatientTest(testId, data, () => { completed.current = true; });
+    await finishPatientTest(testId, data, () => {
+      completed.current = true;
+    });
     navigate("/app/tests", { replace: true });
   };
 
@@ -76,17 +92,49 @@ function Assessment({ testId }: { testId: string | undefined }) {
 
   if (!Test || !patient) return <p>Evaluación no disponible.</p>;
   if (started.current && !access.testId && !completed.current) {
-    return <section className="access-policy">
-      <h1>Evaluación abandonada</h1>
-      <p>No puede volver a ingresar a esta evaluación.</p>
-      <button onClick={() => navigate("/app/tests")}>Volver a evaluaciones</button>
-    </section>;
+    return (
+      <section className="access-policy">
+        <h1>Evaluación abandonada</h1>
+        <p>No puede volver a ingresar a esta evaluación.</p>
+        <button onClick={() => navigate("/app/tests")}>
+          Volver a evaluaciones
+        </button>
+      </section>
+    );
   }
-  return <>
-    {error && <p role="alert">{error}</p>}
-    {access.testId && <button type="button" className="boton-base boton-secondary" onClick={() => void cancel()}>Abandonar evaluación</button>}
-    <fieldset disabled={access.connectionLost || Boolean(access.awayUntil)} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
-      <Test key={testId} userId={patient.id} onFinish={handleFinish} />
-    </fieldset>
-  </>;
+  return (
+    <>
+      {error && <p role="alert">{error}</p>}
+      {access.testId && (
+        <>
+          <style>{`
+            .test-runner-abandon-button {
+              margin: 1rem;
+            }
+
+            @media (max-width: 600px) {
+              .test-runner-abandon-button {
+                text-align: center;
+    margin: 1rem auto;
+  }
+              }
+            }
+          `}</style>
+          <button
+            type="button"
+            className="boton-base boton-secondary test-runner-abandon-button"
+            onClick={() => void cancel()}
+          >
+            Abandonar evaluación
+          </button>
+        </>
+      )}
+      <fieldset
+        disabled={access.connectionLost || Boolean(access.awayUntil)}
+        style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
+      >
+        <Test key={testId} userId={patient.id} onFinish={handleFinish} />
+      </fieldset>
+    </>
+  );
 }

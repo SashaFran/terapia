@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import {
   addDoc,
@@ -9,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
+
 import { db } from "../../../firebase/firebase";
 import BotonPersonalizado from "../../Boton/Boton";
 import Modal from "../Modal";
@@ -21,8 +23,15 @@ const TESTS = [
   { id: "bender", nombre: "Bender", descripcion: "Evaluación visomotora" },
   { id: "raven", nombre: "Raven", descripcion: "Matrices progresivas" },
 ];
+
 type Modo = "ninguno" | "abandonados" | "manual";
-type AsignacionDoc = { id: string; testId: string; estado: string };
+
+type AsignacionDoc = {
+  id: string;
+  testId: string;
+  estado: string;
+};
+
 type Props = {
   abierto: boolean;
   onCerrar: () => void;
@@ -30,42 +39,75 @@ type Props = {
   paciente: any;
   asignacionesActuales?: string[];
 };
+
 const ZONA = "America/Argentina/Buenos_Aires";
-const DIA = 86400000;
-const fechaDe = (v: any): Date | null => {
-  if (!v) return null;
-  const d =
-    typeof v.toDate === "function"
-      ? v.toDate()
-      : typeof v.seconds === "number"
-        ? new Date(v.seconds * 1000)
-        : new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d;
-};
-const fechaInput = (d: Date) =>
-  new Intl.DateTimeFormat("en-CA", {
+const DIA = 24 * 60 * 60 * 1000;
+
+function fechaDe(valor: any): Date | null {
+  if (!valor) return null;
+
+  const fecha =
+    typeof valor.toDate === "function"
+      ? valor.toDate()
+      : typeof valor.seconds === "number"
+        ? new Date(valor.seconds * 1000)
+        : new Date(valor);
+
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+}
+
+function fechaInput(fecha: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: ZONA,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(d);
-// Argentina mantiene UTC-03:00; construir a las 09:00 de Buenos Aires, sin depender del equipo del admin.
+  }).format(fecha);
+}
+
 function inicioFecha(fecha: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return null;
-  const d = new Date(`${fecha}T09:00:00-03:00`);
-  return Number.isNaN(d.getTime()) || fechaInput(d) !== fecha ? null : d;
+
+  const inicio = new Date(`${fecha}T09:00:00-03:00`);
+
+  if (
+    Number.isNaN(inicio.getTime()) ||
+    fechaInput(inicio) !== fecha
+  ) {
+    return null;
+  }
+
+  return inicio;
 }
-const mostrarFecha = (d: Date | null) =>
-  d
-    ? new Intl.DateTimeFormat("es-AR", {
-        timeZone: ZONA,
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(d)
-    : "—";
+
+function mostrarFecha(fecha: Date | null): string {
+  if (!fecha) return "—";
+
+  return new Intl.DateTimeFormat("es-AR", {
+    timeZone: ZONA,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(fecha);
+}
+
+function nombreEstado(estado: string): string {
+  switch (estado) {
+    case "completado":
+      return "Completado";
+    case "pendiente":
+      return "Pendiente";
+    case "abandono":
+      return "Abandonado";
+    case "en_progreso":
+    case "en_curso":
+      return "En curso";
+    default:
+      return estado || "Sin asignar";
+  }
+}
 
 export default function EditarPacienteModal({
   abierto,
@@ -77,41 +119,89 @@ export default function EditarPacienteModal({
   const [activo, setActivo] = useState(true);
   const [reactivar, setReactivar] = useState(false);
   const [fechaIngreso, setFechaIngreso] = useState("");
-  const [testsSeleccionados, setTestsSeleccionados] = useState<string[]>([]);
+
   const [asignaciones, setAsignaciones] = useState<AsignacionDoc[]>([]);
   const [modo, setModo] = useState<Modo>("ninguno");
+
+  // Los resultados completados se protegen.
+  const [conservarCompletados, setConservarCompletados] =
+    useState(true);
+
+  // IDs de asignaciones abandonadas que se recuperarán.
   const [manual, setManual] = useState<string[]>([]);
+
+  // IDs de tipos de test que aún no tiene el paciente.
+  const [nuevosTests, setNuevosTests] = useState<string[]>([]);
+
   const [guardando, setGuardando] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+
   const estadoReal =
     paciente?.accesoEstado ??
     (paciente?.activo === false ? "inactiva" : "activa");
-  const bloqueada = estadoReal === "abandonada" || estadoReal === "finalizada";
+
+  const bloqueada =
+    estadoReal === "abandonada" ||
+    estadoReal === "finalizada";
+
   const abandonadas = useMemo(
     () => asignaciones.filter((a) => a.estado === "abandono"),
     [asignaciones],
   );
-  const inicio = useMemo(() => inicioFecha(fechaIngreso), [fechaIngreso]);
-  const fin = inicio ? new Date(inicio.getTime() + DIA) : null;
+
+  const pendientes = useMemo(
+    () => asignaciones.filter((a) => a.estado === "pendiente"),
+    [asignaciones],
+  );
+
+  const completadas = useMemo(
+    () => asignaciones.filter((a) => a.estado === "completado"),
+    [asignaciones],
+  );
+
+  const testsExistentes = useMemo(
+    () => new Set(asignaciones.map((a) => a.testId)),
+    [asignaciones],
+  );
+
+  const inicio = useMemo(
+    () => inicioFecha(fechaIngreso),
+    [fechaIngreso],
+  );
+
+  const fin = inicio
+    ? new Date(inicio.getTime() + DIA)
+    : null;
 
   useEffect(() => {
     if (!abierto || !paciente?.id) return;
+
     let vigente = true;
+
     setError("");
     setModo("ninguno");
     setManual([]);
+    setNuevosTests([]);
+    setConservarCompletados(true);
     setActivo(paciente.activo !== false);
     setReactivar(false);
-    setTestsSeleccionados(asignacionesActuales);
+    setAsignaciones([]);
+
     const inicial = fechaDe(paciente.fechaInicioAcceso);
     const final = fechaDe(paciente.fechaFinAcceso);
+
     setFechaIngreso(
       fechaInput(
-        inicial ?? (final ? new Date(final.getTime() - DIA) : new Date()),
+        inicial ??
+          (final
+            ? new Date(final.getTime() - DIA)
+            : new Date()),
       ),
     );
+
     setCargando(true);
+
     getDocs(
       query(
         collection(db, "asignaciones"),
@@ -120,23 +210,28 @@ export default function EditarPacienteModal({
     )
       .then((snap) => {
         if (!vigente) return;
-        const docs = snap.docs.map((d) => ({
-          id: d.id,
-          testId: String(d.data().testId ?? ""),
-          estado: String(d.data().estado ?? ""),
-        }));
-        setAsignaciones(docs);
-        setTestsSeleccionados(docs.map((d) => d.testId));
+
+        setAsignaciones(
+          snap.docs.map((documento) => ({
+            id: documento.id,
+            testId: String(documento.data().testId ?? ""),
+            estado: String(documento.data().estado ?? ""),
+          })),
+        );
       })
       .catch((e) => {
-        if (vigente)
+        if (vigente) {
           setError(
-            `No se pudieron cargar las asignaciones: ${String(e.message ?? e)}`,
+            `No se pudieron cargar las evaluaciones: ${
+              e?.message ?? String(e)
+            }`,
           );
+        }
       })
       .finally(() => {
         if (vigente) setCargando(false);
       });
+
     return () => {
       vigente = false;
     };
@@ -144,117 +239,202 @@ export default function EditarPacienteModal({
 
   const elegirActivo = () => {
     setActivo(true);
+
     if (bloqueada) {
       setReactivar(true);
       setFechaIngreso(fechaInput(new Date()));
     }
   };
+
   const elegirInactivo = () => {
     setActivo(false);
     setReactivar(false);
   };
-  const cambiarTest = (id: string) => {
-    const existente = asignaciones.find((a) => a.testId === id);
-    // No permitir borrar historial clínico ni una evaluación en curso.
-    if (existente && !["pendiente"].includes(existente.estado)) return;
-    setTestsSeleccionados((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+
+  const cambiarModo = (nuevoModo: Modo) => {
+    setModo(nuevoModo);
+    setManual([]);
+    setError("");
+  };
+
+  const alternarAbandonado = (id: string) => {
+    setManual((actual) =>
+      actual.includes(id)
+        ? actual.filter((x) => x !== id)
+        : [...actual, id],
     );
   };
+
+  const alternarNuevo = (testId: string) => {
+    if (testsExistentes.has(testId)) return;
+
+    setNuevosTests((actual) =>
+      actual.includes(testId)
+        ? actual.filter((x) => x !== testId)
+        : [...actual, testId],
+    );
+  };
+
   const guardar = async () => {
-    if (!paciente?.id || !inicio || !fin || cargando || guardando) return;
+    if (
+      !paciente?.id ||
+      !inicio ||
+      !fin ||
+      cargando ||
+      guardando
+    ) {
+      return;
+    }
+
     setError("");
+
+    if (!conservarCompletados) {
+      setError(
+        "La eliminación o sustitución de resultados completados " +
+          "requiere una operación administrativa específica. " +
+          "Para continuar, activá 'Conservar evaluaciones completadas'.",
+      );
+      return;
+    }
+
     if (reactivar && !activo) {
       setError("Para reactivar, seleccioná Activo.");
       return;
     }
+
     if (bloqueada && activo && !reactivar) {
       setError(
-        "La cuenta está bloqueada: seleccioná la recuperación administrativa para habilitarla.",
+        "La cuenta está bloqueada. Seleccioná la recuperación " +
+          "administrativa para habilitarla.",
       );
       return;
     }
+
     if (reactivar && fin.getTime() <= Date.now()) {
       setError("El nuevo período de acceso ya estaría vencido.");
       return;
     }
-    const quitar = asignaciones.filter(
-      (a) => !testsSeleccionados.includes(a.testId),
-    );
-    if (quitar.some((a) => a.estado !== "pendiente")) {
-      setError(
-        "No se pueden quitar tests iniciados, abandonados o completados.",
+
+    // El backend actual permite recuperar abandonadas.
+    // Las pendientes se conservan automáticamente.
+    const asignacionIds = modo === "manual" ? manual : [];
+
+    const recuperar =
+      reactivar ||
+      modo === "abandonados" ||
+      (modo === "manual" && asignacionIds.length > 0);
+
+    const cantidadRecuperadas =
+      modo === "abandonados"
+        ? abandonadas.length
+        : modo === "manual"
+          ? asignacionIds.length
+          : 0;
+
+    const hayCambiosTests =
+      cantidadRecuperadas > 0 ||
+      nuevosTests.length > 0;
+
+    if (recuperar || hayCambiosTests) {
+      const confirmado = window.confirm(
+        [
+          "¿Confirmás los cambios del paciente?",
+          "",
+          `Cuenta: ${
+            reactivar ? "Generar nuevo acceso" : "Conservar acceso"
+          }`,
+          `Resultados completados conservados: ${completadas.length}`,
+          `Pendientes conservadas: ${pendientes.length}`,
+          `Abandonadas a recuperar: ${cantidadRecuperadas}`,
+          `Tests nuevos a asignar: ${nuevosTests.length}`,
+          "",
+          "Los resultados completados no se eliminarán.",
+        ].join("\n"),
       );
-      return;
+
+      if (!confirmado) return;
     }
-    // La eliminación de asignaciones queda deshabilitada para no perder trazabilidad.
-    if (quitar.length) {
-      setError(
-        "Para preservar el historial, no se pueden quitar asignaciones existentes desde este modal.",
-      );
-      return;
-    }
-    const ids = modo === "manual" ? manual : [];
-    const recuperar = reactivar || modo !== "ninguno";
-    if (
-      recuperar &&
-      !window.confirm(
-        `¿Confirmás la recuperación administrativa?\nCuenta: ${reactivar ? "nuevo acceso" : "sin cambios"}\nTests: ${modo === "abandonados" ? `todos los abandonados (${abandonadas.length})` : modo === "manual" ? `${ids.length} seleccionados` : "ninguno"}\nLos resultados completados se conservarán.`,
-      )
-    )
-      return;
+
     setGuardando(true);
+
     try {
-      // Primero recuperación protegida por custom claim de administrador.
       if (recuperar) {
-        const call = httpsCallable(
+        const recuperarAcceso = httpsCallable(
           getFunctions(),
           "recuperarAccesoPacienteAuth",
         );
-        await call({
+
+        await recuperarAcceso({
           pacienteId: paciente.id,
           reactivarCuenta: reactivar,
           modoTests: modo,
-          asignacionIds: ids,
-          ...(reactivar ? { fechaInicioAccesoMs: inicio.getTime() } : {}),
+          asignacionIds,
+          ...(reactivar
+            ? { fechaInicioAccesoMs: inicio.getTime() }
+            : {}),
         });
       }
-      // No sobrescribir las fechas ni el estado que la recuperación acaba de establecer.
+
+      // La función de recuperación gestiona las fechas
+      // cuando se reactiva la cuenta.
       if (!reactivar) {
-        await updateDoc(doc(db, "pacientes", paciente.id), {
-          activo: bloqueada ? false : activo,
-          fechaInicioAcceso: inicio,
-          fechaFinAcceso: fin,
-        });
+        await updateDoc(
+          doc(db, "pacientes", paciente.id),
+          {
+            activo: bloqueada ? false : activo,
+            fechaInicioAcceso: inicio,
+            fechaFinAcceso: fin,
+          },
+        );
       }
-      const nuevos = testsSeleccionados.filter(
-        (id) => !asignaciones.some((a) => a.testId === id),
-      );
-      for (const testId of nuevos) {
+
+      // Solo se crean tests que no tienen asignación previa.
+      for (const testId of nuevosTests) {
+        if (testsExistentes.has(testId)) continue;
+
         await addDoc(collection(db, "asignaciones"), {
           pacienteId: paciente.id,
           testId,
           estado: "pendiente",
           fechaAsignacion: new Date(),
+          fechaCompletado: null,
         });
       }
+
       onGuardar({
-        activo: reactivar ? true : bloqueada ? false : activo,
-        accesoEstado: reactivar ? "pendiente" : estadoReal,
+        activo: reactivar
+          ? true
+          : bloqueada
+            ? false
+            : activo,
+        accesoEstado: reactivar
+          ? "pendiente"
+          : estadoReal,
         fechaInicioAcceso: inicio,
         fechaFinAcceso: fin,
-        testsSeleccionados,
+        testsSeleccionados: [
+          ...new Set([
+            ...asignacionesActuales,
+            ...asignaciones.map((a) => a.testId),
+            ...nuevosTests,
+          ]),
+        ],
       });
+
       onCerrar();
     } catch (e: any) {
       console.error("Error al guardar paciente:", e);
-      setError(e?.message ?? "No se pudieron guardar los cambios.");
+
+      setError(
+        e?.message ?? "No se pudieron guardar los cambios.",
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   if (!abierto) return null;
+
   return (
     <Modal
       abierto={abierto}
@@ -262,14 +442,25 @@ export default function EditarPacienteModal({
       titulo={`Configurar paciente: ${paciente?.nombre ?? ""}`}
     >
       <div className={styles.modalLayout}>
+        {/* ESTADO DE ACCESO */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
               <h3>Estado del acceso</h3>
-              <p>Configurá la disponibilidad de la cuenta del paciente.</p>
+              <p>
+                Configurá la disponibilidad de la cuenta
+                del paciente.
+              </p>
             </div>
+
             <span
-              className={`${styles.currentStatus} ${bloqueada ? styles.currentStatusDanger : activo ? styles.currentStatusActive : styles.currentStatusInactive}`}
+              className={`${styles.currentStatus} ${
+                bloqueada
+                  ? styles.currentStatusDanger
+                  : activo
+                    ? styles.currentStatusActive
+                    : styles.currentStatusInactive
+              }`}
             >
               {estadoReal === "abandonada"
                 ? "Abandonada"
@@ -280,41 +471,63 @@ export default function EditarPacienteModal({
                     : "Inactivo"}
             </span>
           </div>
+
           {bloqueada && (
             <div className={styles.warning}>
               <strong>⚠ Cuenta inhabilitada</strong>
               <p>
-                {estadoReal === "abandonada"
-                  ? "La sesión anterior terminó por abandono o interrupción. Se requiere autorización administrativa."
-                  : "El acceso anterior finalizó. Se requiere autorización administrativa para generar uno nuevo."}
+                La cuenta requiere autorización
+                administrativa para generar un nuevo acceso.
               </p>
             </div>
           )}
+
           <div className={styles.accessGrid}>
             <div className={styles.settingCard}>
-              <span className={styles.settingLabel}>Estado del usuario</span>
+              <span className={styles.settingLabel}>
+                Estado del usuario
+              </span>
+
               <div className={styles.statusSelector}>
                 <button
                   type="button"
                   disabled={guardando}
-                  className={`${styles.statusOption} ${activo ? styles.statusOptionSelected : ""}`}
+                  className={`${styles.statusOption} ${
+                    activo
+                      ? styles.statusOptionSelected
+                      : ""
+                  }`}
                   onClick={elegirActivo}
                 >
                   <span className={styles.optionDotActive} />
-                  Activo{" "}
-                  {activo && <span className={styles.optionCheck}>✓</span>}
+                  Activo
+                  {activo && (
+                    <span className={styles.optionCheck}>
+                      ✓
+                    </span>
+                  )}
                 </button>
+
                 <button
                   type="button"
                   disabled={guardando}
-                  className={`${styles.statusOption} ${!activo ? styles.statusOptionSelectedDanger : ""}`}
+                  className={`${styles.statusOption} ${
+                    !activo
+                      ? styles.statusOptionSelectedDanger
+                      : ""
+                  }`}
                   onClick={elegirInactivo}
                 >
                   <span className={styles.optionDotInactive} />
-                  Inactivo{" "}
-                  {!activo && <span className={styles.optionCheck}>✓</span>}
+                  Inactivo
+                  {!activo && (
+                    <span className={styles.optionCheck}>
+                      ✓
+                    </span>
+                  )}
                 </button>
               </div>
+
               {bloqueada ? (
                 <label className={styles.recoveryCheckbox}>
                   <input
@@ -323,12 +536,16 @@ export default function EditarPacienteModal({
                     disabled={guardando}
                     onChange={(e) => {
                       setReactivar(e.target.checked);
+
                       if (e.target.checked) {
                         setActivo(true);
-                        setFechaIngreso(fechaInput(new Date()));
+                        setFechaIngreso(
+                          fechaInput(new Date()),
+                        );
                       }
                     }}
-                  />{" "}
+                  />
+                  {" "}
                   Reactivar cuenta y generar nuevo acceso
                 </label>
               ) : (
@@ -339,164 +556,331 @@ export default function EditarPacienteModal({
                 </p>
               )}
             </div>
+
             <div className={styles.settingCard}>
               <div className={styles.settingTop}>
-                <span className={styles.settingLabel}>Fecha de ingreso</span>
-                <span className={styles.calendarMark}>24h</span>
+                <span className={styles.settingLabel}>
+                  Fecha de ingreso
+                </span>
+                <span className={styles.calendarMark}>
+                  24h
+                </span>
               </div>
+
               <div className={styles.dateField}>
                 <input
                   type="date"
                   value={fechaIngreso}
                   disabled={guardando}
-                  onChange={(e) => setFechaIngreso(e.target.value)}
+                  onChange={(e) =>
+                    setFechaIngreso(e.target.value)
+                  }
                 />
               </div>
+
               <p className={styles.settingHelp}>
-                Inicio 09:00 · Vencimiento: {mostrarFecha(fin)}
+                Inicio 09:00 · Vencimiento:{" "}
+                {mostrarFecha(fin)}
               </p>
             </div>
           </div>
         </section>
-        {/* <section className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h3>Tests asignados</h3>
-              <p>Seleccioná las evaluaciones disponibles para este paciente.</p>
-            </div>
-            <span className={styles.testCounter}>
-              {testsSeleccionados.length} de {TESTS.length} seleccionados
-            </span>
-          </div>
-          <div className={styles.testsGrid}>
-            {TESTS.map((t) => {
-              const selected = testsSeleccionados.includes(t.id);
-              const existing = asignaciones.find((a) => a.testId === t.id);
-              const locked = !!existing && existing.estado !== "pendiente";
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`${styles.testCard} ${selected ? styles.testCardSelected : ""}`}
-                  onClick={() => cambiarTest(t.id)}
-                  disabled={guardando || cargando || locked}
-                  title={
-                    locked
-                      ? `No se puede quitar: ${existing?.estado}`
-                      : undefined
-                  }
-                  aria-pressed={selected}
-                >
-                  <span className={styles.testCardTop}>
-                    <strong>{t.nombre}</strong>
-                    <span
-                      className={`${styles.checkCircle} ${selected ? styles.checkCircleSelected : ""}`}
-                    >
-                      {selected ? "✓" : ""}
-                    </span>
-                  </span>
-                  <span className={styles.testDescription}>
-                    {t.descripcion}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section> */}
+
+        {/* RECUPERACIÓN DE EVALUACIONES */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
-              <h3>Recuperación de evaluaciones</h3>
-              <p>Elegí cómo restablecer los tests abandonados.</p>
+              <h3>Gestión de evaluaciones</h3>
+              <p>
+                Conservá los resultados y configurá
+                las evaluaciones disponibles.
+              </p>
             </div>
-            <span className={styles.testCounter}>Administración</span>
+
+            <span className={styles.testCounter}>
+              {asignaciones.length} asignadas
+            </span>
           </div>
+
+          {/* OPCIÓN INDEPENDIENTE */}
+          <div className={styles.settingCard}>
+            <label className={styles.recoveryCheckbox}>
+              <input
+                type="checkbox"
+                checked={conservarCompletados}
+                disabled={guardando || cargando}
+                onChange={(e) =>
+                  setConservarCompletados(e.target.checked)
+                }
+              />
+              {" "}
+              <strong>
+                Conservar evaluaciones completadas
+                ({completadas.length})
+              </strong>
+            </label>
+
+            <p className={styles.settingHelp}>
+              Mantiene los resultados clínicos ya
+              completados. Esta opción es independiente
+              de la recuperación de otros tests.
+            </p>
+
+            {!conservarCompletados && (
+              <p className={styles.error}>
+                La eliminación de resultados completados
+                todavía no está habilitada en esta operación.
+                Activá esta opción para guardar.
+              </p>
+            )}
+          </div>
+
+          {/* OPCIONES EXCLUYENTES */}
           <div className={styles.radioGroup}>
             <label>
               <input
                 type="radio"
                 name="modoRecuperacion"
                 checked={modo === "ninguno"}
-                onChange={() => setModo("ninguno")}
-                disabled={guardando}
-              />{" "}
-              Conservar los estados actuales
+                onChange={() => cambiarModo("ninguno")}
+                disabled={guardando || cargando}
+              />
+              {" "}
+              Mantener pendientes y abandonadas sin cambios
             </label>
+
             <label>
               <input
                 type="radio"
                 name="modoRecuperacion"
                 checked={modo === "abandonados"}
-                onChange={() => setModo("abandonados")}
-                disabled={guardando}
-              />{" "}
-              Restablecer todas las abandonadas ({abandonadas.length})
+                onChange={() =>
+                  cambiarModo("abandonados")
+                }
+                disabled={guardando || cargando}
+              />
+              {" "}
+              Restablecer todas las abandonadas
+              ({abandonadas.length}) y conservar pendientes
             </label>
+
             <label>
               <input
                 type="radio"
                 name="modoRecuperacion"
                 checked={modo === "manual"}
-                onChange={() => setModo("manual")}
-                disabled={guardando}
-              />{" "}
-              Seleccionar tests manualmente
+                onChange={() => cambiarModo("manual")}
+                disabled={guardando || cargando}
+              />
+              {" "}
+              Seleccionar evaluaciones manualmente
             </label>
           </div>
+
+          {/* SELECCIÓN MANUAL */}
           {modo === "manual" && (
             <div className={styles.testsGrid}>
-              {TESTS.map((t) => {
-                const a = abandonadas.find((a) => a.testId === t.id);
-                const checked = !!a && manual.includes(a.id);
+              {TESTS.map((test) => {
+                const existentes = asignaciones.filter(
+                  (a) => a.testId === test.id,
+                );
+
+                const completado = existentes.some(
+                  (a) => a.estado === "completado",
+                );
+
+                const abandonada = existentes.find(
+                  (a) => a.estado === "abandono",
+                );
+
+                const pendiente = existentes.some(
+                  (a) => a.estado === "pendiente",
+                );
+
+                const enCurso = existentes.some(
+                  (a) =>
+                    a.estado === "en_curso" ||
+                    a.estado === "en_progreso",
+                );
+
+                const esNuevo = existentes.length === 0;
+
+                const seleccionado = abandonada
+                  ? manual.includes(abandonada.id)
+                  : esNuevo
+                    ? nuevosTests.includes(test.id)
+                    : completado || pendiente || enCurso;
+
+                const editable =
+                  Boolean(abandonada) || esNuevo;
+
+                let descripcion = "Sin asignar";
+
+                if (completado) {
+                  descripcion = "Completado · protegido";
+                } else if (pendiente) {
+                  descripcion = "Pendiente · se conserva";
+                } else if (enCurso) {
+                  descripcion = "En curso · protegido";
+                } else if (abandonada) {
+                  descripcion = seleccionado
+                    ? "Abandonado · se restablecerá"
+                    : "Abandonado · sin cambios";
+                } else if (esNuevo) {
+                  descripcion = seleccionado
+                    ? "Nuevo · se asignará"
+                    : "Sin asignar · disponible";
+                }
+
+                const alternar = () => {
+                  if (!editable) return;
+
+                  if (abandonada) {
+                    alternarAbandonado(abandonada.id);
+                  } else if (esNuevo) {
+                    alternarNuevo(test.id);
+                  }
+                };
+
                 return (
                   <button
-                    key={t.id}
+                    key={test.id}
                     type="button"
-                    disabled={!a || guardando}
-                    aria-pressed={checked}
-                    className={`${styles.testCard} ${checked ? styles.testCardSelected : ""}`}
-                    onClick={() =>
-                      a &&
-                      setManual((prev) =>
-                        checked
-                          ? prev.filter((id) => id !== a.id)
-                          : [...prev, a.id],
-                      )
+                    disabled={
+                      guardando ||
+                      cargando ||
+                      !editable
+                    }
+                    aria-pressed={seleccionado}
+                    className={`${styles.testCard} ${
+                      seleccionado
+                        ? styles.testCardSelected
+                        : ""
+                    }`}
+                    onClick={alternar}
+                    title={
+                      editable
+                        ? descripcion
+                        : `No modificable: ${
+                            existentes
+                              .map((a) =>
+                                nombreEstado(a.estado),
+                              )
+                              .join(", ") || "Sin asignar"
+                          }`
                     }
                   >
                     <span className={styles.testCardTop}>
-                      <strong>{t.nombre}</strong>
+                      <strong>{test.nombre}</strong>
+
                       <span
-                        className={`${styles.checkCircle} ${checked ? styles.checkCircleSelected : ""}`}
+                        className={`${styles.checkCircle} ${
+                          seleccionado
+                            ? styles.checkCircleSelected
+                            : ""
+                        }`}
                       >
-                        {checked ? "✓" : ""}
+                        {seleccionado ? "✓" : ""}
                       </span>
                     </span>
+
                     <span className={styles.testDescription}>
-                      {a
-                        ? "Abandonado · recuperable"
-                        : (asignaciones.find((x) => x.testId === t.id)
-                            ?.estado ?? "Sin asignar")}
+                      {descripcion}
                     </span>
                   </button>
                 );
               })}
             </div>
           )}
+
+          {/* AGREGAR TESTS NUEVOS */}
+          {modo !== "manual" && (
+            <>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h3>Agregar nuevos tests</h3>
+                  <p>
+                    Podés asignar evaluaciones que el
+                    paciente todavía no tiene.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.testsGrid}>
+                {TESTS.filter(
+                  (test) =>
+                    !testsExistentes.has(test.id),
+                ).map((test) => {
+                  const seleccionado =
+                    nuevosTests.includes(test.id);
+
+                  return (
+                    <button
+                      key={test.id}
+                      type="button"
+                      disabled={guardando || cargando}
+                      aria-pressed={seleccionado}
+                      className={`${styles.testCard} ${
+                        seleccionado
+                          ? styles.testCardSelected
+                          : ""
+                      }`}
+                      onClick={() =>
+                        alternarNuevo(test.id)
+                      }
+                    >
+                      <span className={styles.testCardTop}>
+                        <strong>{test.nombre}</strong>
+
+                        <span
+                          className={`${styles.checkCircle} ${
+                            seleccionado
+                              ? styles.checkCircleSelected
+                              : ""
+                          }`}
+                        >
+                          {seleccionado ? "✓" : ""}
+                        </span>
+                      </span>
+
+                      <span className={styles.testDescription}>
+                        {test.descripcion} · Nuevo
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {TESTS.every((test) =>
+                testsExistentes.has(test.id),
+              ) && (
+                <p className={styles.settingHelp}>
+                  El paciente ya tiene asignados todos
+                  los tipos de test disponibles.
+                </p>
+              )}
+            </>
+          )}
+
           <p className={styles.protection}>
-            ♢ Los resultados completados se conservan. Solo se reinician
-            evaluaciones abandonadas.
+            ♢ Los resultados completados se protegen.
+            Las evaluaciones pendientes no se duplican.
+            Las abandonadas solamente se restablecen
+            cuando lo solicitás.
           </p>
         </section>
+
         {error && (
           <p role="alert" className={styles.error}>
             {error}
           </p>
         )}
+
         <footer className={styles.modalFooter}>
           <p className={styles.footerHint}>
             Los cambios se aplicarán al confirmar.
           </p>
+
           <div className={styles.modalButtons}>
             <BotonPersonalizado
               variant="secondary"
@@ -505,12 +889,20 @@ export default function EditarPacienteModal({
             >
               Cancelar
             </BotonPersonalizado>
+
             <BotonPersonalizado
               variant="primary"
               onClick={guardar}
-              disabled={guardando || cargando || !inicio}
+              disabled={
+                guardando ||
+                cargando ||
+                !inicio ||
+                !conservarCompletados
+              }
             >
-              {guardando ? "Guardando..." : "Guardar cambios"}
+              {guardando
+                ? "Guardando..."
+                : "Guardar cambios"}
             </BotonPersonalizado>
           </div>
         </footer>

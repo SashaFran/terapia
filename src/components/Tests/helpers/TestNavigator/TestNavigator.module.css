@@ -1,0 +1,224 @@
+.navigator {
+  --accent: #ffad00;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+
+  background: #211f1c;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 14px;
+  box-sizing: border-box;
+}
+
+.navigatorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionEyebrow {
+  display: block;
+  margin-bottom: 9px;
+
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.navigatorHeader h2 {
+  margin: 0;
+  color: #f7f4ed;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.navigatorHeader p {
+  margin: 8px 0 0;
+  color: #a7a29a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.answerCounter {
+  flex-shrink: 0;
+  padding: 9px 13px;
+
+  background: rgba(255, 173, 0, 0.09);
+  border: 1px solid rgba(255, 173, 0, 0.16);
+  border-radius: 8px;
+
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+
+  background: #38332b;
+  border-radius: 100px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffad00, #ff9000);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.questionGrid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(72px, 1fr)
+  );
+  gap: 10px;
+}
+
+.questionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 56px;
+  padding: 12px;
+
+  border: 1px solid #454039;
+  border-radius: 10px;
+
+  background: #302d28;
+  color: #aaa59e;
+
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.questionButton:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.questionButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.questionButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.questionPending {
+  background: #302d28;
+  color: #aaa59e;
+}
+
+.questionVisited {
+  background: #493921;
+  border-color: #886324;
+  color: #ffd18a;
+}
+
+.questionAnswered {
+  background: #2e4938;
+  border-color: #4c8060;
+  color: #a5edba;
+}
+
+.questionCurrent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #17140f;
+}
+
+.questionCheck {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+
+  color: #a7a29a;
+  font-size: 11px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legendAnswered {
+  background: #4c8060;
+}
+
+.legendCurrent {
+  background: #ffad00;
+}
+
+.legendPending {
+  background: #625b51;
+}
+
+@media (max-width: 650px) {
+  .navigator {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+
+  .navigatorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .questionGrid {
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(54px, 1fr)
+    );
+    gap: 8px;
+  }
+
+  .questionButton {
+    min-height: 48px;
+    padding: 8px;
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .questionButton,
+  .progressFill {
+    transition: none;
+  }
+}

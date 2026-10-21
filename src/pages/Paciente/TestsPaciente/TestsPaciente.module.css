@@ -218,6 +218,11 @@
   box-shadow: none;
 }
 
+.container .progressTop > * {
+  width: fit-content;
+}
+
+
 .container .progressTop {
   display: flex;
   align-items: center;
@@ -621,7 +626,8 @@
   }
 
   .container .deadline {
-    align-items: flex-start;
+    align-items: center;
+    width: 100%;
   }
 
   .container .progressCard,

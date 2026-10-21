@@ -12,10 +12,14 @@
   min-height: 0;
 
   gap: 26px;
-
+padding: 1.5rem;
   color: #f4f2eb;
 }
+  
 
+.warning{
+  color: #ffb000;
+}
 
 /* =========================================================
    ENCABEZADO
@@ -242,10 +246,9 @@
 .accessDates {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-
+  flex-direction: row;
   min-height: 28px;
-
+justify-content: space-around;
   gap: 7px;
 }
 
@@ -1014,88 +1017,437 @@ gap: 0.5rem;
     transform: scale(1);
   }
 }
-
-
 /* =========================================================
-   RESPONSIVE
+   JOIN SOLUTION — PACIENTE PERFIL
+   MOBILE REDESIGN
    ========================================================= */
 
-@media (max-width: 1000px) {
-  .pageHeader {
-    align-items: flex-start;
-    flex-direction: column;
+@media (max-width: 720px) {
 
-    gap: 16px;
+  /* CONTENEDOR */
+
+  .container {
+    width: 100%;
+    min-width: 0;
+    gap: 20px;
+    padding: 20px 16px 36px;
+    box-sizing: border-box;
   }
 
+  /* ENCABEZADO */
+
+  .pageHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .heading {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  .titleRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .titleRow h1 {
+    min-width: 0;
+    font-size: clamp(25px, 7vw, 32px);
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+  }
+
+  .pageDescription {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  /* ACCIONES DEL ENCABEZADO */
+
+  .headerActions {
+    display: grid;
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .headerActions > *,
+  .headerActions span,
+  .headerActions span > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .headerActions button {
+    min-height: 46px;
+    width: 100%;
+    padding: 10px 12px;
+    white-space: normal;
+    line-height: 1.4;
+    touch-action: manipulation;
+  }
+
+  /* MÉTRICAS */
+
   .metricsGrid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    display: grid;
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+    gap: 10px;
+  }
+
+  .metricCard {
+    min-width: 0;
+    min-height: 110px;
+    padding: 16px;
+    border-radius: 12px;
   }
 
   .metricCard:last-child {
     grid-column: 1 / -1;
   }
-}
 
-@media (max-width: 720px) {
-  .container {
-    gap: 18px;
+  .metricDot {
+    top: 16px;
+    right: 16px;
   }
 
-  .headerActions {
-    width: 100%;
+  .metricTitle {
+    margin-bottom: 10px;
+    padding-right: 12px;
+    font-size: 11px;
+    line-height: 1.45;
   }
 
-  .headerActions > * {
-    flex: 1;
+  .metricNumber {
+    font-size: clamp(22px, 6vw, 29px);
   }
 
-  .metricsGrid {
-    grid-template-columns: 1fr;
+  .metricCaption {
+    margin-top: 9px;
+    font-size: 11px;
+    line-height: 1.5;
   }
 
-  .metricCard:last-child {
-    grid-column: auto;
+  /* FECHAS DE ACCESO */
+
+  .accessDates {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .accessDates strong {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .dateArrow {
+    margin: 0;
+    font-size: 15px;
+  }
+
+  /* TARJETAS DE DATOS */
+
+  .dataCard {
+    min-width: 0;
+    border-radius: 12px;
   }
 
   .cardHeader {
-    align-items: flex-start;
+    display: flex;
     flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    min-height: 0;
+    padding: 18px 16px;
   }
 
-  .cardHeader > *:last-child {
-    align-self: stretch;
+  .cardHeader h2 {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  .cardHeader p {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .cardHeader > * {
+    min-width: 0;
+  }
+
+  .cardHeader button {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* TABLAS:
+     Mantener estructura tabular y permitir
+     scroll horizontal sin romper columnas.
+  */
+
+  .tableWrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: thin;
+    scrollbar-color: #555149 #211f1b;
   }
 
   .table {
-    min-width: 720px;
+    width: 100%;
+    min-width: 650px;
+    table-layout: auto;
   }
+
+  .table th {
+    height: 44px;
+    padding: 12px 14px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .table td {
+    height: auto;
+    min-height: 58px;
+    padding: 14px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .testName {
+    font-size: 12px;
+  }
+
+  .tableStatus {
+    padding: 7px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .actionCell {
+    min-height: 58px;
+    gap: 8px;
+  }
+
+  .tableAction,
+  .fileLink {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    line-height: 1.4;
+  }
+
+  .commentCell {
+    max-width: 180px;
+  }
+
+  /* ZONA DE PELIGRO */
 
   .dangerZone {
-    align-items: flex-start;
+    display: flex;
     flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .pageDescription {
-    padding-left: 0;
+    align-items: stretch;
+    gap: 18px;
+    padding: 18px 16px;
+    border-radius: 12px;
   }
 
-  .headerActions {
-    flex-direction: column;
+  .dangerZone h3 {
+    font-size: 14px;
   }
 
-  .headerActions > * {
+  .dangerZone p {
+    margin-top: 7px;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  .deletePatient {
     width: 100%;
+    min-height: 46px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    touch-action: manipulation;
   }
 
-  .metricCard {
-    min-height: 108px;
+  /* MODAL DE DNI */
+
+  .modalBackdrop {
+    align-items: stretch;
+    justify-items: stretch;
+    padding: 0;
+    background: #11110f;
+    backdrop-filter: none;
   }
 
   .dniModal {
-    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
+
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    background: #211f1b;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .dniModalHeader {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0;
+    padding: 18px 16px;
+
+    background: #211f1b;
+    border-bottom: 1px solid
+      rgba(255, 255, 255, 0.08);
+  }
+
+  .dniModalHeader h2 {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+
+  .modalEyebrow {
+    font-size: 10px;
+  }
+
+  .modalSubtitle {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .closeModal {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .documentStatus {
+    margin: 18px 16px 12px;
+  }
+
+  .dniPreview {
+    min-height: 240px;
+    margin: 0 16px;
+    padding: 12px;
+  }
+
+  .dniPreview img {
+    max-width: 100%;
+    max-height: 65dvh;
+    object-fit: contain;
+  }
+
+  .openDocument {
+    margin: 16px 16px 24px auto;
+    min-height: 44px;
+    align-content: center;
+  }
+
+  .noDocument {
+    margin: 16px;
+    min-height: 220px;
+    padding: 24px 16px;
+  }
+}
+
+/* CELULARES PEQUEÑOS */
+
+@media (max-width: 420px) {
+
+  .container {
+    padding: 16px 12px 30px;
+    gap: 16px;
+  }
+
+  .headerActions {
+    grid-template-columns: 1fr;
+  }
+
+  .metricsGrid {
+    gap: 8px;
+  }
+
+  .metricCard {
+    min-height: 105px;
+    padding: 14px;
+  }
+
+  .metricTitle {
+    font-size: 10px;
+  }
+
+  .metricNumber {
+    font-size: 24px;
+  }
+
+  .metricCaption {
+    font-size: 10px;
+  }
+
+  .cardHeader {
+    padding: 16px 14px;
+  }
+
+  .dangerZone {
+    padding: 16px 14px;
+  }
+}
+
+/* ACCESIBILIDAD */
+
+@media (prefers-reduced-motion: reduce) {
+  .metricCard,
+  .backButton,
+  .deletePatient,
+  .tableAction,
+  .closeModal {
+    transition: none;
+  }
+
+  .metricCard:hover,
+  .backButton:hover {
+    transform: none;
   }
 }

@@ -34,9 +34,9 @@ cursor: pointer;
 .boton-secondary {
 flex: 0 0 auto;
   padding: 0.5rem 0.75rem;
-  color: #a84a54;
+  color: var(--rojo);
   background: transparent;
-  border: 1px solid rgba(168, 74, 84, 0.2);
+  border: 1px solid var(--rojo);
   border-radius: 7px;
   font-family: inherit;
   font-size: var(--font-size-small);
@@ -96,3 +96,22 @@ flex: 0 0 auto;
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+
+@media (max-width: 1000px) {
+
+  span{
+    margin: 0 auto;
+  width: 100%;
+  }
+}
+
+
+@media (max-width: 700px) {
+   span{
+    margin: 0 auto;
+  width: 100%;
+  }
+}
+
+

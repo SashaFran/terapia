@@ -1334,8 +1334,11 @@
    ========================================================= */
 
 @media (max-width: 900px) {
+    .activityAvatar {
+    margin: 0;
+  }
   .dashboard {
-    margin: -22px;
+    /* margin: -22px; */
   }
 
   .hero {
@@ -1358,6 +1361,9 @@
 }
 
 @media (max-width: 700px) {
+    .activityAvatar {
+    margin: 0;
+  }
   .metrics {
     display: grid;
 
@@ -1385,7 +1391,10 @@
 
 @media (max-width: 600px) {
   .dashboard {
-    margin: -18px;
+    /* margin: -18px; */
+  }
+  .activityAvatar {
+    margin: 0;
   }
 
   .hero {

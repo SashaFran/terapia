@@ -576,7 +576,7 @@
 
   font-size: var(--font-size-small);
   font-weight: 700;
-
+justify-content: center;
   white-space: nowrap;
 }
 
@@ -889,6 +889,10 @@
   .metricaCard > div {
     width: 100%;
   }
+  .nuevoPacienteButton{
+    margin: 0 auto;
+  width: 100%;
+  }
 }
 
 
@@ -899,6 +903,11 @@
 
   .pageHeader {
     align-items: stretch;
+  }
+
+    .nuevoPacienteButton{
+    margin: 0 auto;
+  width: 100%;
   }
 
   .pageHeader :global(.boton-primary) {

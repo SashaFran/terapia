@@ -217,7 +217,7 @@
   align-items: baseline;
 
   min-width: 0;
-
+flex-direction: column;
   gap: 10px;
 }
 

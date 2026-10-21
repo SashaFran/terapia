@@ -145,7 +145,7 @@
 .detail p {
   margin: 0;
 
-  color: var(--font-color);
+  color: var(--surface);
 
   font-size: var(--font-size-small);
 
@@ -299,7 +299,11 @@
   font-size: var(--font-size-small);
   line-height: var(--line-height-body);
 }
-.header h3,
+.header h3{
+  color: var(--surface);
+  font-size: var(--font-size-h3);
+  font-weight: 650;
+}
 .acceptanceCopy strong {
   color: var(--font-color);
 }

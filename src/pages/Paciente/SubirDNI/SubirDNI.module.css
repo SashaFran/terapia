@@ -1,8 +1,241 @@
 
 /* =====================================================
    JOIN SOLUTION — DOCUMENTACIÓN
-   Tarjetas estilo administración
+   Estados: DNI existente y carga completada
    ===================================================== */
+
+/* Ambas pantallas comparten el mismo diseño */
+
+.container .documentReady,
+.container .uploadComplete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 430px;
+  margin: 0;
+  padding: 60px 32px;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(255, 173, 0, 0.065),
+      transparent 60%
+    ),
+    #211f1c;
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+
+  text-align: center;
+}
+
+/* Íconos: DNI existente y carga reciente */
+
+.container .successIcon,
+.container .successIconLarge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
+  margin: 0 0 24px;
+  padding: 0;
+
+  background: rgba(255, 173, 0, 0.1);
+  border: 1px solid rgba(255, 173, 0, 0.25);
+  border-radius: 50%;
+
+  color: #ffad00;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+
+  box-shadow: 0 0 40px rgba(255, 173, 0, 0.045);
+}
+
+/* Contenido de DNI ya cargado */
+
+.container .documentReadyContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 650px;
+  margin: 0;
+  padding: 0;
+
+  text-align: center;
+}
+
+/* Etiquetas */
+
+.container .successLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: fit-content;
+  margin: 0 0 14px;
+  padding: 7px 12px;
+
+  background: rgba(255, 173, 0, 0.09);
+  border: 1px solid rgba(255, 173, 0, 0.16);
+  border-radius: 6px;
+
+  color: #ffad00;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Títulos */
+
+.container .documentReadyContent h2,
+.container .uploadComplete h2 {
+  max-width: 650px;
+  margin: 0 0 14px;
+
+  color: #f7f4ed;
+  font-size: clamp(22px, 2.5vw, 30px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+
+  text-align: center;
+}
+
+/* Descripciones */
+
+.container .documentReadyContent p,
+.container .uploadComplete p {
+  max-width: 540px;
+  margin: 0;
+
+  color: #aaa69e;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.75;
+
+  text-align: center;
+}
+
+/* Contenedores de botones */
+
+.container .readyActions,
+.container .successActions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  width: 100%;
+  margin: 32px 0 0;
+  padding: 0;
+  gap: 12px;
+}
+
+/* Botones personalizados y botón de reemplazo */
+
+.container .readyActions > *,
+.container .successActions > * {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 190px;
+  margin: 0;
+}
+
+/* Botón para reemplazar documento */
+
+.container .replaceButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 190px;
+  min-height: 44px;
+  padding: 12px 20px;
+
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 10px;
+
+  color: #f7f4ed;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.container .replaceButton:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 173, 0, 0.45);
+  color: #ffad00;
+}
+
+.container .replaceButton:focus-visible {
+  outline: 2px solid #ffad00;
+  outline-offset: 3px;
+}
+
+/* Responsive */
+
+@media (max-width: 650px) {
+  .container .documentReady,
+  .container .uploadComplete {
+    min-height: 380px;
+    padding: 48px 20px;
+  }
+
+  .container .successIcon,
+  .container .successIconLarge {
+    width: 66px;
+    height: 66px;
+    margin-bottom: 20px;
+    font-size: 30px;
+  }
+
+  .container .documentReadyContent h2,
+  .container .uploadComplete h2 {
+    font-size: 23px;
+  }
+
+  .container .documentReadyContent p,
+  .container .uploadComplete p {
+    font-size: 13px;
+  }
+
+  .container .readyActions,
+  .container .successActions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .container .readyActions > *,
+  .container .successActions > * {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .container .replaceButton {
+    width: 100%;
+  }
+}
 
 .container {
   --patient-bg: #11110f;
@@ -165,7 +398,6 @@ font-size: var(--font-size-small);
 input.hiddenInput::file-selector-button{
 border: 1px solid var(--patient-border);
   border-radius: 8px;
-  padding: 0.5rem 2rem;
   margin: 0 1rem 0 0;
 }
 .container .uploadHeader .sectionLabel {
@@ -305,6 +537,6 @@ border: 1px solid var(--patient-border);
 
   .container .uploadFooter {
     flex-direction: column;
-    align-items: stretch;
   }
 }
+

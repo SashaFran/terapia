@@ -1,12 +1,17 @@
-﻿import TestProgress from "../helpers/TestProgress";
-import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+﻿
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import TestNavigator from "../helpers/TestNavigator/TestNavigator";
+import TestNavigationFooter from "../helpers/TestNavigationFooter/TestNavigationFooter";
+import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
+import TestTimer from "../helpers/TestTimer/TestTimer";
+
 import { BENDER_TEST } from "../../../data/tests/bender_test";
 import RotatableImage from "./RotatableImage";
-import BotonPersonalizado from "../../Boton/Boton";
+
 import styles from "./TestBender.module.css";
-import relojStyle from "../helpers/countdown.module.css";
+
 import { useTestEngine } from "../helpers/useTestEngine";
 
 type Props = {
@@ -14,24 +19,40 @@ type Props = {
   userId: string | number;
 };
 
-export default function TestBender({ onFinish, userId }: Props) {
+export default function TestBender({
+  onFinish,
+  userId,
+}: Props) {
   const navigate = useNavigate();
+
+  const totalLaminas = BENDER_TEST.imagenes.length;
+
   const [canStart, setCanStart] = useState(false);
-  const [respuestas, setRespuestas] = useState<string[]>(
-    Array(BENDER_TEST.imagenes.length).fill("")
-  );
-  const [laminaActual, setLaminaActual] = useState(0);
-  const [visitadas, setVisitadas] = useState<boolean[]>(() => {
-    const iniciales = Array(BENDER_TEST.imagenes.length).fill(false);
-    iniciales[0] = true;
-    return iniciales;
-  });
   const [enviando, setEnviando] = useState(false);
+
+  const [respuestas, setRespuestas] = useState<string[]>(
+    () => Array(totalLaminas).fill("")
+  );
+
+  const [laminaActual, setLaminaActual] = useState(0);
+
+  const [visitadas, setVisitadas] = useState<boolean[]>(
+    () => {
+      const iniciales = Array(totalLaminas).fill(false);
+
+      if (totalLaminas > 0) {
+        iniciales[0] = true;
+      }
+
+      return iniciales;
+    }
+  );
 
   const engine = useTestEngine({
     userId,
     testId: "bender",
     timeLimitMs: 30 * 60 * 1000,
+
     getResult: () => ({
       respuestas,
       laminaActual,
@@ -39,52 +60,128 @@ export default function TestBender({ onFinish, userId }: Props) {
     }),
 
     onRestore: (data: any) => {
-      const total = BENDER_TEST.imagenes.length;
-
       if (Array.isArray(data.respuestas)) {
         setRespuestas(
-          Array.from({ length: total }, (_, i) =>
-            typeof data.respuestas[i] === "string"
-              ? data.respuestas[i]
-              : ""
+          Array.from(
+            { length: totalLaminas },
+            (_, index) =>
+              typeof data.respuestas[index] === "string"
+                ? data.respuestas[index]
+                : ""
           )
         );
       }
 
       if (Number.isInteger(data.laminaActual)) {
         setLaminaActual(
-          Math.max(0, Math.min(total - 1, data.laminaActual))
+          Math.max(
+            0,
+            Math.min(
+              totalLaminas - 1,
+              data.laminaActual
+            )
+          )
         );
       }
 
       if (Array.isArray(data.visitadas)) {
         setVisitadas(
-          Array.from({ length: total }, (_, i) =>
-            Boolean(data.visitadas[i])
+          Array.from(
+            { length: totalLaminas },
+            (_, index) => Boolean(data.visitadas[index])
           )
         );
       }
     },
+
     onFinish: async (data) => {
       await onFinish(data);
-      navigate("/app/tests", { replace: true });
+
+      navigate("/app/tests", {
+        replace: true,
+      });
     },
   });
 
-  const tiempoRestante = engine.minutes * 60 + engine.seconds;
-  let timerClass = relojStyle.timer;
-  if (tiempoRestante < 60) timerClass += ` ${relojStyle.danger}`;
-  else if (tiempoRestante < 300) timerClass += ` ${relojStyle.warning}`;
 
-  const handleChange = (index: number, texto: string) => {
-    const copy = [...respuestas];
-    copy[index] = texto;
-    setRespuestas(copy);
-    engine.update({ respuestas: copy });
+  /* RESPUESTAS */
+
+  const respondidas = respuestas.map(
+    (respuesta) => respuesta.trim().length > 0
+  );
+
+  const cantidadRespondidas =
+    respondidas.filter(Boolean).length;
+
+  const testCompleto =
+    totalLaminas > 0 &&
+    cantidadRespondidas === totalLaminas;
+
+  const respuestaActual =
+    respuestas[laminaActual] ?? "";
+
+  const handleChange = (
+    index: number,
+    texto: string
+  ) => {
+    if (engine.inputLocked || enviando) return;
+
+    const nuevasRespuestas = [...respuestas];
+    nuevasRespuestas[index] = texto;
+
+    setRespuestas(nuevasRespuestas);
+
+    engine.update({
+      respuestas: nuevasRespuestas,
+    });
   };
 
+  /* NAVEGACIÓN */
+
+  const irALamina = (index: number) => {
+    if (
+      engine.inputLocked ||
+      enviando ||
+      index < 0 ||
+      index >= totalLaminas
+    ) {
+      return;
+    }
+
+    setLaminaActual(index);
+
+    setVisitadas((anteriores) => {
+      if (anteriores[index]) {
+        return anteriores;
+      }
+
+      const nuevas = [...anteriores];
+      nuevas[index] = true;
+
+      return nuevas;
+    });
+  };
+
+  const irAnterior = () => {
+    irALamina(laminaActual - 1);
+  };
+
+  const irSiguiente = () => {
+    irALamina(laminaActual + 1);
+  };
+
+  /* FINALIZACIÓN */
+
   const finalizar = async () => {
-    if (!engine.started || enviando) return;
+    if (
+      !engine.started ||
+      engine.inputLocked ||
+      enviando ||
+      !testCompleto
+    ) {
+      return;
+    }
+
     setEnviando(true);
 
     try {
@@ -94,95 +191,224 @@ export default function TestBender({ onFinish, userId }: Props) {
         metodo: "Bender",
       });
     } catch (error) {
-      console.error("Error al finalizar:", error);
+      console.error(
+        "Error al finalizar Bender:",
+        error
+      );
+
       setEnviando(false);
     }
   };
 
-  const irALamina = (index: number) => {
-    setLaminaActual(index);
-    setVisitadas((prev) => {
-      if (prev[index]) return prev;
-      const copia = [...prev];
-      copia[index] = true;
-      return copia;
-    });
-  };
-
-  const irSiguiente = () => {
-    if (laminaActual < respuestas.length - 1) {
-      irALamina(laminaActual + 1);
-    }
-  };
-
-  const irAnterior = () => {
-    if (laminaActual > 0) {
-      irALamina(laminaActual - 1);
-    }
-  };
+  /* INTRODUCCIÓN */
 
   if (!engine.started) {
-    return <TestIntroModal nombre="Test Bender" descripcion="Observe las láminas y escriba su respuesta"
-      canStart={canStart} onConsentChange={setCanStart} onStart={engine.start}
-      startDisabled={false} instrucciones={[{ titulo: "Observe cada lámina", texto: <p>Mire cada imagen con atención.</p> },
-{ titulo: "Escriba su respuesta", texto: <p>Describa qué ve y qué siente o piensa al observarla. Puede revisar lo escrito antes de finalizar.</p> }]} />;
+    return (
+      <TestIntroModal
+        nombre="Test Bender"
+        descripcion="Observe las láminas y escriba su respuesta"
+        canStart={canStart}
+        onConsentChange={setCanStart}
+        onStart={engine.start}
+        startDisabled={!userId}
+        instrucciones={[
+          {
+            titulo: "Observe cada lámina",
+            texto: (
+              <p>
+                Mire cada imagen con atención.
+              </p>
+            ),
+          },
+          {
+            titulo: "Escriba su respuesta",
+            texto: (
+              <p>
+                Describa qué ve y qué siente o piensa
+                al observarla. Puede revisar lo
+                escrito antes de finalizar.
+              </p>
+            ),
+          },
+        ]}
+      />
+    );
   }
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       {engine.feedback}
-      <header className={styles.header}>
-        <div><h1>{BENDER_TEST.nombre}</h1><p>Observe cada lámina y escriba qué ve, siente o piensa al verla.</p></div>
-        <div aria-label="Tiempo restante" className={timerClass}>
-          {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
-        </div>
-      </header>
-      {engine.CameraComponent && <engine.CameraComponent />}
 
-      <div className={styles.workspace}>
-      <TestProgress
-        total={respuestas.length}
-        completadas={respuestas.map((r) => Boolean(r.trim()))}
+      {engine.CameraComponent && (
+        <engine.CameraComponent />
+      )}
+
+      {/* ENCABEZADO */}
+
+      <header className={styles.header}>
+        <div className={styles.headerText}>
+          <span className={styles.eyebrow}>
+            EVALUACIÓN PSICOLÓGICA
+          </span>
+
+          <h1>{BENDER_TEST.nombre}</h1>
+
+          <p>
+            Observe cada lámina y escriba qué ve,
+            siente o piensa al verla.
+          </p>
+        </div>
+
+<TestTimer
+  minutes={engine.minutes}
+  seconds={engine.seconds}
+/>
+      </header>
+
+      {/* REGISTRO DE RESPUESTAS ARRIBA */}
+
+      <TestNavigator
+        total={totalLaminas}
+        actual={laminaActual}
+        respondidas={respondidas}
         visitadas={visitadas}
-        activa={laminaActual}
         onSelect={irALamina}
+        disabled={engine.inputLocked || enviando}
+        itemLabel="Lámina"
+        descripcion="Seleccioná una lámina para revisar o completar su respuesta."
       />
-      <div className={styles.container}>
-        <div id={`test-item-${laminaActual}`} className={styles.containerImg}>
-            <h2>Lámina {laminaActual + 1}</h2>
-            <RotatableImage src={BENDER_TEST.imagenes[laminaActual]} />
-            <label htmlFor={`bender-${laminaActual}`}>Su respuesta para la lámina {laminaActual + 1}</label>
+
+      {/* LÁMINA Y RESPUESTA ABAJO */}
+
+      <section className={styles.content}>
+        <article className={styles.laminaCard}>
+          <div className={styles.laminaHeader}>
+            <div>
+              <span className={styles.sectionEyebrow}>
+                LÁMINA{" "}
+                {String(laminaActual + 1).padStart(2, "0")}
+                {" "}DE{" "}
+                {String(totalLaminas).padStart(2, "0")}
+              </span>
+
+              <h2>
+                Observe la imagen
+              </h2>
+
+              <p>
+                Mire la lámina con atención antes
+                de escribir su respuesta.
+              </p>
+            </div>
+
+            <span
+              className={`${styles.status} ${
+                respondidas[laminaActual]
+                  ? styles.statusCompleted
+                  : styles.statusPending
+              }`}
+            >
+              {respondidas[laminaActual]
+                ? "✓ Respondida"
+                : "Pendiente"}
+            </span>
+          </div>
+
+          {/* IMAGEN INTERACTIVA */}
+
+          <div className={styles.imageSection}>
+            <div className={styles.imageHeader}>
+              <span className={styles.sectionEyebrow}>
+                MATERIAL DE EVALUACIÓN
+              </span>
+
+              <strong>
+                Lámina {laminaActual + 1}
+              </strong>
+            </div>
+
+            <div className={styles.imageFrame}>
+              <RotatableImage
+                key={laminaActual}
+                src={BENDER_TEST.imagenes[laminaActual]}
+              />
+            </div>
+          </div>
+
+          {/* CAMPO DE RESPUESTA */}
+
+          <div className={styles.answerArea}>
+            <div className={styles.answerHeader}>
+              <div>
+                <span className={styles.sectionEyebrow}>
+                  TU RESPUESTA
+                </span>
+
+                <label
+                  htmlFor={`bender-${laminaActual}`}
+                >
+                  Respuesta de la lámina{" "}
+                  {laminaActual + 1}
+                </label>
+
+                <p>
+                  Describa qué ve, siente o piensa
+                  al observar esta imagen.
+                </p>
+              </div>
+
+              <span className={styles.characterCount}>
+                {respuestaActual.length} caracteres
+              </span>
+            </div>
+
             <textarea
               id={`bender-${laminaActual}`}
-              disabled={engine.inputLocked}
-              placeholder="¿Qué ves en esta lámina? ¿Qué sientes o piensas al verla?"
-              value={respuestas[laminaActual]}
-              onChange={(e) => handleChange(laminaActual, e.target.value)}
               className={styles.textarea}
+              disabled={engine.inputLocked || enviando}
+              placeholder="Escriba aquí su respuesta..."
+              value={respuestaActual}
+              onChange={(event) =>
+                handleChange(
+                  laminaActual,
+                  event.target.value
+                )
+              }
             />
-        </div>
 
-        <div className={styles.navigation}>
-          <BotonPersonalizado onClick={irAnterior} disabled={laminaActual === 0 || engine.inputLocked} variant="secondary">
-            Anterior
-          </BotonPersonalizado>
-          {laminaActual < respuestas.length - 1 && (
-            <BotonPersonalizado onClick={irSiguiente} disabled={engine.inputLocked} variant="primary">
-              Siguiente
-            </BotonPersonalizado>
-          )}
-        </div>
+            <div className={styles.answerFooter}>
+              <span>
+                Lámina {laminaActual + 1} de{" "}
+                {totalLaminas}
+              </span>
 
-        <BotonPersonalizado
-          onClick={finalizar}
-          disabled={enviando || engine.inputLocked}
-          variant="primary"
-        >
-          {enviando ? "Enviando..." : "Finalizar Test"}
-        </BotonPersonalizado>
-      </div>
-      </div>
-    </div>
+              {respondidas[laminaActual] && (
+                <span className={styles.answeredIndicator}>
+                  ✓ Respondida
+                </span>
+              )}
+            </div>
+          </div>
+        </article>
+
+        {/* NAVEGACIÓN Y FINALIZACIÓN COMPARTIDAS */}
+
+        <TestNavigationFooter
+          actual={laminaActual}
+          total={totalLaminas}
+          respondidas={cantidadRespondidas}
+          totalRespuestas={totalLaminas}
+          onPrevious={irAnterior}
+          onNext={irSiguiente}
+          onFinish={finalizar}
+          disabled={engine.inputLocked}
+          enviando={enviando}
+          itemLabel="Lámina"
+          descripcion="Completá la respuesta de cada lámina antes de finalizar la evaluación."
+          detalleProgreso={`${cantidadRespondidas} de ${totalLaminas} láminas respondidas`}
+        />
+      </section>
+      
+    </main>
   );
 }
-

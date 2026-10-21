@@ -684,6 +684,9 @@
    PRESENTATION FOOTER
 ========================================================= */
 
+.footer p{
+  font-size: var(--font-size-small);
+}
 .presentationFooter {
   position: relative;
   z-index: 2;
@@ -1415,102 +1418,258 @@ display: grid;
   }
 }
 
+/* ============================================
+   JOIN SOLUTION — LOGIN EQUIPO
+   RESPONSIVE FIX
+   ============================================ */
 
-/* =========================================================
-   MOBILE
-========================================================= */
+.page {
+  width: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  overflow-x: clip;
+  overflow-y: auto;
+}
 
-@media (max-width: 37.5rem) {
+.shell {
+  min-width: 0;
+}
+
+.loginPanel {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.loginContent {
+  min-width: 0;
+  max-width: 32rem;
+}
+
+.field input {
+  min-width: 0;
+  font-size: max(16px, var(--font-size-mid));
+}
+
+.field input,
+.patientAccess,
+.backButton,
+.forgotButton,
+.passwordToggle {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.field input:focus-visible,
+.patientAccess:focus-visible,
+.backButton:focus-visible,
+.forgotButton:focus-visible,
+.passwordToggle:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 3px;
+}
+
+
+/* ================================================
+   JOIN SOLUTION — CORRECCIÓN LOGIN MOBILE
+   ================================================ */
+
+@media (max-width: 768px) {
   .page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+
+    margin: 0;
     padding: 0;
 
-    background: var(--gris-dark);
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    box-sizing: border-box;
+    background: #211f1b;
   }
 
   .shell {
+    display: flex;
+    flex-direction: column;
+
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 100dvh;
+    height: auto;
 
-    border: 0;
+    margin: 0;
+    padding: 0;
+
+    overflow: visible;
+
+    border: none;
     border-radius: 0;
-
     box-shadow: none;
   }
 
-  .presentation {
-    min-height: 28rem;
+  .presentation,
+  .loginPanel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    box-sizing: border-box;
+  }
 
-    padding: 1.6rem;
+  .presentation {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .introduction {
+    margin: 28px 0;
+    padding: 0;
   }
 
   .introduction h1 {
-    font-size:
-      clamp(
-        2.65rem,
-        13vw,
-        3.5rem
-      );
+    font-size: clamp(30px, 8vw, 42px);
+    line-height: 1.08;
+    letter-spacing: -1.5px;
+  }
+
+  .presentationFooter {
+    margin-top: 20px;
   }
 
   .loginPanel {
-    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
 
-    padding: 3rem 1.4rem 3.5rem;
+    flex: 1 0 auto;
+    min-height: 0;
+
+    padding: 32px 20px 48px;
+  }
+
+  .loginContent {
+    width: 100%;
+    max-width: 480px;
+    min-width: 0;
+    margin: 0 auto;
+  }
+
+  .backButton {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    justify-content: flex-start;
+
+    width: auto;
+    max-width: 100%;
+
+    gap: 8px;
+    margin-bottom: 28px;
+
+    white-space: nowrap;
+   
+  }
+
+  .loginHeader {
+    width: 100%;
+  }
+
+  .loginHeader h2 {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .form,
+  .field,
+  .inputWrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .inputWrapper {
+    position: relative;
+    display: block;
+  }
+
+  .field input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 50px;
+
+    padding: 0 76px 0 16px;
+
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .inputSuffix,
+  .passwordToggle {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    left: auto;
+
+    transform: translateY(-50%);
+  }
+
+  .passwordToggle {
+    min-width: 48px;
+    min-height: 40px;
+    padding: 0 4px;
   }
 
   .passwordHeader {
-    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 
-    flex-direction: column;
+  .primaryAction,
+  .primaryAction > * {
+    width: 100%;
+    min-width: 0;
+  }
 
-    gap: 0.35rem;
+  .primaryAction button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .patientAccess {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pageFooter {
+   display: none;
   }
 }
 
+@media (max-width: 360px) {
+  .presentation {
+    padding: 20px 16px;
+  }
 
-/* =========================================================
-   VERY SMALL
-========================================================= */
+  .loginPanel {
+    padding: 28px 16px 40px;
+  }
 
-@media (max-width: 23rem) {
   .presentationFooter {
-    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .stat + .stat {
-    padding-left: 0;
-    padding-top: 1rem;
-
-    border-left: 0;
-
-    border-top:
-      0.0625rem solid
-      color-mix(
-        in srgb,
-        var(--gris-dark) 18%,
-        transparent
-      );
-  }
-}
-
-
-/* =========================================================
-   REDUCED MOTION
-========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .backButton,
-  .field input,
-  .forgotButton,
-  .passwordToggle,
-  .patientAccess,
-  .patientAccess > svg {
-    transition: none;
-  }
-
-  .backButton:hover,
-  .patientAccess:hover,
-  .patientAccess:hover > svg {
-    transform: none;
+    padding-left: 12px;
   }
 }

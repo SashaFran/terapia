@@ -1,20 +1,14 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import TestNavigator from "../helpers/TestNavigator/TestNavigator";
+import TestNavigationFooter from "../helpers/TestNavigationFooter/TestNavigationFooter";
 import { ZULLIGER_TEST } from "../../../data/tests/zulliger_test";
-
 import BotonPersonalizado from "../../Boton/Boton";
 import TestIntroModal from "../../Modal/TestIntro/TestIntroModal";
-import TestProgress from "../helpers/TestProgress";
+import { useTestEngine } from "../helpers/useTestEngine";
 
 import styles from "./TestZulliger.module.css";
 import relojStyle from "../helpers/countdown.module.css";
-
-import { useTestEngine } from "../helpers/useTestEngine";
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type Rotacion = 0 | 90 | 180 | 270;
 
@@ -33,74 +27,47 @@ type Props = {
   userId: string | number;
 };
 
-/* =========================================================
-   CONSTANTS
-========================================================= */
-
 const ROTACIONES: Rotacion[] = [0, 90, 180, 270];
 
 const crearRespuestasIniciales = (): RespuestaLamina[] =>
   ZULLIGER_TEST.imagenes.map((_, index) => ({
     lamina: index + 1,
-
     orientaciones: ROTACIONES.map((rotacion) => ({
       rotacion,
       respuesta: "",
     })),
   }));
 
-/* =========================================================
-   COMPONENT
-========================================================= */
-
-export default function TestZulliger({
-  onFinish,
-  userId,
-}: Props) {
+export default function TestZulliger({ onFinish, userId }: Props) {
   const navigate = useNavigate();
 
+  const totalLaminas = ZULLIGER_TEST.imagenes.length;
+  const totalOrientaciones = totalLaminas * ROTACIONES.length;
+
   const [canStart, setCanStart] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
-  const [respuestas, setRespuestas] =
-    useState<RespuestaLamina[]>(
-      crearRespuestasIniciales,
-    );
-
-  /*
-   * Guarda qué orientación está viendo actualmente
-   * el paciente para cada lámina.
-   *
-   * Ejemplo:
-   * [0, 2, 1]
-   *
-   * Lámina 1 -> orientación 0°
-   * Lámina 2 -> orientación 180°
-   * Lámina 3 -> orientación 90°
-   */
-  const [slidesActivos, setSlidesActivos] = useState<number[]>(
-    () =>
-      Array(ZULLIGER_TEST.imagenes.length).fill(0),
+  const [respuestas, setRespuestas] = useState<RespuestaLamina[]>(
+    crearRespuestasIniciales,
   );
 
   const [laminaActual, setLaminaActual] = useState(0);
+
+  const [slidesActivos, setSlidesActivos] = useState<number[]>(() =>
+    Array(totalLaminas).fill(0),
+  );
+
   const [visitadas, setVisitadas] = useState<boolean[]>(() => {
-    const iniciales = Array(ZULLIGER_TEST.imagenes.length).fill(false);
+    const iniciales = Array(totalLaminas).fill(false);
     iniciales[0] = true;
     return iniciales;
   });
 
-  const [enviando, setEnviando] = useState(false);
-
-  /* =======================================================
-     ENGINE
-  ======================================================= */
-
   const engine = useTestEngine({
     userId,
-
     testId: "zulliger",
-
     timeLimitMs: 30 * 60 * 1000,
+
     getResult: () => ({
       respuestas,
       laminaActual,
@@ -109,52 +76,50 @@ export default function TestZulliger({
     }),
 
     onRestore: (data: any) => {
-      const total = ZULLIGER_TEST.imagenes.length;
-
       if (Array.isArray(data.respuestas)) {
         const iniciales = crearRespuestasIniciales();
 
-        const recuperadas = iniciales.map((lamina, i) => ({
-          ...lamina,
-          orientaciones: lamina.orientaciones.map((orientacion, j) => {
-            const guardada =
-              data.respuestas[i]?.orientaciones?.[j];
+        setRespuestas(
+          iniciales.map((lamina, i) => ({
+            ...lamina,
+            orientaciones: lamina.orientaciones.map((orientacion, j) => {
+              const guardada = data.respuestas[i]?.orientaciones?.[j];
 
-            return {
-              ...orientacion,
-              respuesta:
-                typeof guardada?.respuesta === "string"
-                  ? guardada.respuesta
-                  : "",
-            };
-          }),
-        }));
-
-        setRespuestas(recuperadas);
+              return {
+                ...orientacion,
+                respuesta:
+                  typeof guardada?.respuesta === "string"
+                    ? guardada.respuesta
+                    : "",
+              };
+            }),
+          })),
+        );
       }
 
       if (Number.isInteger(data.laminaActual)) {
         setLaminaActual(
-          Math.max(0, Math.min(total - 1, data.laminaActual))
+          Math.max(0, Math.min(totalLaminas - 1, data.laminaActual)),
         );
       }
 
       if (Array.isArray(data.visitadas)) {
         setVisitadas(
-          Array.from({ length: total }, (_, i) =>
-            Boolean(data.visitadas[i])
-          )
+          Array.from({ length: totalLaminas }, (_, i) =>
+            Boolean(data.visitadas[i]),
+          ),
         );
       }
 
       if (Array.isArray(data.slidesActivos)) {
         setSlidesActivos(
-          Array.from({ length: total }, (_, i) => {
+          Array.from({ length: totalLaminas }, (_, i) => {
             const valor = data.slidesActivos[i];
+
             return Number.isInteger(valor)
               ? Math.max(0, Math.min(3, valor))
               : 0;
-          })
+          }),
         );
       }
     },
@@ -168,224 +133,127 @@ export default function TestZulliger({
     },
   });
 
-  /* =======================================================
-     TIMER
-  ======================================================= */
+  /* CRONÓMETRO */
 
-  const tiempoRestante =
-    engine.minutes * 60 +
-    engine.seconds;
+  const tiempoRestante = engine.minutes * 60 + engine.seconds;
 
-  let timerClass =
-    relojStyle.timer;
+  let timerClass = relojStyle.timer;
 
   if (tiempoRestante < 60) {
-    timerClass +=
-      ` ${relojStyle.danger}`;
+    timerClass += ` ${relojStyle.danger}`;
   } else if (tiempoRestante < 300) {
-    timerClass +=
-      ` ${relojStyle.warning}`;
+    timerClass += ` ${relojStyle.warning}`;
   }
 
-  /* =======================================================
-     RESPUESTAS
-  ======================================================= */
+  /* RESPUESTAS */
 
   const handleChange = (
     laminaIndex: number,
     orientacionIndex: number,
     texto: string,
   ) => {
-    const nuevasRespuestas =
-      respuestas.map(
-        (lamina, index) => {
-          if (index !== laminaIndex) {
-            return lamina;
-          }
+    if (engine.inputLocked) return;
 
-          return {
-            ...lamina,
+    const nuevasRespuestas = respuestas.map((lamina, index) => {
+      if (index !== laminaIndex) {
+        return lamina;
+      }
 
-            orientaciones:
-              lamina.orientaciones.map(
-                (orientacion, indexOrientacion) => {
-                  if (
-                    indexOrientacion !==
-                    orientacionIndex
-                  ) {
-                    return orientacion;
-                  }
-
-                  return {
-                    ...orientacion,
-                    respuesta: texto,
-                  };
-                },
-              ),
-          };
-        },
-      );
+      return {
+        ...lamina,
+        orientaciones: lamina.orientaciones.map(
+          (orientacion, indexOrientacion) =>
+            indexOrientacion === orientacionIndex
+              ? {
+                  ...orientacion,
+                  respuesta: texto,
+                }
+              : orientacion,
+        ),
+      };
+    });
 
     setRespuestas(nuevasRespuestas);
 
-    /*
-     * Guardamos la estructura completa.
-     *
-     * Esto permite identificar:
-     * - qué lámina es,
-     * - qué orientación tiene,
-     * - qué respondió el paciente.
-     */
     engine.update({
       respuestas: nuevasRespuestas,
     });
   };
 
-  /* =======================================================
-     CAROUSEL
-  ======================================================= */
-
-  const cambiarSlide = (
-    laminaIndex: number,
-    nuevoSlide: number,
-  ) => {
-    setSlidesActivos((prev) => {
-      const copia = [...prev];
-
-      copia[laminaIndex] = nuevoSlide;
-
-      return copia;
-    });
-  };
-
-  const slideAnterior = (
-    laminaIndex: number,
-  ) => {
-    const actual =
-      slidesActivos[laminaIndex];
-
-    const nuevo =
-      actual === 0
-        ? ROTACIONES.length - 1
-        : actual - 1;
-
-    cambiarSlide(
-      laminaIndex,
-      nuevo,
-    );
-  };
-
-  const slideSiguiente = (
-    laminaIndex: number,
-  ) => {
-    const actual =
-      slidesActivos[laminaIndex];
-
-    const nuevo =
-      actual === ROTACIONES.length - 1
-        ? 0
-        : actual + 1;
-
-    cambiarSlide(
-      laminaIndex,
-      nuevo,
-    );
-  };
+  /* NAVEGACIÓN */
 
   const irALamina = (index: number) => {
+    if (engine.inputLocked || index < 0 || index >= totalLaminas) {
+      return;
+    }
+
     setLaminaActual(index);
-    setVisitadas((prev) => {
-      if (prev[index]) return prev;
-      const copia = [...prev];
-      copia[index] = true;
-      return copia;
+
+    setVisitadas((anteriores) => {
+      if (anteriores[index]) return anteriores;
+
+      const nuevas = [...anteriores];
+      nuevas[index] = true;
+      return nuevas;
     });
   };
 
-  /* =======================================================
-     PROGRESO
-  ======================================================= */
+  const cambiarOrientacion = (index: number) => {
+    if (engine.inputLocked || index < 0 || index >= ROTACIONES.length) {
+      return;
+    }
 
-  /*
-   * Una orientación está respondida solamente
-   * cuando contiene texto real.
-   */
-  const orientacionRespondida = (
-    laminaIndex: number,
-    orientacionIndex: number,
-  ) =>
-    respuestas[laminaIndex]
-      .orientaciones[orientacionIndex]
-      .respuesta
-      .trim()
-      .length > 0;
+    setSlidesActivos((anteriores) => {
+      const nuevas = [...anteriores];
+      nuevas[laminaActual] = index;
+      return nuevas;
+    });
+  };
 
-  const cantidadOrientacionesRespondidas = (
-    laminaIndex: number,
-  ) =>
-    respuestas[laminaIndex]
-      .orientaciones
-      .filter(
-        (orientacion) =>
-          orientacion.respuesta
-            .trim()
-            .length > 0,
-      )
-      .length;
+  const moverOrientacion = (direccion: -1 | 1) => {
+    const actual = slidesActivos[laminaActual];
 
-  /*
-   * La lámina se considera COMPLETA únicamente
-   * cuando sus cuatro orientaciones tienen respuesta.
-   */
-  const completadas =
-    respuestas.map(
-      (lamina) =>
-        lamina.orientaciones.every(
-          (orientacion) =>
-            orientacion.respuesta
-              .trim()
-              .length > 0,
-        ),
-    );
+    const siguiente =
+      (actual + direccion + ROTACIONES.length) % ROTACIONES.length;
 
-  const cantidadCompletadas =
-    completadas.filter(Boolean).length;
+    cambiarOrientacion(siguiente);
+  };
 
-  const totalLaminas =
-    ZULLIGER_TEST.imagenes.length;
+  /* PROGRESO */
 
-  const totalOrientaciones =
-    totalLaminas *
-    ROTACIONES.length;
+  const cantidadOrientacionesRespondidas = (index: number) =>
+    respuestas[index].orientaciones.filter(
+      (orientacion) => orientacion.respuesta.trim().length > 0,
+    ).length;
 
-  const orientacionesCompletadas =
-    respuestas.reduce(
-      (total, lamina) =>
-        total +
-        lamina.orientaciones.filter(
-          (orientacion) =>
-            orientacion.respuesta
-              .trim()
-              .length > 0,
-        ).length,
-      0,
-    );
+  const completadas = respuestas.map((lamina) =>
+    lamina.orientaciones.every(
+      (orientacion) => orientacion.respuesta.trim().length > 0,
+    ),
+  );
 
-  const testCompleto =
-    orientacionesCompletadas ===
-    totalOrientaciones;
+  const cantidadCompletadas = completadas.filter(Boolean).length;
 
-  /* =======================================================
-     FINALIZAR
-  ======================================================= */
+  const orientacionesCompletadas = respuestas.reduce(
+    (total, lamina) =>
+      total +
+      lamina.orientaciones.filter(
+        (orientacion) => orientacion.respuesta.trim().length > 0,
+      ).length,
+    0,
+  );
+
+  const testCompleto = orientacionesCompletadas === totalOrientaciones;
+
+  const porcentaje =
+    totalOrientaciones > 0
+      ? (orientacionesCompletadas / totalOrientaciones) * 100
+      : 0;
+
+  /* FINALIZACIÓN */
 
   const finalizar = async () => {
-    if (
-      !engine.started ||
-      enviando ||
-      engine.inputLocked ||
-      !testCompleto
-    ) {
+    if (!engine.started || enviando || engine.inputLocked || !testCompleto) {
       return;
     }
 
@@ -393,50 +261,21 @@ export default function TestZulliger({
 
     try {
       await engine.submit({
-        /*
-         * Estructura preparada para persistencia y PDF:
-         *
-         * respuestas: [
-         *   {
-         *     lamina: 1,
-         *     orientaciones: [
-         *       {
-         *         rotacion: 0,
-         *         respuesta: "..."
-         *       },
-         *       ...
-         *     ]
-         *   }
-         * ]
-         */
         respuestas,
-
-        nivel:
-          "Interpretación Láminas",
-
+        nivel: "Interpretación Láminas",
         metodo: "Zulliger",
-
         totalLaminas,
-
-        orientacionesPorLamina:
-          ROTACIONES.length,
-
-        totalRespuestas:
-          orientacionesCompletadas,
+        orientacionesPorLamina: ROTACIONES.length,
+        totalRespuestas: orientacionesCompletadas,
       });
     } catch (error) {
-      console.error(
-        "Error al finalizar:",
-        error,
-      );
+      console.error("Error al finalizar Zulliger:", error);
 
       setEnviando(false);
     }
   };
 
-  /* =======================================================
-     INTRODUCCIÓN
-  ======================================================= */
+  /* INTRODUCCIÓN */
 
   if (!engine.started) {
     return (
@@ -445,69 +284,42 @@ export default function TestZulliger({
         descripcion="Evaluación mediante interpretación de láminas"
         duracion="30 minutos"
         canStart={canStart}
-        onConsentChange={
-          setCanStart
-        }
-        onStart={
-          engine.start
-        }
+        onConsentChange={setCanStart}
+        onStart={engine.start}
         instrucciones={[
           {
-            titulo:
-              "Observe cada lámina",
-
+            titulo: "Observe cada lámina",
             texto: (
               <p>
-                Durante la evaluación se
-                presentarán distintas
-                láminas. Cada una podrá
-                observarse en cuatro
-                orientaciones diferentes.
+                Durante la evaluación se presentarán distintas láminas. Cada una
+                podrá observarse en cuatro orientaciones.
               </p>
             ),
           },
-
           {
-            titulo:
-              "Observe las cuatro orientaciones",
-
+            titulo: "Explore las orientaciones",
             texto: (
               <p>
-                Utilice las flechas del
-                carrusel para observar cada
-                lámina en 0°, 90°, 180° y
-                270°. Cada orientación tiene
-                su propio campo de respuesta.
+                Utilice las flechas para observar cada lámina en 0°, 90°, 180° y
+                270°. Cada orientación tiene su propio campo de respuesta.
               </p>
             ),
           },
-
           {
-            titulo:
-              "Describa su percepción",
-
+            titulo: "Describa su percepción",
             texto: (
               <p>
-                Para cada orientación,
-                escriba qué ve, qué
-                interpreta y qué siente o
-                piensa al observarla. No es
-                necesario buscar una
+                Para cada orientación, escriba qué ve, qué interpreta y qué
+                siente o piensa al observarla.
+              </p>
+            ),
+          },
+          {
+            titulo: "Responda con tranquilidad",
+            texto: (
+              <p>
+                Utilice sus propias palabras. No es necesario buscar una
                 respuesta específica.
-              </p>
-            ),
-          },
-
-          {
-            titulo:
-              "Responda con tranquilidad",
-
-            texto: (
-              <p>
-                Utilice sus propias palabras
-                y procure describir su
-                percepción de la forma más
-                clara posible.
               </p>
             ),
           },
@@ -516,609 +328,254 @@ export default function TestZulliger({
     );
   }
 
-  /* =======================================================
-     TEST
-  ======================================================= */
+  /* LÁMINA ACTIVA */
+
+  const imagenActual = ZULLIGER_TEST.imagenes[laminaActual];
+
+  const orientacionIndex = slidesActivos[laminaActual];
+
+  const rotacion = ROTACIONES[orientacionIndex];
+
+  const respuestaActual =
+    respuestas[laminaActual].orientaciones[orientacionIndex].respuesta;
+
+  const respondidasLamina = cantidadOrientacionesRespondidas(laminaActual);
+
+  const laminaCompleta = completadas[laminaActual];
+
+  const ultimaLamina = laminaActual === totalLaminas - 1;
 
   return (
     <main className={styles.page}>
       {engine.feedback}
 
-      {/* ===================================================
-          HEADER
-      =================================================== */}
+      {engine.CameraComponent && <engine.CameraComponent />}
 
-      <header
-        className={styles.testHeader}
-      >
-        <div>
-          <span
-            className={styles.eyebrow}
-          >
-            Evaluación en curso
-          </span>
+      {/* ENCABEZADO */}
 
-          <h1>
-            {ZULLIGER_TEST.nombre}
-          </h1>
+      <header className={styles.testHeader}>
+        <div className={styles.headerText}>
+          <span className={styles.eyebrow}>EVALUACIÓN PSICOLÓGICA</span>
+
+          <h1>{ZULLIGER_TEST.nombre}</h1>
 
           <p>
-            Observe cada lámina en sus
-            cuatro orientaciones y escriba
-            qué percibe en cada una.
+            Observe cada lámina en sus cuatro orientaciones y describa qué
+            percibe.
           </p>
         </div>
 
-        <div
-          className={styles.timeBlock}
-        >
-          <span>
-            Tiempo restante
-          </span>
+        <div className={styles.timeBlock}>
+          <span>TIEMPO RESTANTE</span>
 
-          <div
-            className={timerClass}
-          >
-            {engine.minutes}:
-            {String(
-              engine.seconds,
-            ).padStart(2, "0")}
+          <div className={timerClass}>
+            {engine.minutes}:{String(engine.seconds).padStart(2, "0")}
           </div>
         </div>
       </header>
 
-      {/* ===================================================
-          CAMERA
-      =================================================== */}
+      {/* REGISTRO DE RESPUESTAS ARRIBA */}
 
-      {engine.CameraComponent && (
-        <engine.CameraComponent />
-      )}
+      <TestNavigator
+        total={totalLaminas}
+        actual={laminaActual}
+        respondidas={completadas}
+        visitadas={visitadas}
+        onSelect={irALamina}
+        disabled={engine.inputLocked}
+        itemLabel="Lámina"
+        descripcion="Seleccioná una lámina para revisar o completar sus cuatro orientaciones."
+      />
 
-      {/* ===================================================
-          WORKSPACE
-      =================================================== */}
+      {/* LÁMINA DEBAJO DEL REGISTRO */}
 
-      <div
-        className={styles.workspace}
-      >
-        {/* =================================================
-            SIDEBAR
-        ================================================= */}
-
-        <div
-          className={styles.sidebar}
+      <section className={styles.testContent}>
+        <article
+          className={styles.laminaCard}
+          aria-labelledby="zulliger-lamina-title"
         >
-          <TestProgress
-            total={totalLaminas}
-            completadas={completadas}
-            visitadas={visitadas}
-            activa={laminaActual}
-            onSelect={irALamina}
-            titulo="Láminas"
-            itemLabel="Lámina"
-          />
-        </div>
+          <div className={styles.laminaHeader}>
+            <div>
+              <span className={styles.laminaEyebrow}>
+                LÁMINA {String(laminaActual + 1).padStart(2, "0")} DE{" "}
+                {String(totalLaminas).padStart(2, "0")}
+              </span>
 
-        {/* =================================================
-            CONTENT
-        ================================================= */}
+              <h2 id="zulliger-lamina-title">
+                Observe la imagen desde cada orientación
+              </h2>
 
-        <section
-          className={
-            styles.testContent
-          }
-        >
-          {ZULLIGER_TEST.imagenes.slice(laminaActual, laminaActual + 1).map(
-            (img) => {
-              const laminaIndex = laminaActual;
-              const slideActual =
-                slidesActivos[
-                  laminaIndex
-                ];
+              <p>Utilice las flechas o seleccione directamente un ángulo.</p>
+            </div>
 
-              const rotacion =
-                ROTACIONES[
-                  slideActual
-                ];
-
-              const respuestaActual =
-                respuestas[
-                  laminaIndex
-                ].orientaciones[
-                  slideActual
-                ].respuesta;
-
-              const respondidasLamina =
-                cantidadOrientacionesRespondidas(
-                  laminaIndex,
-                );
-
-              const estaCompleta =
-                completadas[
-                  laminaIndex
-                ];
-
-              return (
-                <article
-                  id={`test-item-${laminaIndex}`}
-                  key={laminaIndex}
-                  className={`${
-                    styles.laminaCard
-                  } ${
-                    estaCompleta
-                      ? styles.laminaCompleted
-                      : ""
-                  }`}
-                >
-                  {/* =======================================
-                      HEADER LÁMINA
-                  ======================================= */}
-
-                  <header
-                    className={
-                      styles.laminaHeader
-                    }
-                  >
-                    <div>
-                      <span
-                        className={
-                          styles.laminaEyebrow
-                        }
-                      >
-                        Lámina{" "}
-                        {String(
-                          laminaIndex +
-                            1,
-                        ).padStart(
-                          2,
-                          "0",
-                        )}{" "}
-                        · de{" "}
-                        {String(
-                          totalLaminas,
-                        ).padStart(
-                          2,
-                          "0",
-                        )}
-                      </span>
-
-                      <h2>
-                        Observe la imagen
-                        desde cada
-                        orientación
-                      </h2>
-                    </div>
-
-                    <div
-                      className={
-                        styles.laminaProgress
-                      }
-                    >
-                      <span
-                        className={`${styles.status} ${
-                          estaCompleta
-                            ? styles.statusCompleted
-                            : styles.statusPending
-                        }`}
-                        title={
-                          estaCompleta
-                            ? "Las cuatro orientaciones tienen respuesta"
-                            : `${respondidasLamina} de 4 orientaciones respondidas`
-                        }
-                      >
-                        <span />
-
-                        {estaCompleta
-                          ? "Completa"
-                          : `${respondidasLamina}/4`}
-                      </span>
-                    </div>
-                  </header>
-
-                  {/* =======================================
-                      ORIENTATION INFO
-                  ======================================= */}
-
-                  <div
-                    className={
-                      styles.orientationHeader
-                    }
-                  >
-                    <div>
-                      <span
-                        className={
-                          styles.orientationEyebrow
-                        }
-                      >
-                        Orientación actual
-                      </span>
-
-                      <strong>
-                        {rotacion}°
-                      </strong>
-                    </div>
-
-                    <span
-                      className={
-                        styles.slideCounter
-                      }
-                    >
-                      Vista{" "}
-                      {slideActual + 1} de{" "}
-                      {ROTACIONES.length}
-                    </span>
-                  </div>
-
-                  {/* =======================================
-                      CAROUSEL
-                  ======================================= */}
-
-                  <div
-                    className={
-                      styles.carousel
-                    }
-                  >
-                    <button
-                      type="button"
-                      className={
-                        styles.carouselArrow
-                      }
-                      onClick={() =>
-                        slideAnterior(
-                          laminaIndex,
-                        )
-                      }
-                      disabled={
-                        engine.inputLocked
-                      }
-                      aria-label={`Ver orientación anterior de la lámina ${
-                        laminaIndex + 1
-                      }`}
-                    >
-                      ‹
-                    </button>
-
-                    <div
-                      className={
-                        styles.imageArea
-                      }
-                    >
-                      <div
-                        className={
-                          styles.imageFrame
-                        }
-                      >
-                        <img
-                          src={img}
-                          alt={`Lámina ${
-                            laminaIndex +
-                            1
-                          }, orientación ${rotacion} grados`}
-                          style={{
-                            transform: `rotate(${rotacion}deg)`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className={
-                        styles.carouselArrow
-                      }
-                      onClick={() =>
-                        slideSiguiente(
-                          laminaIndex,
-                        )
-                      }
-                      disabled={
-                        engine.inputLocked
-                      }
-                      aria-label={`Ver orientación siguiente de la lámina ${
-                        laminaIndex + 1
-                      }`}
-                    >
-                      ›
-                    </button>
-                  </div>
-
-                  {/* =======================================
-                      CAROUSEL DOTS / ORIENTATIONS
-                  ======================================= */}
-
-                  <div
-                    className={
-                      styles.orientationNav
-                    }
-                    aria-label={`Orientaciones de la lámina ${
-                      laminaIndex + 1
-                    }`}
-                  >
-                    {ROTACIONES.map(
-                      (
-                        angulo,
-                        orientacionIndex,
-                      ) => {
-                        const activa =
-                          orientacionIndex ===
-                          slideActual;
-
-                        const respondida =
-                          orientacionRespondida(
-                            laminaIndex,
-                            orientacionIndex,
-                          );
-
-                        return (
-                          <button
-                            key={
-                              angulo
-                            }
-                            type="button"
-                            disabled={
-                              engine.inputLocked
-                            }
-                            onClick={() =>
-                              cambiarSlide(
-                                laminaIndex,
-                                orientacionIndex,
-                              )
-                            }
-                            className={`${styles.orientationButton} ${
-                              activa
-                                ? styles.orientationButtonActive
-                                : ""
-                            } ${
-                              respondida
-                                ? styles.orientationButtonAnswered
-                                : ""
-                            }`}
-                            aria-current={
-                              activa
-                                ? "true"
-                                : undefined
-                            }
-                            title={
-                              respondida
-                                ? `Orientación ${angulo}° · Respondida`
-                                : `Orientación ${angulo}° · Pendiente`
-                            }
-                          >
-                            <span
-                              className={
-                                styles.orientationDot
-                              }
-                            />
-
-                            <strong>
-                              {angulo}°
-                            </strong>
-
-                            <small>
-                              {respondida
-                                ? "Respondida"
-                                : "Pendiente"}
-                            </small>
-                          </button>
-                        );
-                      },
-                    )}
-                  </div>
-
-                  {/* =======================================
-                      ANSWER
-                  ======================================= */}
-
-                  <div
-                    className={
-                      styles.answerArea
-                    }
-                  >
-                    <div
-                      className={
-                        styles.answerHeader
-                      }
-                    >
-                      <div>
-                        <label
-                          htmlFor={`respuesta-${laminaIndex}-${rotacion}`}
-                        >
-                          Respuesta ·
-                          Lámina{" "}
-                          {laminaIndex +
-                            1}{" "}
-                          · {rotacion}°
-                        </label>
-
-                        <p
-                          className={
-                            styles.answerHint
-                          }
-                        >
-                          Describa qué ve,
-                          siente o piensa al
-                          observar esta
-                          orientación.
-                        </p>
-                      </div>
-
-                      <span>
-                        {
-                          respuestaActual.length
-                        }{" "}
-                        caracteres
-                      </span>
-                    </div>
-
-                    <textarea
-                      id={`respuesta-${laminaIndex}-${rotacion}`}
-                      disabled={
-                        engine.inputLocked
-                      }
-                      placeholder={`¿Qué ve en la Lámina ${
-                        laminaIndex + 1
-                      } observada a ${rotacion}°?`}
-                      value={
-                        respuestaActual
-                      }
-                      onChange={(e) =>
-                        handleChange(
-                          laminaIndex,
-                          slideActual,
-                          e.target.value,
-                        )
-                      }
-                      className={
-                        styles.textarea
-                      }
-                    />
-
-                    <div
-                      className={
-                        styles.answerFooter
-                      }
-                    >
-                      <span>
-                        Lámina{" "}
-                        {laminaIndex +
-                          1}
-                      </span>
-
-                      <span
-                        aria-hidden="true"
-                      >
-                        ·
-                      </span>
-
-                      <strong>
-                        Orientación{" "}
-                        {rotacion}°
-                      </strong>
-
-                      {orientacionRespondida(
-                        laminaIndex,
-                        slideActual,
-                      ) && (
-                        <>
-                          <span
-                            aria-hidden="true"
-                          >
-                            ·
-                          </span>
-
-                          <span
-                            className={
-                              styles.savedIndicator
-                            }
-                          >
-                            <i />
-                            Respondida
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              );
-            },
-          )}
-
-          <div className={styles.finishCard}>
-            <BotonPersonalizado
-              onClick={() => irALamina(laminaActual - 1)}
-              disabled={laminaActual === 0 || engine.inputLocked}
-              variant="secondary"
+            <span
+              className={`${styles.status} ${
+                laminaCompleta ? styles.statusCompleted : styles.statusPending
+              }`}
             >
-              Lámina anterior
-            </BotonPersonalizado>
-            {laminaActual < totalLaminas - 1 && (
-              <BotonPersonalizado
-                onClick={() => irALamina(laminaActual + 1)}
-                disabled={engine.inputLocked}
-                variant="primary"
-              >
-                Siguiente lámina
-              </BotonPersonalizado>
-            )}
+              {laminaCompleta
+                ? "✓ Completa"
+                : `${respondidasLamina}/4 respondidas`}
+            </span>
           </div>
 
-          {/* =================================================
-              FINALIZAR
-          ================================================= */}
+          {/* ORIENTACIÓN ACTUAL */}
 
-          <footer
-            className={
-              styles.finishCard
-            }
-          >
+          <div className={styles.orientationHeader}>
             <div>
-              <span
-                className={
-                  styles.finishEyebrow
-                }
-              >
-                Progreso
+              <span className={styles.orientationEyebrow}>
+                ORIENTACIÓN ACTUAL
               </span>
 
-              <strong>
-                {
-                  orientacionesCompletadas
-                }{" "}
-                de{" "}
-                {
-                  totalOrientaciones
-                }{" "}
-                respuestas completadas
-              </strong>
-
-              <p>
-                Cada lámina debe tener
-                respuesta en sus cuatro
-                orientaciones antes de
-                finalizar la evaluación.
-              </p>
-
-              <span
-                className={
-                  styles.finishSecondary
-                }
-              >
-                {
-                  cantidadCompletadas
-                }{" "}
-                de {totalLaminas}{" "}
-                láminas completas
-              </span>
+              <strong>{rotacion}°</strong>
             </div>
 
-            <div
-              className={
-                styles.finishAction
-              }
+            <span className={styles.slideCounter}>
+              Vista {orientacionIndex + 1} de {ROTACIONES.length}
+            </span>
+          </div>
+
+          {/* CARRUSEL */}
+
+          <div className={styles.carousel}>
+            <button
+              type="button"
+              className={styles.carouselArrow}
+              disabled={engine.inputLocked}
+              onClick={() => moverOrientacion(-1)}
+              aria-label="Orientación anterior"
             >
-              <BotonPersonalizado
-                onClick={finalizar}
-                disabled={
-                  enviando ||
-                  engine.inputLocked ||
-                  !testCompleto
-                }
-                variant="primary"
-              >
-                {enviando
-                  ? "Enviando..."
-                  : testCompleto
-                    ? "Finalizar Test"
-                    : `Faltan ${
-                        totalOrientaciones -
-                        orientacionesCompletadas
-                      }`}
-              </BotonPersonalizado>
+              ‹
+            </button>
+
+            <div className={styles.imageArea}>
+              <div className={styles.imageFrame}>
+                <img
+                  src={imagenActual}
+                  alt={`Lámina ${
+                    laminaActual + 1
+                  }, orientación ${rotacion} grados`}
+                  style={{
+                    transform: `rotate(${rotacion}deg)`,
+                  }}
+                />
+              </div>
             </div>
-          </footer>
-        </section>
-      </div>
+
+            <button
+              type="button"
+              className={styles.carouselArrow}
+              disabled={engine.inputLocked}
+              onClick={() => moverOrientacion(1)}
+              aria-label="Orientación siguiente"
+            >
+              ›
+            </button>
+          </div>
+
+          {/* NAVEGACIÓN POR ORIENTACIONES */}
+
+          <div
+            className={styles.orientationNav}
+            aria-label="Orientaciones disponibles"
+          >
+            {ROTACIONES.map((angulo, index) => {
+              const activa = index === orientacionIndex;
+
+              const respondida =
+                respuestas[laminaActual].orientaciones[index].respuesta.trim()
+                  .length > 0;
+
+              const estado = activa
+                ? styles.orientationButtonActive
+                : respondida
+                  ? styles.orientationButtonAnswered
+                  : styles.orientationButtonPending;
+
+              return (
+                <button
+                  key={angulo}
+                  type="button"
+                  disabled={engine.inputLocked}
+                  onClick={() => cambiarOrientacion(index)}
+                  className={`${styles.orientationButton} ${estado}`}
+                  aria-current={activa ? "true" : undefined}
+                  aria-label={
+                    `Orientación ${angulo} grados, ` +
+                    (respondida ? "respondida" : "pendiente")
+                  }
+                >
+                  <strong>{angulo}°</strong>
+
+                  <small>{respondida ? "✓ Respondida" : "Pendiente"}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* CAMPO DE RESPUESTA */}
+
+          <div className={styles.answerArea}>
+            <div className={styles.answerHeader}>
+              <div>
+                <span className={styles.answerEyebrow}>TU RESPUESTA</span>
+
+                <label htmlFor={`respuesta-${laminaActual}-${rotacion}`}>
+                  Lámina {laminaActual + 1} · Orientación {rotacion}°
+                </label>
+
+                <p>
+                  Describa qué ve, siente o piensa al observar esta orientación.
+                </p>
+              </div>
+
+              <span className={styles.characterCount}>
+                {respuestaActual.length} caracteres
+              </span>
+            </div>
+
+            <textarea
+              id={`respuesta-${laminaActual}-${rotacion}`}
+              className={styles.textarea}
+              disabled={engine.inputLocked}
+              placeholder="Escriba aquí lo que percibe al observar la imagen..."
+              value={respuestaActual}
+              onChange={(event) =>
+                handleChange(laminaActual, orientacionIndex, event.target.value)
+              }
+            />
+
+            <div className={styles.answerFooter}>
+              <span>Lámina {laminaActual + 1}</span>
+
+              <span aria-hidden="true">·</span>
+
+              <span>Orientación {rotacion}°</span>
+
+              {respuestaActual.trim() && (
+                <span className={styles.savedIndicator}>✓ Respondida</span>
+              )}
+            </div>
+          </div>
+        </article>
+
+        {/* NAVEGACIÓN INFERIOR */}
+
+        <TestNavigationFooter
+          actual={laminaActual}
+          total={totalLaminas}
+          respondidas={orientacionesCompletadas}
+          totalRespuestas={totalOrientaciones}
+          onPrevious={() => irALamina(laminaActual - 1)}
+          onNext={() => irALamina(laminaActual + 1)}
+          onFinish={finalizar}
+          disabled={engine.inputLocked}
+          enviando={enviando}
+          itemLabel="Lámina"
+          descripcion="Para finalizar, cada lámina debe tener respuesta en sus cuatro orientaciones."
+          detalleProgreso={`${cantidadCompletadas} de ${totalLaminas} láminas completas`}
+        />
+      </section>
     </main>
   );
 }
