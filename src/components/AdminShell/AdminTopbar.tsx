@@ -31,8 +31,8 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 import logo from "../../assets/images/logo.svg";
-import logoText from "../../assets/icons/JOIN SOLUTION -  Nombre.svg";
-import logoTextDark from "../../assets/icons/JOIN SOLUTION -  Nombre (para darkmode).svg";
+import logoText from "../../assets/Icons/JOIN SOLUTION -  Nombre.svg";
+import logoTextDark from "../../assets/Icons/JOIN SOLUTION -  Nombre (para darkmode).svg";
 
 import styles from "./AdminTopbar.module.css";
 
